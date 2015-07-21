@@ -28,7 +28,6 @@
                      }
                     ]).
 -define(BINDINGS(HN), [{'freeswitch', [{'restrict_to', ['key']}
-%                                        ,{'hostname', HN}
                                       ]}
                       ]).
 -define(QUEUE_NAME(HN), <<"fs_amqp_shared_listener_", HN/binary>>).
