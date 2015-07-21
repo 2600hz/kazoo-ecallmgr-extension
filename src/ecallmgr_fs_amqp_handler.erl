@@ -22,5 +22,5 @@ handle_req(JObj, Props) ->
                   ,{<<"Switch-URI">>, props:get_value('Switch-URI', Props)}
                   | wh_json:to_proplist(JObj)
                  ],
-    lager:debug("processing freeswitch amqp event ~s , ~s, ~s", [Event, UUID]),
+    lager:debug("processing freeswitch amqp event ~s for callid ~s", [Event, UUID]),
     ecallmgr_call_events:process_channel_event(EventProps).
