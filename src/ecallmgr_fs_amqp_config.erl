@@ -82,7 +82,7 @@ amqp_settings_el(JObj) ->
     EventFilter = amqp_event_filter(JObj),
     Params = wh_json:set_value(<<"event_filter">>, EventFilter, wh_json:get_value(<<"params">>, JObj, wh_json:new())),
     lists:foldl(fun(Key, Xml) ->
-                        Value = wh_json:get_value(Key, Params),
+                        Value = wh_json:get_binary_value(Key, Params),
                         Name = wh_util:to_lower_binary(Key),
                         [#xmlElement{name='param'
                                      ,attributes=[ecallmgr_fs_xml:xml_attrib('name', Name)

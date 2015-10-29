@@ -16,7 +16,7 @@
 -include_lib("whistle/include/wh_api.hrl").
 
 -define(EXCHANGE_FREESWITCH, <<"freeswitch">>).
--define(TYPE_FREESWITCH, <<"fanout">>).
+-define(TYPE_FREESWITCH, <<"topic">>).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -55,31 +55,21 @@ unbind_q(Queue, [_|Restrict], Props) ->
 unbind_q(_, [], _) -> 'ok'.
 
 
-routing_key_format() -> <<"#FreeSWITCH,FreeSWITCH-Hostname,Event-Name,Event-Subclass,Unique-ID">>.
+routing_key_format() -> <<"#FreeSWITCH,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID">>.
     
 
 routing_key(Props) ->
     routing_key(props:get_value('hostname', Props, <<"*">>)
                 ,props:get_value('event', Props, <<"*">>)
-                ,props:get_value('subclass', Props, <<"*">>)
                 ,props:get_value('callid', Props, <<"*">>)
                ).
 
-%% routing_key(Event, Subclass) ->
-%%     routing_key(props:get_value('hostname', Props, <<"*">>)
-%%                 ,Event
-%%                 ,Subclass
-%%                 ,props:get_value('callid', Props, <<"*">>)
-%%                ).
-
-routing_key(Hostname, Event, _Subclass, CallId) ->
+routing_key(Hostname, Event, CallId) ->
     list_to_binary([<<"FreeSWITCH.">>
                       ,amqp_util:encode(Hostname)
                       ,"."
                       ,amqp_util:encode(Event)
                       ,"."
-%                      ,amqp_util:encode(Subclass)
-%                      ,"."
                       ,amqp_util:encode(CallId)
                    ]).
 
@@ -90,5 +80,5 @@ routing_key(Hostname, Event, _Subclass, CallId) ->
 %%--------------------------------------------------------------------
 -spec declare_exchanges() -> 'ok'.
 declare_exchanges() ->
-    amqp_util:new_exchange(?EXCHANGE_FREESWITCH, ?TYPE_FREESWITCH, [{durable, 'true'}]).
+    amqp_util:new_exchange(?EXCHANGE_FREESWITCH, ?TYPE_FREESWITCH).
 
