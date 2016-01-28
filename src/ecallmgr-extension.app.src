@@ -1,0 +1,16 @@
+{application, 'ecallmgr-extension'
+ ,[
+   {description, "Extension to ecallmgr"}
+   ,{vsn, "4.0.0"}
+   ,{modules, []}
+   ,{registered, [ ]}
+   ,{applications, [ kernel
+                   , stdlib
+                   , crypto
+
+                   , whistle
+                   , whistle_amqp
+
+                   , lager
+                   ]}
+ ]}.

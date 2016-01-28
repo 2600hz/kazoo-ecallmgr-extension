@@ -1,51 +1,10 @@
-PROJECT = ecallmgr-extension
 ROOT = ../..
+PROJECT = ecallmgr-extension
 
-EBINS = $(shell find $(ROOT)/core/whistle-* -maxdepth 2 -name ebin -print) \
-	$(shell find $(ROOT)/core/kazoo_documents-* -maxdepth 2 -name ebin -print) \
-	$(shell find $(ROOT)/deps/lager-* -maxdepth 2 -name ebin -print) \
-	$(shell find $(ROOT)/deps/rabbitmq_client-* -maxdepth 2 -name ebin -print) \
-	$(shell find $(ROOT)/deps/nksip-* -maxdepth 2 -name ebin -print)
-PA = $(foreach EBIN,$(EBINS),-pa $(EBIN))
-
-ERLC_OPTS += -Werror +debug_info +warn_export_all $(PA)
-ERL_LIBS = $(subst $(eval) ,:,$(wildcard $(ROOT)/deps/rabbitmq_client-*/deps))
-
-.PHONY: all compile clean
+EBINS = $(wildcard $(ROOT)/core/kazoo_documents-*/ebin) \
+	$(shell find $(ROOT)/deps/rabbitmq_erlang_client-* -name ebin)
 
 all: compile
 
-MODULES = $(shell ls src/*.erl | sed 's/src\///;s/\.erl/,/' | sed '$$s/.$$//')
-TEST_MODULES = $(shell ls test/*.erl | sed 's/test\///;s/\.erl/,/' | sed '$$s/.$$//')
+-include $(ROOT)/make/kz.mk
 
-compile: ebin/$(PROJECT).app
-	@cat src/$(PROJECT).app.src \
-		| sed 's/{modules, \[\]}/{modules, \[$(MODULES)\]}/' \
-		> ebin/$(PROJECT).app
-	-@$(MAKE) ebin/$(PROJECT).app
-
-ebin/$(PROJECT).app: src/*.erl
-	@mkdir -p ebin/
-	ERL_LIBS=$(ERL_LIBS) erlc -v $(ERLC_OPTS) -o ebin/ -pa ebin/ $?
-
-compile-test: test/$(PROJECT).app
-	@cat src/$(PROJECT).app.src \
-		| sed 's/{modules, \[\]}/{modules, \[$(MODULES),$(TEST_MODULES)\]}/' \
-		> test/$(PROJECT).app
-	-@$(MAKE) test/$(PROJECT).app
-
-test/$(PROJECT).app: src/*.erl test/*.erl
-	@mkdir -p test/
-	erlc -v $(ERLC_OPTS) -DTEST -o test/ -pa test/ $?
-
-clean:
-	rm -f ebin/*
-	rm -f erl_crash.dump
-
-clean-test:
-	rm -f test/*.beam test/$(PROJECT).app
-
-test: clean-test compile-test eunit
-
-eunit: compile-test
-	erl -noshell $(PA) -pa test -eval "case eunit:test([$(TEST_MODULES),$(MODULES)], [verbose]) of 'ok' -> init:stop(); _ -> init:stop(1) end."
