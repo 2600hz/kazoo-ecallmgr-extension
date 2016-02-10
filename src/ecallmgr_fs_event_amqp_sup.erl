@@ -25,14 +25,14 @@
 %% @end
 %%--------------------------------------------------------------------
 -spec start_link(atom(), wh_proplist()) -> startlink_ret().
-start_link(Node, Options) -> 
+start_link(Node, Options) ->
     {'ok', Pid} = supervisor:start_link(?MODULE
                                         ,[Node, Options]
                                        ),
     Workers = ecallmgr_config:get_integer(<<"fs_amqp_listeners">>, 1),
     wh_util:spawn(fun() -> timer:sleep(1000),
-                           [supervisor:start_child(Pid, []) ||  _ <- lists:seq(1, Workers)]                          
-                          
+                           [supervisor:start_child(Pid, []) ||  _ <- lists:seq(1, Workers)]
+
                   end),
     {'ok', Pid}.
 

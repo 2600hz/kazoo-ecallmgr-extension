@@ -56,7 +56,7 @@ unbind_q(_, [], _) -> 'ok'.
 
 
 routing_key_format() -> <<"#FreeSWITCH,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID">>.
-    
+
 
 routing_key(Props) ->
     routing_key(props:get_value('hostname', Props, <<"*">>)

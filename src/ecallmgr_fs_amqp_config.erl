@@ -13,6 +13,10 @@
 -include_lib("whistle/include/wh_amqp.hrl").
 
 
+-define(AMQP_CAPABILITY, wh_json:from_list([{<<"module">>, <<"mod_amqp">>}
+                                            ,{<<"is_loaded">>, 'true'}
+                                            ,{<<"capability">>, <<"amqp">>}
+                                           ])).
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -28,6 +32,7 @@ handle_config_req(Node, Id, <<"amqp.conf">>, _Props) ->
             try amqp_conf_xml(JObj) of
                 {'ok', ConfigXml} ->
                     lager:debug("sending amqp XML to ~s: ~s", [Node, ConfigXml]),
+                    ecallmgr_fs_nodes:add_capability(Node, ?AMQP_CAPABILITY),
                     freeswitch:fetch_reply(Node, Id, 'configuration', erlang:iolist_to_binary(ConfigXml))
             catch
                 _E:_R ->

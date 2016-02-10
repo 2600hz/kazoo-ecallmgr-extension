@@ -97,8 +97,8 @@ handle_cast('check_sip_url', #state{node=Node
     try ecallmgr_fs_nodes:sip_url(Node) of
         'undefined' ->
             lager:debug("no sip url available yet for ~s", [Node]),
-            timer:sleep(2000),            
-            gen_server:cast(self(), 'check_sip_url'),            
+            timer:sleep(2000),
+            gen_server:cast(self(), 'check_sip_url'),
             {'noreply', State};
         SwitchURL ->
             [_, SwitchURIHost] = binary:split(SwitchURL, <<"@">>),
@@ -118,9 +118,15 @@ handle_cast('check_sip_url', #state{node=Node
     catch
         _E:_R ->
             lager:warning("failed to check sip_url for node ~s : ~p : ~p", [Node, _E, _R]),
-            timer:sleep(2000),            
-            gen_server:cast(self(), 'check_sip_url')            
-    end;    
+            timer:sleep(2000),
+            gen_server:cast(self(), 'check_sip_url')
+    end;
+handle_cast({'gen_listener',{'is_consuming',IsConsuming}}, #state{node=Node}=State) ->
+    case channel_pid(Node) of
+        'undefined' -> lager:warning("channel server for node ~s not found", [Node]);
+        Pid -> Pid ! {'option', <<"Publish-Channel-State">>, not IsConsuming}
+    end,
+    {'noreply', State};
 handle_cast(_Cast, State) ->
     lager:debug("unhandled cast: ~p", [_Cast]),
     {'noreply', State, 'hibernate'}.
@@ -180,3 +186,7 @@ terminate(_Reason, _State) ->
 %%--------------------------------------------------------------------
 code_change(_OldVsn, State, _Extra) ->
     {'ok', State}.
+
+-spec channel_pid(atom()) -> api_pid().
+channel_pid(Node) ->
+    ecallmgr_fs_node_sup:channel_srv(ecallmgr_fs_sup:find_node(Node)).
