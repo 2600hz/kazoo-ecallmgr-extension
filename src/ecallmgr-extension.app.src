@@ -8,8 +8,9 @@
                    , stdlib
                    , crypto
 
-                   , whistle
-                   , whistle_amqp
+                   , kazoo
+                   , kazoo_amqp
+                   , ecallmgr
 
                    , lager
                    ]}

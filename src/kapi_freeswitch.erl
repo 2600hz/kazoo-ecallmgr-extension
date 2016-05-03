@@ -5,7 +5,7 @@
 %%% @end
 %%% @contributors
 %%%-------------------------------------------------------------------
--module(wapi_freeswitch).
+-module(kapi_freeswitch).
 
 -export([bind_q/2
          ,unbind_q/2
@@ -13,7 +13,7 @@
 
 -export([declare_exchanges/0, routing_key_format/0]).
 
--include_lib("whistle/include/wh_api.hrl").
+-include_lib("kazoo/include/kz_api.hrl").
 
 -define(EXCHANGE_FREESWITCH, <<"freeswitch">>).
 -define(TYPE_FREESWITCH, <<"topic">>).
@@ -23,13 +23,13 @@
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec bind_q(ne_binary(), wh_proplist()) -> 'ok'.
+-spec bind_q(ne_binary(), kz_proplist()) -> 'ok'.
 bind_q(Queue, Props) ->
     declare_exchanges(),
     RestrictTo = props:get_value('restrict_to', Props),
     bind_q(Queue, RestrictTo, Props).
 
--spec bind_q(ne_binary(), api_binaries(), wh_proplist()) -> 'ok'.
+-spec bind_q(ne_binary(), api_binaries(), kz_proplist()) -> 'ok'.
 bind_q(Queue, 'undefined', _) ->
     amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
 bind_q(Queue, ['key'|Restrict], Props) ->
@@ -39,12 +39,12 @@ bind_q(Queue, [_|Restrict], Props) ->
     bind_q(Queue, Restrict, Props);
 bind_q(_, [], _) -> 'ok'.
 
--spec unbind_q(ne_binary(), wh_proplist()) -> 'ok'.
+-spec unbind_q(ne_binary(), kz_proplist()) -> 'ok'.
 unbind_q(Queue, Props) ->
     RestrictTo = props:get_value('restrict_to', Props),
     unbind_q(Queue, RestrictTo, Props).
 
--spec unbind_q(ne_binary(), api_binary(), wh_proplist()) -> 'ok'.
+-spec unbind_q(ne_binary(), api_binary(), kz_proplist()) -> 'ok'.
 unbind_q(Queue, 'undefined', _) ->
     amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
 unbind_q(Queue, ['key'|Restrict], Props) ->

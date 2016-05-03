@@ -48,7 +48,7 @@
 %%% API
 %%%===================================================================
 -spec start_link(atom()) -> startlink_ret().
--spec start_link(atom(), wh_proplist()) -> startlink_ret().
+-spec start_link(atom(), kz_proplist()) -> startlink_ret().
 
 start_link(Node) ->
     start_link(Node, []).
