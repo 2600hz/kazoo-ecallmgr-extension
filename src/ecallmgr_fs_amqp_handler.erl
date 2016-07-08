@@ -20,8 +20,8 @@ handle_req(JObj, Props) ->
     UUID = kz_json:get_value(<<"Unique-ID">>, JObj),
     Event = kz_json:get_value(<<"Event-Subclass">>, JObj, kz_json:get_value(<<"Event-Name">>, JObj)),
     EventProps = [{<<"Switch-URL">>, props:get_value('Switch-URL', Props)}
-                  ,{<<"Switch-URI">>, props:get_value('Switch-URI', Props)}
-                  ,{<<"Switch-Node">>, kz_util:to_binary(Node)}
+                 ,{<<"Switch-URI">>, props:get_value('Switch-URI', Props)}
+                 ,{<<"Switch-Node">>, kz_util:to_binary(Node)}
                   | kz_json:to_proplist(JObj)
                  ],
     process_event(Node, UUID, Event, EventProps).

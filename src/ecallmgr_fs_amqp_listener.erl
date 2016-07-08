@@ -13,22 +13,22 @@
 -export([start_link/1, start_link/2]).
 
 -export([init/1
-         ,handle_call/3
-         ,handle_cast/2
-         ,handle_info/2
-         ,handle_event/2
-         ,terminate/2
-         ,code_change/3
+        ,handle_call/3
+        ,handle_cast/2
+        ,handle_info/2
+        ,handle_event/2
+        ,terminate/2
+        ,code_change/3
         ]).
 
 -include("../../ecallmgr/src/ecallmgr.hrl").
 
 -define(RESPONDERS, [{'ecallmgr_fs_amqp_handler'
-                      ,[{<<"*">>, <<"*">>}]
+                     ,[{<<"*">>, <<"*">>}]
                      }
                     ]).
 -define(BINDINGS(HN), [{'freeswitch', [{'restrict_to', ['key']}
-                                       ,{'hostname', HN}
+                                      ,{'hostname', HN}
                                       ]}
                       ]).
 -define(QUEUE_NAME(HN), <<"fs_amqp_shared_listener_", HN/binary>>).
@@ -39,9 +39,9 @@
 
 
 -record(state, {node :: atom()
-                ,switch_url :: api_binary()
-                ,switch_uri :: api_binary()
-                ,switch_info = 'false' :: boolean()
+               ,switch_url :: api_binary()
+               ,switch_uri :: api_binary()
+               ,switch_info = 'false' :: boolean()
                }).
 
 %%%===================================================================
@@ -92,7 +92,7 @@ handle_call(_Request, _From, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast('check_sip_url', #state{node=Node
-                                    ,switch_info='false'
+                                   ,switch_info='false'
                                    }=State) ->
     try ecallmgr_fs_nodes:sip_url(Node) of
         'undefined' ->
@@ -105,15 +105,15 @@ handle_cast('check_sip_url', #state{node=Node
             SwitchURI = <<"sip:", SwitchURIHost/binary>>,
             Nodename = ecallmgr_fs_node:hostname(Node),
             Params = [{'responders', ?RESPONDERS}
-                      ,{'bindings', ?BINDINGS(Nodename)}
-                      ,{'queue_name', ?QUEUE_NAME(Nodename)}
-                      ,{'queue_options', ?QUEUE_OPTIONS}
-                      ,{'consume_options', ?CONSUME_OPTIONS}
+                     ,{'bindings', ?BINDINGS(Nodename)}
+                     ,{'queue_name', ?QUEUE_NAME(Nodename)}
+                     ,{'queue_options', ?QUEUE_OPTIONS}
+                     ,{'consume_options', ?CONSUME_OPTIONS}
                      ],
             gen_listener:start_listener(self(), Params),
             {'noreply', State#state{switch_uri=SwitchURI
-                                    ,switch_url=SwitchURL
-                                    ,switch_info='true'
+                                   ,switch_url=SwitchURL
+                                   ,switch_info='true'
                                    }}
     catch
         _E:_R ->
@@ -154,12 +154,12 @@ handle_info(_Info, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_event(_JObj, #state{node=FSNode
-                           ,switch_url=SwitchURL
-                           ,switch_uri=SwitchURI
+                          ,switch_url=SwitchURL
+                          ,switch_uri=SwitchURI
                           }) ->
     {'reply', [{'FSNode', FSNode}
-               ,{'Switch-URL', SwitchURL}
-               ,{'Switch-URI', SwitchURI}
+              ,{'Switch-URL', SwitchURL}
+              ,{'Switch-URI', SwitchURI}
               ]}.
 
 %%--------------------------------------------------------------------
