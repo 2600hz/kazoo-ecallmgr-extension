@@ -25,7 +25,6 @@
 %%--------------------------------------------------------------------
 -spec bind_q(ne_binary(), kz_proplist()) -> 'ok'.
 bind_q(Queue, Props) ->
-    declare_exchanges(),
     RestrictTo = props:get_value('restrict_to', Props),
     bind_q(Queue, RestrictTo, Props).
 

@@ -1,18 +1,23 @@
 %%%-------------------------------------------------------------------
-%%% @copyright (C) 2012-2015, 2600Hz, INC
+%%% @copyright (C) 2012-2016, 2600Hz, INC
 %%% @doc
 %%%
 %%% @end
 %%% @contributors
 %%%-------------------------------------------------------------------
--module(ecallmgr_fs_event_amqp_sup).
+-module(ecallmgr_ext_sup).
 
 -behaviour(supervisor).
 
 -include("ecallmgr-extension.hrl").
 
--export([start_link/2]).
+-define(SERVER, ?MODULE).
+
+-export([start_link/0]).
 -export([init/1]).
+
+-define(CHILDREN, [?WORKER('ecallmgr_ext_metaflow_listener')
+                  ]).
 
 %% ===================================================================
 %% API functions
@@ -20,21 +25,10 @@
 
 %%--------------------------------------------------------------------
 %% @public
-%% @doc
-%% Starts the supervisor
-%% @end
-%%--------------------------------------------------------------------
--spec start_link(atom(), kz_proplist()) -> startlink_ret().
-start_link(Node, Options) ->
-    {'ok', Pid} = supervisor:start_link(?MODULE
-                                       ,[Node, Options]
-                                       ),
-    Workers = ecallmgr_config:get_integer(<<"fs_amqp_listeners">>, 1),
-    kz_util:spawn(fun() -> timer:sleep(1000),
-                           [supervisor:start_child(Pid, []) ||  _ <- lists:seq(1, Workers)]
-
-                  end),
-    {'ok', Pid}.
+%% @doc Starts the supervisor
+-spec start_link() -> startlink_ret().
+start_link() ->
+    supervisor:start_link({'local', ?SERVER}, ?MODULE, []).
 
 %% ===================================================================
 %% Supervisor callbacks
@@ -49,10 +43,13 @@ start_link(Node, Options) ->
 %% specifications.
 %% @end
 %%--------------------------------------------------------------------
--spec init(list()) -> sup_init_ret().
-init([Node, Props]) ->
-    RestartStrategy = 'simple_one_for_one',
-    MaxRestarts = 0,
-    MaxSecondsBetweenRestarts = 1,
+-spec init(any()) -> sup_init_ret().
+init([]) ->
+    kz_util:set_startup(),
+    RestartStrategy = 'one_for_one',
+    MaxRestarts = 5,
+    MaxSecondsBetweenRestarts = 10,
+
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
-    {'ok', {SupFlags, [?WORKER_ARGS_TYPE('ecallmgr_fs_amqp_listener', [Node, Props], 'temporary')]}}.
+
+    {'ok', {SupFlags, ?CHILDREN}}.

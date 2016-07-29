@@ -9,8 +9,7 @@
 
 -export([handle_config_req/4]).
 
--include("../../ecallmgr/src/ecallmgr.hrl").
--include_lib("kazoo/include/kz_amqp.hrl").
+-include("ecallmgr-extension.hrl").
 
 
 -define(AMQP_CAPABILITY, kz_json:from_list([{<<"module">>, <<"mod_amqp">>}

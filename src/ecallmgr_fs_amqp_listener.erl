@@ -21,7 +21,7 @@
         ,code_change/3
         ]).
 
--include("../../ecallmgr/src/ecallmgr.hrl").
+-include("ecallmgr-extension.hrl").
 
 -define(RESPONDERS, [{'ecallmgr_fs_amqp_handler'
                      ,[{<<"*">>, <<"*">>}]
