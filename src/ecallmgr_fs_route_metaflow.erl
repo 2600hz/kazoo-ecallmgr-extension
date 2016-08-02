@@ -19,20 +19,6 @@
         ,code_change/3
         ]).
 
--compile(nowarn_unused_import).
-
-%% -import(ecallmgr_fs_xml, [action_el/1, action_el/2, action_el/3
-%%                          ,condition_el/1, condition_el/3
-%%                          ,extension_el/1, extension_el/3
-%%                          ,context_el/2
-%%                          ,variables_el/1, variable_el/2
-%%                          ,hunt_context/1, context/1, context/2
-%%                          ,config_el/2, config_el/3
-%%                          ,section_el/2, section_el/3
-%%                          ,params_el/1, param_el/2, maybe_param_el/2
-%%                          ,xml_attrib/2
-%%                          ]).
-
 -import(ecallmgr_fs_xml, [action_el/2
                          ,condition_el/1
                          ,context/2, context_el/2
@@ -139,7 +125,6 @@ handle_cast(_Msg, State) ->
 %%--------------------------------------------------------------------
 handle_info({'route', Section, <<"REQUEST_PARAMS">>, _SubClass, <<"metaflow">>, FSId, CallId, FSData},#state{node=Node}=State) ->
     lager:info("processing metaflow fetch request ~s (call ~s) from ~s", [FSId, CallId, Node]),
-    props:to_log(FSData, <<"METAFLOW_REQ">>),
     _ = kz_util:spawn(fun process_route_req/5, [Section, Node, FSId, CallId, FSData]),
     {'noreply', State, 'hibernate'};
 handle_info(_Other, State) ->
@@ -212,14 +197,10 @@ route_resp_xml(<<"application">>, _Routes, JObj, Props) ->
     Apps = app_data(JObj),
     Node = props:get_value(<<"FreeSWITCH-Node">>, Props),
     UUID = kzd_freeswitch:call_id(Props),
-    lager:debug("Apps ~p , ~p", [Node, Apps]),
-    X = apps_cmd(Node, UUID, Apps),
-    lager:debug("Apps2 ~p", [X]),
-    Y = [action_el(A1, A2) || {A1, A2} <- X],
-    lager:debug("Apps3 ~p", [Y]),
+    FSApps = apps_cmd(Node, UUID, Apps),
+    Actions = [action_el(App, AppArg) || {App, AppArg} <- FSApps],
     Exten = [route_resp_log_winning_node()
-%             |  [action_el(<<"park">>)]
-              | route_resp_ccvs(JObj) ++ Y
+              | route_resp_ccvs(JObj) ++ Actions
             ],
     ParkExtEl = extension_el(<<"metaflow">>, 'undefined', [condition_el(Exten)]),
     Context = context(JObj, Props),
@@ -241,10 +222,10 @@ common_headers(JObj) ->
 app_headers(JObj) ->
     props:filter_undefined(
       [{?KEY_EVENT_CATEGORY, <<"call">>}
-    ,{?KEY_EVENT_NAME, <<"command">>}
-    ,{<<"Custom-Channel-Vars">>, kz_json:get_value(<<"Custom-Channel-Vars">>, JObj)}
-    | common_headers(JObj)
-    ]).
+      ,{?KEY_EVENT_NAME, <<"command">>}
+      ,{<<"Custom-Channel-Vars">>, kz_json:get_value(<<"Custom-Channel-Vars">>, JObj)}
+      | common_headers(JObj)
+      ]).
 
 app_data(JObj) ->
     Headers = app_headers(JObj),

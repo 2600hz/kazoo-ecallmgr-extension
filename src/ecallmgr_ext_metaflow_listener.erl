@@ -160,7 +160,6 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 -spec handle_metaflow(kz_json:object(), kz_proplist()) -> no_return().
 handle_metaflow(JObj, _Props) ->
-    lager:debug("METAFLOW : ~p", [JObj]),
     'true' = kapi_dialplan:metaflow_v(JObj),
     UUID = metaflow_callid(JObj),
     kz_util:put_callid(UUID),
@@ -215,7 +214,6 @@ process_metaflow(UUID, JObj, Channel) ->
     send_api(Node, UUID, API).
 
 send_api(Node, UUID, API) ->
-    props:to_log([{AppName, kz_util:to_binary(AppData)} || {AppName, AppData} <- API], <<"DEBUG">>),
     [ecallmgr_util:send_cmd(Node, UUID, AppName, kz_util:to_binary(AppData)) || {AppName, AppData} <- API].
     
    
@@ -244,37 +242,6 @@ encode_pattern(BindingDigit, Pattern) ->
 
 encode_number(BindingDigit, Number) ->
     <<"'^", BindingDigit/binary, Number/binary, "$'">>.
-
-%% route_resp_meta_app() ->
-%% %    action_el(<<"bind_digit_action">>, [<<"dtmf_trigger,'~^\\*(\\d+)$',exec:execute_extension,$${last_matching_digits} metaflow,self,self">>]).
-%%     action_el(<<"bind_digit_action">>, [<<"dtmf_trigger,'~^\\*(\\d+)$',exec:execute_extension,METAFLOW_ROUTE_REQ XML metaflow,self,self">>]).
-%% %    action_el(<<"bind_digit_action">>, [<<"dtmf_trigger,'~^\\*(\\d+)#$',exec:execute_extension,METAFLOW_ROUTE_REQ XML metaflow,self,self">>]).
-
-
-
-%% sample() ->
-%%     Props = [{<<"Listen-On">>,<<"self">>}
-%%              ,{<<"Endpoint-ID">>,<<"5ad397c343f295140dd6480875ad8a7b">>}
-%%              ,{<<"Binding-Digit">>,<<"*">>}
-%%              ,{<<"Patterns">>, kz_json:from_list([{<<"^2(\\d*)$">>, kz_json:from_list([{<<"module">>,<<"transfer">>}
-%%                                                                                        ,{<<"data">>, kz_json:from_list([{<<"takeback_dtmf">>,<<"*1">>}
-%%                                                                                                                         ,{<<"moh">>,<<"240ca66262975808fb12bd3194b6fc88">>}
-%%                                                                                                                        ])
-%%                                                                                         }
-%%                                                                                       ])
-%%                                                   }
-%%                                                   ,{<<"^3([0-9]{11})$">>,kz_json:from_list([{<<"module">>,<<"transfer">>}
-%%                                                                                             ,{<<"data">>,kz_json:from_list([{<<"takeback_dtmf">>,<<"*1">>}
-%%                                                                                                                             ,{<<"moh">>,<<"240ca66262975808fb12bd3194b6fc88">>}
-%%                                                                                                                            ])
-%%                                                                                              }
-%%                                                                                            ])
-%%                                                    }
-%%                                                  ])
-%%               }
-%%             ],
-%%     kz_json:from_list(Props).
-
 
 -spec metaflow_callid(api_terms()) -> api_binary().
 metaflow_callid([_|_]=Props) ->
