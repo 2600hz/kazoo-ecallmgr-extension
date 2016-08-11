@@ -22,6 +22,7 @@
         ]).
 
 -include("ecallmgr-extension.hrl").
+-include("gen_listener_spec.hrl").
 
 -define(SERVER, ?MODULE).
 

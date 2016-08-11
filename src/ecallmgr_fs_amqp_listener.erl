@@ -22,6 +22,8 @@
         ]).
 
 -include("ecallmgr-extension.hrl").
+-include("gen_listener_spec.hrl").
+
 
 -define(RESPONDERS, [{'ecallmgr_fs_amqp_handler'
                      ,[{<<"*">>, <<"*">>}]

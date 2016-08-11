@@ -27,6 +27,7 @@
                          ]).
 
 -include("ecallmgr-extension.hrl").
+-include("gen_server_spec.hrl").
 
 -define(SERVER, ?MODULE).
 -define(DEFAULT_METAFLOW_CONTEXT, <<"metaflow">>).
@@ -176,6 +177,7 @@ add_metaflow_missing_props(Props) ->
                  ]),
     props:insert_values(AddProps, Props).
 
+-spec metaflow_number(binary()) -> binary().
 metaflow_number(<<"*", Number/binary>>) -> Number;
 metaflow_number(Number) -> Number.
 
@@ -193,6 +195,7 @@ do_process_route_req(Section, Node, FetchId, CallId, Props) ->
             lager:debug("xml fetch metaplan ~s finished with success", [FetchId])
     end.
 
+-spec route_resp_xml(ne_binary(), kz_json:objects(), kz_json:object(), kz_proplist()) -> {'ok', iolist()}.
 route_resp_xml(<<"application">>, _Routes, JObj, Props) ->
     Apps = app_data(JObj),
     Node = props:get_value(<<"FreeSWITCH-Node">>, Props),
@@ -212,6 +215,7 @@ route_resp_xml(<<"application">>, _Routes, JObj, Props) ->
 route_resp_log_winning_node() ->
     action_el(<<"log">>, [<<"NOTICE log|${uuid}|", (kz_util:to_binary(node()))/binary, " won metaflow control">>]).
 
+-spec common_headers(kz_json:object()) -> kz_proplist().
 common_headers(JObj) ->
     Headers = [?KEY_APP_NAME
               ,?KEY_APP_VERSION
@@ -219,6 +223,7 @@ common_headers(JObj) ->
               ],
     [{Header, kz_json:get_value(Header, JObj)}|| Header <- Headers].
 
+-spec app_headers(kz_json:object()) -> kz_proplist().
 app_headers(JObj) ->
     props:filter_undefined(
       [{?KEY_EVENT_CATEGORY, <<"call">>}
@@ -227,6 +232,7 @@ app_headers(JObj) ->
       | common_headers(JObj)
       ]).
 
+-spec app_data(kz_json:object()) -> kz_proplist().
 app_data(JObj) ->
     Headers = app_headers(JObj),
     [kz_json:set_values(Headers, App) || App <- kz_json:get_value(<<"Application-Data">>, JObj)].
@@ -234,6 +240,7 @@ app_data(JObj) ->
 apps_cmd(Node, UUID, Apps) ->
     lists:foldl(fun(App, Acc) -> Acc ++ app_cmd(Node, UUID, App) end, [], Apps).
 
+-spec app_cmd(atom(), binary(), kz_json:object()) -> list().
 app_cmd(Node, UUID, JObj) ->
     AppName = kz_json:get_value(<<"Application-Name">>, JObj),
     case ecallmgr_call_command:get_fs_app(Node, UUID, JObj, AppName) of

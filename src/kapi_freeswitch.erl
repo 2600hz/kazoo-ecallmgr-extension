@@ -54,15 +54,18 @@ unbind_q(Queue, [_|Restrict], Props) ->
 unbind_q(_, [], _) -> 'ok'.
 
 
+-spec routing_key_format() -> binary().
 routing_key_format() -> <<"#FreeSWITCH,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID">>.
 
 
+-spec routing_key(kz_proplist()) -> binary().
 routing_key(Props) ->
     routing_key(props:get_value('hostname', Props, <<"*">>)
 	       ,props:get_value('event', Props, <<"*">>)
 	       ,props:get_value('callid', Props, <<"*">>)
                ).
 
+-spec routing_key(binary(), binary(), binary()) -> binary().
 routing_key(Hostname, Event, CallId) ->
     list_to_binary([<<"FreeSWITCH.">>
 		   ,amqp_util:encode(Hostname)
