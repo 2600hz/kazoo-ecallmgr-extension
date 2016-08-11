@@ -39,6 +39,19 @@
 -define(QUEUE_OPTIONS, []).
 -define(CONSUME_OPTIONS, []).
 
+-type fetch_resp() :: kz_json:object() |
+                      kz_proplist() |
+                      channel().
+
+-type channel_fetch_reply() ::  {'ok', fetch_resp()} |          
+                                {'error', 'not_found'}.
+
+-type dialplan_action() :: {binary(), iolist() | binary() | list()}.
+-type dialplan() :: [dialplan_action()].
+
+-define(METAFLOW_PLAN_ACTION, <<"exec:execute_extension,METAFLOW_ROUTE_REQ XML metaflow">>).
+
+
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -165,13 +178,15 @@ handle_metaflow(JObj, _Props) ->
     UUID = metaflow_callid(JObj),
     kz_util:put_callid(UUID),
     maybe_process_metaflow(UUID, JObj, ecallmgr_fs_channel:fetch(UUID)).
-    
+
+-spec maybe_process_metaflow(api_binary(), kz_json:object(), channel_fetch_reply()) -> no_return().
 maybe_process_metaflow(_UUID, JObj, {'error', Error}) ->
     lager:debug("channel for metaflow metaflow not found (~p): ~p", [Error, JObj]);
 maybe_process_metaflow(UUID, JObj, {'ok', Channel}) ->
     lager:debug("channel for metaflow metaflow found : ~p : ~p", [Channel, JObj]),
     maybe_local_channel(UUID, JObj, Channel, kz_json:is_true(<<"handling_locally">>, Channel, 'false')).
 
+-spec maybe_local_channel(api_binary(), kz_json:object(), kz_json:object(), boolean()) -> no_return().
 maybe_local_channel(_UUID, _JObj, _Channel, 'false') ->
     lager:debug("channel for metaflow not handled locally");
 maybe_local_channel(UUID, JObj, Channel, 'true') ->
@@ -179,8 +194,7 @@ maybe_local_channel(UUID, JObj, Channel, 'true') ->
     process_metaflow(UUID, JObj, Channel).
 
 
--define(PLAN, <<"exec:execute_extension,METAFLOW_ROUTE_REQ XML metaflow">>).
-
+-spec process_metaflow(api_binary(), kz_json:object(), kz_json:object()) -> no_return().
 process_metaflow(UUID, JObj, Channel) ->
     Node = kz_json:get_atom_value(<<"switch_nodename">>, Channel),
     EndpointId = kz_json:get_value(<<"Endpoint-ID">>, JObj, kz_util:rand_hex_binary(16)),
@@ -197,14 +211,14 @@ process_metaflow(UUID, JObj, Channel) ->
           ]
 	++ [bind_digit_action(EndpointId
 			     ,encode_pattern(BindingDigit, remove_start_anchor(Pattern))
-			     ,?PLAN
+			     ,?METAFLOW_PLAN_ACTION
 			     ,TargetLeg
 			     ,EventLeg
 			     ) || Pattern <- kz_json:get_keys(Patterns)
 	   ]
     ++ [bind_digit_action(EndpointId
                  ,encode_number(BindingDigit, Number)
-                 ,?PLAN
+                 ,?METAFLOW_PLAN_ACTION
                  ,TargetLeg
                  ,EventLeg
                  ) || Number <- kz_json:get_keys(Numbers)
@@ -214,37 +228,46 @@ process_metaflow(UUID, JObj, Channel) ->
 	   ],
     send_api(Node, UUID, API).
 
+-spec send_api(atom(), ne_binary(), dialplan()) -> no_return().
 send_api(Node, UUID, API) ->
     [ecallmgr_util:send_cmd(Node, UUID, AppName, kz_util:to_binary(AppData)) || {AppName, AppData} <- API].
     
    
+-spec clear_bind_digit_action() -> dialplan_action().
 clear_bind_digit_action() ->
     {<<"clear_digit_action">>, <<>>}.
 
+-spec bind_digit_input_timeout(integer()) -> dialplan_action().
 bind_digit_input_timeout(Timeout) ->
     {<<"set">>, ["bind_digit_input_timeout=", kz_util:to_binary(Timeout)]}.
 
+-spec digit_action_set_realm(binary()) -> dialplan_action().
 digit_action_set_realm(Realm) ->
     {<<"digit_action_set_realm">>, Realm}.
 
+-spec bind_digit_action(binary(), binary(), binary(), binary(), binary()) -> dialplan_action().
 bind_digit_action(Realm, Action, Plan, TargetLeg, EventLeg) ->
     {<<"bind_digit_action">>, [Realm, ",", Action, ",", Plan, ",", TargetLeg, ",", EventLeg]}.
 
+-spec bind_digit_action_dummy_regex(binary()) -> dialplan_action().
 bind_digit_action_dummy_regex(Realm) ->
     {<<"bind_digit_action">>, [Realm, ",'~^######$',exec:execute_extension,METAFLOW_DUMMY_REQ XML metaflow,self,self"]}.
 
+-spec remove_start_anchor(binary()) -> binary().
 remove_start_anchor(<<"^", Pattern/binary>>) -> Pattern;
 remove_start_anchor(Pattern) -> Pattern.
 
+-spec encode_pattern(binary(), binary()) -> binary().
 encode_pattern(<<"*", _/binary>> = BindingDigit, Pattern) ->
     encode_pattern(<<"\\", BindingDigit/binary>>, Pattern);
 encode_pattern(BindingDigit, Pattern) ->
     <<"'~^", BindingDigit/binary, Pattern/binary, "'">>.
 
+-spec encode_number(binary(), binary()) -> binary().
 encode_number(BindingDigit, Number) ->
     <<"'^", BindingDigit/binary, Number/binary, "$'">>.
 
--spec metaflow_callid(api_terms()) -> api_binary().
+-spec metaflow_callid(api_terms()) -> ne_binary().
 metaflow_callid([_|_]=Props) ->
     case props:get_value(<<"Call-ID">>, Props) of
         'undefined' -> metaflow_callid(props:get_value(<<"Call">>, Props));

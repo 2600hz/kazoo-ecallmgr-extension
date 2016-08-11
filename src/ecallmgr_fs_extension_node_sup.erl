@@ -15,9 +15,14 @@
 
 -export([init/1]).
 
--define(CHILDREN, [<<"event_amqp_sup">>
-                  ,<<"route_metaflow">>
-                  ]).
+-define(NODE_CHILD_TYPE(Type), kz_json:from_list([{<<"type">>, Type}])).
+-define(NODE_WORKER, ?NODE_CHILD_TYPE(<<"worker">>)).
+-define(NODE_SUPERVISOR, ?NODE_CHILD_TYPE(<<"supervisor">>)).
+
+-define(CHILDREN, kz_json:from_list(
+            [{<<"event_amqp_sup">>, ?NODE_SUPERVISOR}
+            ,{<<"route_metaflow">>, ?NODE_WORKER}
+            ])).
 
 %% ===================================================================
 %% API functions
@@ -55,24 +60,19 @@ init([Node, Options]) ->
 
     NodeB = kz_util:to_binary(Node),
     Args = [Node, Options],
-    Children = [ child_name(NodeB, Args, H) || H <- ecallmgr_config:get(<<"extension_modules">>, ?CHILDREN)],
-
+    Modules = ecallmgr_config:get(<<"extension_modules">>, ?CHILDREN),
+    Children = kz_json:foldl(fun(Module, V, Acc) ->
+                                     Type = kz_json:get_ne_binary_value(<<"type">>, V),
+                                     [child_name(NodeB, Args, Module, Type) | Acc]
+                             end, [], Modules),
     {'ok', {SupFlags, Children}}.
 
--spec child_name(binary(), list(), binary() | tuple()) -> any().
-child_name(NodeB, Args, {<<"supervisor">>, Module}) ->
+-spec child_name(binary(), list(), binary(), binary()) -> any().
+child_name(NodeB, Args, Module, <<"supervisor">>) ->
     Name = kz_util:to_atom(<<NodeB/binary, "_", Module/binary>>, 'true'),
     Mod = kz_util:to_atom(<<"ecallmgr_fs_", Module/binary>>, 'true'),
     ?SUPER_NAME_ARGS(Mod, Name, Args);
-child_name(NodeB, Args, {<<"worker">>, Module}) ->
-    Name = kz_util:to_atom(<<NodeB/binary, "_", Module/binary>>, 'true'),
-    Mod = kz_util:to_atom(<<"ecallmgr_fs_", Module/binary>>, 'true'),
-    ?WORKER_NAME_ARGS(Mod, Name, Args);
-child_name(NodeB, Args, <<"event_amqp_sup">>=Module) ->
-    Name = kz_util:to_atom(<<NodeB/binary, "_", Module/binary>>, 'true'),
-    Mod = kz_util:to_atom(<<"ecallmgr_fs_", Module/binary>>, 'true'),
-    ?SUPER_NAME_ARGS(Mod, Name, Args);
-child_name(NodeB, Args, <<_/binary>>=Module) ->
+child_name(NodeB, Args, Module, <<"worker">>) ->
     Name = kz_util:to_atom(<<NodeB/binary, "_", Module/binary>>, 'true'),
     Mod = kz_util:to_atom(<<"ecallmgr_fs_", Module/binary>>, 'true'),
     ?WORKER_NAME_ARGS(Mod, Name, Args).
