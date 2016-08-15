@@ -220,6 +220,7 @@ common_headers(JObj) ->
     Headers = [?KEY_APP_NAME
               ,?KEY_APP_VERSION
               ,?KEY_MSG_ID
+              ,<<"From-Realm">>
               ],
     [{Header, kz_json:get_value(Header, JObj)}|| Header <- Headers].
 
