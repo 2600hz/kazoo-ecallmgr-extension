@@ -8,7 +8,7 @@
 -module(kapi_freeswitch).
 
 -export([bind_q/2
-         ,unbind_q/2
+	,unbind_q/2
         ]).
 
 -export([declare_exchanges/0, routing_key_format/0]).
@@ -25,7 +25,6 @@
 %%--------------------------------------------------------------------
 -spec bind_q(ne_binary(), kz_proplist()) -> 'ok'.
 bind_q(Queue, Props) ->
-    declare_exchanges(),
     RestrictTo = props:get_value('restrict_to', Props),
     bind_q(Queue, RestrictTo, Props).
 
@@ -55,22 +54,25 @@ unbind_q(Queue, [_|Restrict], Props) ->
 unbind_q(_, [], _) -> 'ok'.
 
 
+-spec routing_key_format() -> binary().
 routing_key_format() -> <<"#FreeSWITCH,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID">>.
 
 
+-spec routing_key(kz_proplist()) -> binary().
 routing_key(Props) ->
     routing_key(props:get_value('hostname', Props, <<"*">>)
-                ,props:get_value('event', Props, <<"*">>)
-                ,props:get_value('callid', Props, <<"*">>)
+	       ,props:get_value('event', Props, <<"*">>)
+	       ,props:get_value('callid', Props, <<"*">>)
                ).
 
+-spec routing_key(binary(), binary(), binary()) -> binary().
 routing_key(Hostname, Event, CallId) ->
     list_to_binary([<<"FreeSWITCH.">>
-                      ,amqp_util:encode(Hostname)
-                      ,"."
-                      ,amqp_util:encode(Event)
-                      ,"."
-                      ,amqp_util:encode(CallId)
+		   ,amqp_util:encode(Hostname)
+		   ,"."
+		   ,amqp_util:encode(Event)
+		   ,"."
+		   ,amqp_util:encode(CallId)
                    ]).
 
 %%--------------------------------------------------------------------

@@ -9,13 +9,12 @@
 
 -export([handle_config_req/4]).
 
--include("../../ecallmgr/src/ecallmgr.hrl").
--include_lib("kazoo/include/kz_amqp.hrl").
+-include("ecallmgr-extension.hrl").
 
 
 -define(AMQP_CAPABILITY, kz_json:from_list([{<<"module">>, <<"mod_amqp">>}
-                                            ,{<<"is_loaded">>, 'true'}
-                                            ,{<<"capability">>, <<"amqp">>}
+                                           ,{<<"is_loaded">>, 'true'}
+                                           ,{<<"capability">>, <<"amqp">>}
                                            ])).
 %%%===================================================================
 %%% API
@@ -59,7 +58,7 @@ amqp_conf_el(JObj) ->
     lists:foldl(fun(Key, Xml) ->
                         Part = kz_json:get_value(Key, JObj),
                         [#xmlElement{name=kz_util:to_atom(Key, 'true')
-                                     ,content=amqp_part_el(Part)
+                                    ,content=amqp_part_el(Part)
                                     }
                          | Xml
                         ]
@@ -69,8 +68,8 @@ amqp_part_el(JObj) ->
     lists:foldl(fun(Key, Xml) ->
                         Profile = kz_json:get_value(Key, JObj),
                         [#xmlElement{name='profile'
-                                     ,attributes=[ecallmgr_fs_xml:xml_attrib('name', Key)]
-                                     ,content=amqp_profile_el(Profile)
+                                    ,attributes=[ecallmgr_fs_xml:xml_attrib('name', Key)]
+                                    ,content=amqp_profile_el(Profile)
                                     }
                          | Xml
                         ]
@@ -78,9 +77,9 @@ amqp_part_el(JObj) ->
 
 amqp_profile_el(JObj) ->
     [amqp_connections_el()
-     ,#xmlElement{name='params'
-                  ,content=amqp_settings_el(JObj)
-                 }
+    ,#xmlElement{name='params'
+                ,content=amqp_settings_el(JObj)
+                }
     ].
 
 amqp_settings_el(JObj) ->
@@ -90,9 +89,9 @@ amqp_settings_el(JObj) ->
                         Value = kz_json:get_binary_value(Key, Params),
                         Name = kz_util:to_lower_binary(Key),
                         [#xmlElement{name='param'
-                                     ,attributes=[ecallmgr_fs_xml:xml_attrib('name', Name)
-                                                  ,ecallmgr_fs_xml:xml_attrib('value', Value)
-                                                 ]
+                                    ,attributes=[ecallmgr_fs_xml:xml_attrib('name', Name)
+                                                ,ecallmgr_fs_xml:xml_attrib('value', Value)
+                                                ]
                                     }
                          | Xml
                         ]
@@ -108,29 +107,29 @@ amqp_event_filter_fold(Ev, Acc) ->
 
 amqp_connections_el() ->
     #xmlElement{name='connections'
-                ,content=[amqp_connection_el()]
+               ,content=[amqp_connection_el()]
                }
-    .
+        .
 
 amqp_connection_el() ->
     #xmlElement{name='connection'
-                ,content=amqp_connection_params_el()
-                ,attributes=[ecallmgr_fs_xml:xml_attrib('name', <<"primary">>)]
+               ,content=amqp_connection_params_el()
+               ,attributes=[ecallmgr_fs_xml:xml_attrib('name', <<"primary">>)]
                }
-    .
+        .
 
 amqp_connection_params_el() ->
     Broker = kz_amqp_connections:primary_broker(),
     {'ok', #'amqp_params_network'{username=Username
-                           ,password=Password
-                           ,virtual_host=VHost
-                           ,host=Host
-                           ,port=Port
-                          }} = amqp_uri:parse(kz_util:to_list(Broker)),
+                                 ,password=Password
+                                 ,virtual_host=VHost
+                                 ,host=Host
+                                 ,port=Port
+                                 }} = amqp_uri:parse(kz_util:to_list(Broker)),
     lists:filter(fun kz_util:is_not_empty/1,
                  [ecallmgr_fs_xml:param_el("hostname", Host)
-                  ,ecallmgr_fs_xml:maybe_param_el("virtualhost", VHost)
-                  ,ecallmgr_fs_xml:maybe_param_el("username", Username)
-                  ,ecallmgr_fs_xml:maybe_param_el("password", Password)
-                  ,ecallmgr_fs_xml:maybe_param_el("port", Port)
+                 ,ecallmgr_fs_xml:maybe_param_el("virtualhost", VHost)
+                 ,ecallmgr_fs_xml:maybe_param_el("username", Username)
+                 ,ecallmgr_fs_xml:maybe_param_el("password", Password)
+                 ,ecallmgr_fs_xml:maybe_param_el("port", Port)
                  ]).
