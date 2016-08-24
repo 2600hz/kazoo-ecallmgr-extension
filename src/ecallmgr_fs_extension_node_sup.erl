@@ -22,6 +22,8 @@
 -define(CHILDREN, kz_json:from_list(
             [{<<"event_amqp_sup">>, ?NODE_SUPERVISOR}
             ,{<<"route_metaflow">>, ?NODE_WORKER}
+            ,{<<"bowout">>, ?NODE_WORKER}
+            ,{<<"metaflow">>, ?NODE_WORKER}
             ])).
 
 %% ===================================================================
@@ -60,7 +62,7 @@ init([Node, Options]) ->
 
     NodeB = kz_util:to_binary(Node),
     Args = [Node, Options],
-    Modules = ecallmgr_config:get(<<"extension_modules">>, ?CHILDREN),
+    Modules = kz_json:merge_jobjs(ecallmgr_config:get(<<"extension_modules">>, ?CHILDREN), ?CHILDREN),
     Children = kz_json:foldl(fun(Module, V, Acc) ->
                                      Type = kz_json:get_ne_binary_value(<<"type">>, V),
                                      [child_name(NodeB, Args, Module, Type) | Acc]

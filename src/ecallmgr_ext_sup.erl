@@ -16,8 +16,7 @@
 -export([start_link/0]).
 -export([init/1]).
 
--define(CHILDREN, [?WORKER('ecallmgr_ext_metaflow_listener')
-                  ]).
+-define(CHILDREN, []).
 
 %% ===================================================================
 %% API functions
