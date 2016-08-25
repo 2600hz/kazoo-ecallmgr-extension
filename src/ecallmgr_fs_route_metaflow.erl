@@ -203,7 +203,6 @@ init_metaflow_props(Node, Props) ->
 
 -spec add_metaflow_missing_props(kz_proplist()) -> kz_proplist().
 add_metaflow_missing_props(Props) ->
-    props:to_log(Props, <<"MISSING PROPS">>),
     Number = metaflow_number(props:get_value(?PROP_MATCHING_DIGITS, Props)),
     TargetLeg = props:get_value(?GET_VAR(?METAFLOW_TARGET_VAR), Props),
     Direction = case TargetLeg of
