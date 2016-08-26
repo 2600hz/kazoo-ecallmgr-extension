@@ -145,6 +145,12 @@ handle_cast(_Msg, State) ->
 handle_event(JObj, State) ->
     handle_event(kz_util:get_event_type(JObj), JObj, State).
 
+handle_event({<<"call">>, <<"command">>}, JObj, #state{node=Node}) ->
+    kz_util:spawn(fun ecallmgr_metaflow_control:handle_call_command/2, [JObj, Node]),
+    'ignore';
+handle_event(_, _, _) ->
+    'ignore'.
+
 %%--------------------------------------------------------------------
 %% @private
 %% @doc
@@ -210,7 +216,7 @@ add_metaflow_missing_props(Props) ->
                     <<"peer">> -> <<"inbound">>
                 end,
     CRHs = [{<<"Metaflow-Request">>, Number}
-           ,{<<"Control-Queue">>, props:get_value(<<"Control-Queue">>, Props)}
+           ,{<<"Other-Leg-Call-ID">>, kzd_freeswitch:other_leg_call_id(Props)}
            ],
     AddProps = props:filter_undefined(
                  [{<<"Resource-Type">>,<<"metaflow">>}
@@ -220,6 +226,8 @@ add_metaflow_missing_props(Props) ->
                  ,{<<"Hunt-Destination-Number">>, Number}
 
                  ]),
+    %% TODO
+    %% override request
     props:set_values(AddProps, Props).
 
 -spec metaflow_number(binary()) -> binary().
@@ -227,30 +235,54 @@ metaflow_number(<<"*", Number/binary>>) -> Number;
 metaflow_number(Number) -> Number.
 
 -spec process_route_req(atom(), atom(), ne_binary(), ne_binary(), kz_proplist()) -> 'ok'.
-process_route_req(Section, Node, FetchId, CallId, Props) ->
-    kz_util:put_callid(CallId),
-    do_process_route_req(Section, Node, FetchId, CallId, init_metaflow_props(Node, Props)).
+process_route_req(Section, Node, FetchId, UUID, Props) ->
+    kz_util:put_callid(UUID),
+    %% TODO remove ?
+    case ecallmgr_fs_channel:fetch(UUID, 'record') of
+        {'ok', #channel{handling_locally='true'}} ->
+            do_process_route_req(Section, Node, FetchId, UUID, init_metaflow_props(Node, Props));
+        {'ok', #channel{}} ->
+            lager:debug("channel ~s not processed locally, skipping", [UUID]);
+        {'error', 'not_found'} ->
+            lager:debug("channel ~s not found locally, skipping", [UUID])
+    end.
 
 -spec do_process_route_req(atom(), atom(), ne_binary(), ne_binary(), kz_proplist()) -> 'ok'.
 do_process_route_req(Section, Node, FetchId, CallId, Props) ->
     case ecallmgr_fs_router_util:search_for_route(Section, Node, FetchId, CallId, Props, 'false') of
-    'ok' ->
-            lager:debug("xml fetch metaplan ~s finished without success", [FetchId]);
-    {'ok', _JObj} ->
-            lager:debug("xml fetch metaplan ~s finished with success", [FetchId])
+        'ok' -> lager:debug("xml fetch metaplan ~s finished without success", [FetchId]);
+        {'ok', JObj} -> start_metaflow_handling(Node, FetchId, CallId, JObj, Props)
     end.
+
+-spec start_metaflow_handling(atom(), ne_binary(), ne_binary(), kz_json:object(), kz_proplist()) -> 'ok'.
+start_metaflow_handling(_Node, FetchId, CallId, JObj, Props) ->
+    ControlQ = props:get_value(<<"Control-Queue">>, Props),
+    CCVs = [{[<<"Custom-Channel-Vars">>, <<"Application-Name">>], kz_json:get_value(<<"App-Name">>, JObj)}
+           ,{[<<"Custom-Channel-Vars">>, <<"Application-Node">>], kz_json:get_value(<<"Node">>, JObj)}
+           ],
+    send_metaflow_win(ControlQ, FetchId, CallId, kz_json:set_values(CCVs, JObj)).
+
+-spec send_metaflow_win(ne_binary(), ne_binary(), ne_binary(), kz_json:object()) -> 'ok'.
+send_metaflow_win(ControlQ, FetchId, CallId, JObj) ->
+    ControllerQ = kz_api:server_id(JObj),
+    CCVs = kz_json:get_value(<<"Custom-Channel-Vars">>, JObj),
+    Win = [{<<"Msg-ID">>, FetchId}
+          ,{<<"Call-ID">>, CallId}
+          ,{<<"Control-Queue">>, ControlQ}
+          ,{<<"Custom-Channel-Vars">>, CCVs}
+           | kz_api:default_headers(ControlQ, <<"dialplan">>, <<"route_win">>, ?APP_NAME, ?APP_VERSION)
+          ],
+    lager:debug("sending metaflow route_win to ~s", [ControllerQ]),
+    Publisher = fun(API) -> kapi_route:publish_win(ControllerQ, API) end,
+    kz_amqp_worker:cast(Win, Publisher).
 
 -spec route_resp_xml(ne_binary(), kz_json:objects(), kz_json:object(), kz_proplist()) -> {'ok', iolist()}.
 route_resp_xml(<<"application">>, _Routes, JObj, Props) ->
     Node = props:get_value(<<"FreeSWITCH-Node">>, Props),
-%%    Apps = app_data(JObj),
-    Cmd = kz_json:get_value(<<"Application-Data">>, JObj),
-    DP = handle_application(Cmd, Node),
-    
-    Actions = [action_el(App, AppArg) || {App, AppArg} <- DP],
+    UUID = props:get_value(<<"Unique-UUID">>, Props),
     Exten = [route_resp_log_winning_node()
-%              | route_resp_ccvs(JObj) ++ Actions
-            ] ++ Actions,
+             | route_resp_ccvs(Node, UUID, JObj)
+            ],
     ParkExtEl = extension_el(<<"metaflow">>, 'undefined', [condition_el(Exten)]),
     Context = context(JObj, Props),
     ContextEl = context_el(Context, [ParkExtEl]),
@@ -261,106 +293,9 @@ route_resp_xml(<<"application">>, _Routes, JObj, Props) ->
 route_resp_log_winning_node() ->
     action_el(<<"log">>, [<<"NOTICE log|${uuid}|", (kz_util:to_binary(node()))/binary, " won metaflow control">>]).
 
-
-handle_application('undefined', _Node) -> [];
-handle_application(JObj, Node) ->
-    case kz_json:get_value(<<"Application-Name">>, JObj) of
-        <<"queue">> ->
-            'true' = kapi_dialplan:queue_v(JObj),
-            Commands = kz_json:get_value(<<"Commands">>, JObj, []),
-            DefJObj = kz_json:from_list(kz_api:extract_defaults(JObj)),
-            handle_queue_commands(Commands, DefJObj, Node, []);
-        _AName -> control_process('fetch_dialplan', JObj, Node)
+-spec route_resp_ccvs(atom(), ne_binary(), kz_json:object()) -> xml_els().
+route_resp_ccvs(Node, UUID, JObj) ->
+    case kz_json:get_value(<<"Custom-Channel-Vars">>, JObj) of
+        'undefined' -> [];
+        CCVs -> [action_el(<<"kz_multiset">>, ecallmgr_util:multi_set_args(Node, UUID, kz_json:to_proplist(CCVs)))]
     end.
-
-handle_queue_commands([], _, _Node, DP) -> DP;
-handle_queue_commands([Command|Commands], DefJObj, Node, DP) ->
-    case kz_json:is_empty(Command)
-        orelse kz_json:get_ne_value(<<"Application-Name">>, Command) =:= 'undefined'
-    of
-        'true' -> handle_queue_commands(Commands, DefJObj, Node, DP);
-        'false' ->
-            JObj = kz_json:merge_jobjs(Command, DefJObj),
-            'true' = kapi_dialplan:v(JObj),
-            Cmd = control_process('fetch_dialplan', JObj, Node),
-            handle_queue_commands(Commands, DefJObj, Node, DP ++ Cmd)
-    end.
-
-handle_event({<<"call">>, <<"command">>}, JObj, #state{node=Node}) ->
-    kz_util:spawn(fun handle_call_command/2, [JObj, Node]),
-    'ignore';
-handle_event(_, _, _) ->
-    'ignore'.
-
--spec handle_call_command(kz_json:object(), atom()) -> 'ok'.
-handle_call_command(JObj, Node) ->
-    case kz_json:get_value(<<"Application-Name">>, JObj) of
-        <<"queue">> ->
-            'true' = kapi_dialplan:queue_v(JObj),
-            Commands = kz_json:get_value(<<"Commands">>, JObj, []),
-            DefJObj = kz_json:from_list(kz_api:extract_defaults(JObj)),
-            DP = handle_queue_commands(Commands, DefJObj, Node, []),
-            UUID = kz_json:get_value(<<"Call-ID">>, JObj),
-            exec_dialplan(Node, UUID, DP);
-        _AName -> control_process('exec_cmd', JObj, Node)
-    end.
-
--spec control_process(atom(), kz_json:object(), atom()) -> 'ok'.
-control_process(Fun, Cmd, Node) ->
-    kz_util:put_callid(Cmd),
-    Category = kz_api:event_category(Cmd),
-    Event = kz_api:event_name(Cmd),
-
-    lager:debug("executing ~s ~s '~s' ~s"
-               ,[Category
-                ,Event
-                ,kz_json:get_value(<<"Application-Name">>, Cmd)
-                ,kz_json:get_value(<<"Msg-ID">>, Cmd, <<>>)
-                ]),
-    CallId = kz_json:get_value(<<"Call-ID">>, Cmd),
-    Mod = get_module(Category, Event),
-    try Mod:Fun(Node, CallId, Cmd, self())
-    catch
-        _:{'error', 'nosession'} ->
-            lager:debug("unable to execute command, no session");
-        'error':{'badmatch', {'error', 'nosession'}} ->
-            lager:debug("unable to execute command, no session");
-        'error':{'badmatch', {'error', ErrMsg}} ->
-            ST = erlang:get_stacktrace(),
-            lager:debug("invalid command ~s: ~p", [kz_json:get_value(<<"Application-Name">>, Cmd), ErrMsg]),
-            kz_util:log_stacktrace(ST);
-        'throw':{'msg', ErrMsg} ->
-            lager:debug("error while executing command ~s: ~s", [kz_json:get_value(<<"Application-Name">>, Cmd), ErrMsg]);
-        'throw':Msg ->
-            lager:debug("failed to execute ~s: ~s", [kz_json:get_value(<<"Application-Name">>, Cmd), Msg]);
-        _A:_B ->
-            ST = erlang:get_stacktrace(),
-            lager:debug("exception (~s) while executing ~s: ~p", [_A, kz_json:get_value(<<"Application-Name">>, Cmd), _B]),
-            kz_util:log_stacktrace(ST)
-    end.
-
-exec_dialplan(Node, UUID, DP) ->
-    [ecallmgr_util:send_cmd(Node, UUID, AppName, AppData) || {AppName, AppData} <- DP].
-
--spec get_module(ne_binary(), ne_binary()) -> atom().
-get_module(Category, Name) ->
-    ModuleName = <<"ecallmgr_", Category/binary, "_", Name/binary>>,
-    try kz_util:to_atom(ModuleName)
-    catch
-        'error':'badarg' ->
-            kz_util:to_atom(ModuleName, 'true')
-    end.
-
-%% -spec route_resp_ccvs(kz_json:object()) -> xml_els().
-%% route_resp_ccvs(JObj) ->
-%%     case kz_json:get_value(<<"Custom-Channel-Vars">>, JObj) of
-%%         'undefined' -> [];
-%%         CCVs -> [action_el(<<"kz_multiset">>, route_ccvs_list(kz_json:to_proplist(CCVs)) )]
-%%     end.
-%% 
-%% -spec route_ccvs_list(kz_proplist()) -> ne_binary().
-%% route_ccvs_list(CCVs) ->
-%%     L = [kz_util:to_list(ecallmgr_util:get_fs_kv(K, V))
-%%          || {K, V} <- CCVs
-%%         ],
-%%     <<"^^;", (kz_util:to_binary(string:join(L, ";")))/binary>>.
