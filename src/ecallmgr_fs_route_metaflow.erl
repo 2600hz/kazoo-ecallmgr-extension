@@ -46,7 +46,7 @@
 
 -define(BINDINGS, [{'self', []}
                   ,{'dialplan', []}
-                  ,{'metaflow', [{restrict_to, ['action']}]}
+                  ,{'metaflow', [{restrict_to, [action]}]}
                   ]).
 -define(RESPONDERS, []).
 -define(QUEUE_NAME, <<>>).
@@ -148,6 +148,11 @@ handle_event(JObj, State) ->
 handle_event({<<"call">>, <<"command">>}, JObj, #state{node=Node}) ->
     kz_util:spawn(fun ecallmgr_metaflow_control:handle_call_command/2, [JObj, Node]),
     'ignore';
+handle_event({<<"metaflow">>, <<"action">>}, JObj, #state{node=Node
+                                                         ,control_q=CtrlQ
+                                                         }) ->
+    kz_util:spawn(fun ecallmgr_metaflow_action:handle_metaflow_action/3, [JObj, CtrlQ, Node]),
+    'ignore';
 handle_event(_, _, _) ->
     'ignore'.
 
@@ -215,19 +220,19 @@ add_metaflow_missing_props(Props) ->
                     <<"self">> -> <<"outbound">>;
                     <<"peer">> -> <<"inbound">>
                 end,
-    CRHs = [{<<"Metaflow-Request">>, Number}
+    CRHs = [{<<"Metaflow-Request-Type">>, <<"in-call">>}
+           ,{<<"Metaflow-Request">>, Number}
            ,{<<"Other-Leg-Call-ID">>, kzd_freeswitch:other_leg_call_id(Props)}
            ],
     AddProps = props:filter_undefined(
                  [{<<"Resource-Type">>,<<"metaflow">>}
                  ,{<<"Custom-Routing-Headers">>, kz_json:from_list(CRHs)}
-                 ,{<<"Route-Resp-Xml-Fun">>, fun route_resp_xml/4 }
+                 ,{<<"Route-Resp-Xml-Fun">>, fun route_resp_xml/4}
                  ,{<<"Application-Logical-Direction">>, Direction}
                  ,{<<"Hunt-Destination-Number">>, Number}
-
                  ]),
     %% TODO
-    %% override request
+    %% override request to simplify things and handling on konami-pro ?
     props:set_values(AddProps, Props).
 
 -spec metaflow_number(binary()) -> binary().
@@ -235,23 +240,12 @@ metaflow_number(<<"*", Number/binary>>) -> Number;
 metaflow_number(Number) -> Number.
 
 -spec process_route_req(atom(), atom(), ne_binary(), ne_binary(), kz_proplist()) -> 'ok'.
-process_route_req(Section, Node, FetchId, UUID, Props) ->
+process_route_req(Section, Node, FetchId, UUID, FSProps) ->
     kz_util:put_callid(UUID),
-    %% TODO remove ?
-    case ecallmgr_fs_channel:fetch(UUID, 'record') of
-        {'ok', #channel{handling_locally='true'}} ->
-            do_process_route_req(Section, Node, FetchId, UUID, init_metaflow_props(Node, Props));
-        {'ok', #channel{}} ->
-            lager:debug("channel ~s not processed locally, skipping", [UUID]);
-        {'error', 'not_found'} ->
-            lager:debug("channel ~s not found locally, skipping", [UUID])
-    end.
-
--spec do_process_route_req(atom(), atom(), ne_binary(), ne_binary(), kz_proplist()) -> 'ok'.
-do_process_route_req(Section, Node, FetchId, CallId, Props) ->
-    case ecallmgr_fs_router_util:search_for_route(Section, Node, FetchId, CallId, Props, 'false') of
+    Props = init_metaflow_props(Node, FSProps),
+    case ecallmgr_fs_router_util:search_for_route(Section, Node, FetchId, UUID, Props, 'false') of
         'ok' -> lager:debug("xml fetch metaplan ~s finished without success", [FetchId]);
-        {'ok', JObj} -> start_metaflow_handling(Node, FetchId, CallId, JObj, Props)
+        {'ok', JObj} -> start_metaflow_handling(Node, FetchId, UUID, JObj, Props)
     end.
 
 -spec start_metaflow_handling(atom(), ne_binary(), ne_binary(), kz_json:object(), kz_proplist()) -> 'ok'.
