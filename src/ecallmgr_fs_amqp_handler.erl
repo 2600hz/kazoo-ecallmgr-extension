@@ -25,7 +25,23 @@ handle_req(JObj, Props) ->
                  ,{<<"Switch-Node">>, kz_util:to_binary(Node)}
                   | kz_json:to_proplist(JObj)
                  ],
-    process_event(Node, UUID, Event, EventProps).
+    process_event(Node, UUID, Event, decode(EventProps)).
+
+-spec decode(kz_proplist()) -> kz_proplist().
+decode(Props) ->
+    lists:map(fun url_decode/1, Props).
+
+-spec url_decode(tuple() | binary()) -> tuple() | binary().
+url_decode({K, V})
+  when is_binary(V) ->
+    {K, kz_util:uri_decode(V)};
+url_decode({K, V})
+  when is_list(V) ->
+    {K, lists:map(fun url_decode/1, V)};
+url_decode(V)
+  when is_binary(V)->
+    kz_util:uri_decode(V);
+url_decode(KV) -> KV.
 
 process_event(Node, UUID, <<"CHANNEL_CREATE">> = Event, Props) ->
     NewProps = ecallmgr_fs_loopback:filter(Node, UUID, Props),
