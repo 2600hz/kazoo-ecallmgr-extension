@@ -32,15 +32,23 @@ decode(Props) ->
     lists:map(fun url_decode/1, Props).
 
 -spec url_decode(tuple() | binary()) -> tuple() | binary().
-url_decode({K, V})
+url_decode({K, V}=KV)
   when is_binary(V) ->
-    {K, kz_util:uri_decode(V)};
+    try kz_util:uri_decode(V) of
+        V1 -> {K, V1}
+    catch
+        _:_ -> KV
+    end;
 url_decode({K, V})
   when is_list(V) ->
     {K, lists:map(fun url_decode/1, V)};
 url_decode(V)
   when is_binary(V)->
-    kz_util:uri_decode(V);
+    try kz_util:uri_decode(V) of
+        V1 -> V1
+    catch
+        _:_ -> V
+    end;
 url_decode(KV) -> KV.
 
 process_event(Node, UUID, <<"CHANNEL_CREATE">> = Event, Props) ->
