@@ -46,7 +46,7 @@
 
 -define(BINDINGS, [{'self', []}
                   ,{'dialplan', []}
-                  ,{'metaflow', [{restrict_to, [action]}]}
+                  ,{'metaflow', [{restrict_to, [flow]}]}
                   ]).
 -define(RESPONDERS, []).
 -define(QUEUE_NAME, <<>>).
@@ -152,6 +152,11 @@ handle_event({<<"metaflow">>, <<"action">>}, JObj, #state{node=Node
                                                          ,control_q=CtrlQ
                                                          }) ->
     kz_util:spawn(fun ecallmgr_metaflow_action:handle_metaflow_action/3, [JObj, CtrlQ, Node]),
+    'ignore';
+handle_event({<<"metaflow">>, <<"flow">>}, JObj, #state{node=Node
+                                                       ,control_q=CtrlQ
+                                                       }) ->
+    kz_util:spawn(fun ecallmgr_metaflow_flow:handle_metaflow_flow/3, [JObj, CtrlQ, Node]),
     'ignore';
 handle_event(_, _, _) ->
     'ignore'.
