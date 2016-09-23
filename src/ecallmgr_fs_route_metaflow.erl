@@ -46,7 +46,7 @@
 
 -define(BINDINGS, [{'self', []}
                   ,{'dialplan', []}
-                  ,{'metaflow', [{restrict_to, [flow]}]}
+                  ,{'metaflow', [{restrict_to, ['action', 'flow']}]}
                   ]).
 -define(RESPONDERS, []).
 -define(QUEUE_NAME, <<>>).
