@@ -4,6 +4,6 @@
    ,{vsn, "4.0.0"}
    ,{modules, []}
    ,{registered, [ ]}
-   ,{applications, [ ecallmgr ]}
+   ,{applications, [ kazoo_apps, ecallmgr]}
   , {mod, {ecallmgr_ext_app, []}}
  ]}.
