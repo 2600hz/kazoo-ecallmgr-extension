@@ -20,13 +20,13 @@
         ]).
 
 -include("ecallmgr-extension.hrl").
+-include("gen_server_spec.hrl").
 
 -define(SERVER, ?MODULE).
 
 -record(state, {node = 'undefined' :: atom()
                ,options = [] :: kz_proplist()
                }).
--type state() :: #state{}.
 
 %%%===================================================================
 %%% API
@@ -56,7 +56,6 @@ start_link(Node, Options) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
--spec init(list()) -> {'ok', state()}.
 init([Node, Options]) ->
     kz_util:put_callid(Node),
     gen_server:cast(self(), 'bind_to_events'),
