@@ -5,5 +5,33 @@
    ,{modules, []}
    ,{registered, [ ]}
    ,{applications, [ kazoo_apps, ecallmgr]}
-  , {mod, {ecallmgr_ext_app, []}}
+   ,{mod, {ecallmgr_ext_app, []}}
+   ,{env, [{amqp, {producers, [{channel_state, [{events, ["CHANNEL_CREATE"
+                                                         ,"CHANNEL_ANSWER"
+                                                         ,"CHANNEL_DESTROY"
+                                                         ,"CHANNEL_BRIDGE"
+                                                         ,"CHANNEL_UNBRIDGE"
+                                                         ,"CALL_UPDATE"
+                                                         ]}
+                                               ,{params, [{"exchange-type", "topic"}
+                                                         ,{"exchange-name", "freeswitch"}
+                                                         ,{"exchange-durable", false}
+                                                         ,{"content-type", "application/json"}
+                                                         ,{"delivery-timestamp", false}
+                                                         ,{"delivery-mode", 0}
+                                                         ,{"circuit_breaker_ms", 10000}
+                                                         ,{"reconnect_interval_ms", 1}
+                                                         ,{"send_queue_size", 25000}
+                                                         ,{"enable_fallback_format_fields", 1}
+                                                         ,{"format_fields", "#FreeSWITCH,#channel_state,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID|#Core-UUID"}
+                                                         ]}
+                                               ]}
+                              ]}
+           }
+          ,{node_modules, ["event_amqp_sup"
+                          ,"route_metaflow"
+                          ,"bowout"
+                          ,"metaflow"
+                          ]}
+          ]}
  ]}.

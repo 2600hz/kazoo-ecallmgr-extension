@@ -40,12 +40,7 @@ handle_config_req(Node, Id, <<"amqp.conf">>, _Props) ->
                     {'ok', Resp} = ecallmgr_fs_xml:not_found(),
                     freeswitch:fetch_reply(Node, Id, 'configuration', iolist_to_binary(Resp))
             end
-    end;
-handle_config_req(Node,  Id, _Conf, _) ->
-    kz_util:put_callid(Id),
-    lager:debug("ignoring conf ~s: ~s", [_Conf, Id]),
-    {'ok', Resp} = ecallmgr_fs_xml:not_found(),
-    freeswitch:fetch_reply(Node, Id, 'configuration', iolist_to_binary(Resp)).
+    end.
 
 -spec amqp_conf_xml(kz_json:object()) -> {'ok', iolist()}.
 amqp_conf_xml(JObj) ->
