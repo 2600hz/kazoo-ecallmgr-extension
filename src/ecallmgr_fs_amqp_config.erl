@@ -23,11 +23,9 @@
 -spec handle_config_req(atom(), ne_binary(), ne_binary(), kz_proplist() | 'undefined') -> fs_sendmsg_ret().
 handle_config_req(Node, Id, <<"amqp.conf">>, _Props) ->
     kz_util:put_callid(Id),
-    case ecallmgr_config:get(<<"amqp">>) of
-        'undefined' ->
-            {'ok', Resp} = ecallmgr_fs_xml:not_found(),
-            freeswitch:fetch_reply(Node, Id, 'configuration', iolist_to_binary(Resp));
-        JObj ->
+    lager:debug("AMQP CONFIG"),
+    JObj = ecallmgr_fs_amqp:amqp_producers(),
+    lager:debug("AMQP CONFIG2 ~p", [JObj]),
             try amqp_conf_xml(JObj) of
                 {'ok', ConfigXml} ->
                     lager:debug("sending amqp XML to ~s: ~s", [Node, ConfigXml]),
@@ -39,13 +37,7 @@ handle_config_req(Node, Id, <<"amqp.conf">>, _Props) ->
                     kz_util:log_stacktrace(),
                     {'ok', Resp} = ecallmgr_fs_xml:not_found(),
                     freeswitch:fetch_reply(Node, Id, 'configuration', iolist_to_binary(Resp))
-            end
-    end;
-handle_config_req(Node,  Id, _Conf, _) ->
-    kz_util:put_callid(Id),
-    lager:debug("ignoring conf ~s: ~s", [_Conf, Id]),
-    {'ok', Resp} = ecallmgr_fs_xml:not_found(),
-    freeswitch:fetch_reply(Node, Id, 'configuration', iolist_to_binary(Resp)).
+            end.
 
 -spec amqp_conf_xml(kz_json:object()) -> {'ok', iolist()}.
 amqp_conf_xml(JObj) ->
@@ -57,7 +49,7 @@ amqp_conf_xml(JObj) ->
 amqp_conf_el(JObj) ->
     lists:foldl(fun(Key, Xml) ->
                         Part = kz_json:get_value(Key, JObj),
-                        [#xmlElement{name=kz_util:to_atom(Key, 'true')
+                        [#xmlElement{name=kz_term:to_atom(Key, 'true')
                                     ,content=amqp_part_el(Part)
                                     }
                          | Xml
@@ -87,7 +79,7 @@ amqp_settings_el(JObj) ->
     Params = kz_json:set_value(<<"event_filter">>, EventFilter, kz_json:get_value(<<"params">>, JObj, kz_json:new())),
     lists:foldl(fun(Key, Xml) ->
                         Value = kz_json:get_binary_value(Key, Params),
-                        Name = kz_util:to_lower_binary(Key),
+                        Name = kz_term:to_lower_binary(Key),
                         [#xmlElement{name='param'
                                     ,attributes=[ecallmgr_fs_xml:xml_attrib('name', Name)
                                                 ,ecallmgr_fs_xml:xml_attrib('value', Value)
@@ -100,10 +92,10 @@ amqp_settings_el(JObj) ->
 amqp_event_filter(JObj) ->
     Events = kz_json:get_value(<<"events">>, JObj, []),
     EventFilter = lists:foldl(fun amqp_event_filter_fold/2, [], Events),
-    kz_util:to_binary(string:join(EventFilter, ",")).
+    kz_term:to_binary(string:join(EventFilter, ",")).
 
 amqp_event_filter_fold(Ev, Acc) ->
-    [ kz_util:to_list(<<"SWITCH_EVENT_", Ev/binary>>) | Acc].
+    [ kz_term:to_list(<<"SWITCH_EVENT_", Ev/binary>>) | Acc].
 
 amqp_connections_el() ->
     #xmlElement{name='connections'
@@ -125,8 +117,8 @@ amqp_connection_params_el() ->
                                  ,virtual_host=VHost
                                  ,host=Host
                                  ,port=Port
-                                 }} = amqp_uri:parse(kz_util:to_list(Broker)),
-    lists:filter(fun kz_util:is_not_empty/1,
+                                 }} = amqp_uri:parse(kz_term:to_list(Broker)),
+    lists:filter(fun kz_term:is_not_empty/1,
                  [ecallmgr_fs_xml:param_el("hostname", Host)
                  ,ecallmgr_fs_xml:maybe_param_el("virtualhost", VHost)
                  ,ecallmgr_fs_xml:maybe_param_el("username", Username)

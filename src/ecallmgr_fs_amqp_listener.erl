@@ -10,7 +10,7 @@
 
 -behaviour(gen_listener).
 
--export([start_link/1, start_link/2]).
+-export([start_link/3]).
 
 -export([init/1
         ,handle_call/3
@@ -29,34 +29,40 @@
                      ,[{<<"*">>, <<"*">>}]
                      }
                     ]).
--define(BINDINGS(HN), [{'freeswitch', [{'restrict_to', ['key']}
-                                      ,{'hostname', HN}
-                                      ]}
+-define(BINDINGS(HN, P), [{'freeswitch', [{'restrict_to', ['key']}
+                                         ,{'hostname', HN}
+                                         ,{'profile', P}
+                                         ]}
                       ]).
--define(QUEUE_NAME(HN), <<"fs_amqp_shared_listener_", HN/binary>>).
+-define(QUEUE_NAME(HN, P), <<"fs_amqp_", P/binary, "_shared_listener_", HN/binary>>).
 -define(QUEUE_OPTIONS, [{'exclusive', 'false'}]).
 -define(CONSUME_OPTIONS, [{'exclusive', 'false'}]).
 
 -define(SERVER, ?MODULE).
 
+-define(HEARTBEAT_TIMER_MS, 15 * ?MILLISECONDS_IN_SECOND).
+-define(HEARTBEAT_MAX_ELAPSED_MS, 45 * ?MILLISECONDS_IN_SECOND).
 
 -record(state, {node :: atom()
                ,switch_url :: api_binary()
                ,switch_uri :: api_binary()
                ,switch_info = 'false' :: boolean()
+               ,options :: kz_proplist()
+               ,profile :: ne_binary()
+               ,events :: ne_binaries()
+               ,timer = 'undefined' :: timer:tref() | 'undefined'
+               ,heartbeat = 0 :: integer()
+               ,active = 'false' :: boolean()
                }).
+
+-type state() :: #state{}.
 
 %%%===================================================================
 %%% API
 %%%===================================================================
--spec start_link(atom()) -> startlink_ret().
--spec start_link(atom(), kz_proplist()) -> startlink_ret().
-
-start_link(Node) ->
-    start_link(Node, []).
-
-start_link(Node, Options) ->
-    gen_listener:start_link(?MODULE, [], [Node, Options]).
+-spec start_link(atom(), kz_proplist(), ne_binary()) -> startlink_ret().
+start_link(Node, Options, Profile) ->
+    gen_listener:start_link(?MODULE, [], [Node, Options, Profile]).
 
 
 %%%===================================================================
@@ -74,11 +80,17 @@ start_link(Node, Options) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([Node, _Options]) ->
+init([Node, Options, Profile]) ->
     put('callid', ?LOG_SYSTEM_ID),
     lager:debug("starting new fs amqp handler"),
+    Key = [<<"producers">>, Profile, <<"events">>],
+    Events = kz_json:get_list_value(Key, ecallmgr_fs_amqp:amqp_producers(), []),
     gen_server:cast(self(), 'check_sip_url'),
-    {'ok', #state{node=Node}}.
+    {'ok', #state{node=Node
+                 ,options=Options
+                 ,profile=Profile
+                 ,events=Events
+                 }}.
 
 handle_call(_Request, _From, State) ->
     {'reply', {'error', 'not_implemented'}, State}.
@@ -94,6 +106,7 @@ handle_call(_Request, _From, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast('check_sip_url', #state{node=Node
+                                   ,profile=Profile
                                    ,switch_info='false'
                                    }=State) ->
     try ecallmgr_fs_nodes:sip_url(Node) of
@@ -107,8 +120,8 @@ handle_cast('check_sip_url', #state{node=Node
             SwitchURI = <<"sip:", SwitchURIHost/binary>>,
             Nodename = ecallmgr_fs_node:hostname(Node),
             Params = [{'responders', ?RESPONDERS}
-                     ,{'bindings', ?BINDINGS(Nodename)}
-                     ,{'queue_name', ?QUEUE_NAME(Nodename)}
+                     ,{'bindings', ?BINDINGS(Nodename, Profile)}
+                     ,{'queue_name', ?QUEUE_NAME(Nodename, Profile)}
                      ,{'queue_options', ?QUEUE_OPTIONS}
                      ,{'consume_options', ?CONSUME_OPTIONS}
                      ],
@@ -123,11 +136,13 @@ handle_cast('check_sip_url', #state{node=Node
             timer:sleep(2000),
             gen_server:cast(self(), 'check_sip_url')
     end;
-handle_cast({'gen_listener',{'is_consuming',IsConsuming}}, #state{node=Node}=State) ->
-    case channel_pid(Node) of
-        'undefined' -> lager:warning("channel server for node ~s not found", [Node]);
-        Pid -> Pid ! {'option', <<"Publish-Channel-State">>, not IsConsuming}
-    end,
+handle_cast({'gen_listener',{'is_consuming', 'false'}}, #state{}=State) ->
+    _ = notify_procs('false', State),
+    {'noreply', State#state{active='false'}};
+handle_cast({'gen_listener',{'is_consuming', 'true'}}, #state{}=State) ->
+    {'noreply', State};
+handle_cast({'gen_listener',{'created_queue', _Q}}, #state{}=State) ->
+    _ = timer:send_interval(?HEARTBEAT_TIMER_MS, 'check_heartbeat'),
     {'noreply', State};
 handle_cast(_Cast, State) ->
     lager:debug("unhandled cast: ~p", [_Cast]),
@@ -143,6 +158,8 @@ handle_cast(_Cast, State) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_info('check_heartbeat', State) ->
+    {'noreply', check_elapsed(State)};
 handle_info(_Info, State) ->
     lager:debug("unhandled message: ~p", [_Info]),
     {'noreply', State}.
@@ -155,14 +172,17 @@ handle_info(_Info, State) ->
 %% @spec handle_event(JObj, State) -> {reply, Options}
 %% @end
 %%--------------------------------------------------------------------
-handle_event(_JObj, #state{node=FSNode
-                          ,switch_url=SwitchURL
-                          ,switch_uri=SwitchURI
-                          }) ->
-    {'reply', [{'FSNode', FSNode}
-              ,{'Switch-URL', SwitchURL}
-              ,{'Switch-URI', SwitchURI}
-              ]}.
+handle_event(JObj, #state{node=FSNode
+                         ,switch_url=SwitchURL
+                         ,switch_uri=SwitchURI
+                         }=State) ->
+    case kz_api:event_name(JObj) =:= <<"HEARTBEAT">> of
+        'true' -> {'ignore', handle_heartbeat(State)};
+        'false' -> {'reply', [{'FSNode', FSNode}
+                             ,{'Switch-URL', SwitchURL}
+                             ,{'Switch-URI', SwitchURI}
+                             ]}
+    end.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -189,6 +209,30 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {'ok', State}.
 
--spec channel_pid(atom()) -> api_pid().
-channel_pid(Node) ->
-    ecallmgr_fs_node_sup:channel_srv(ecallmgr_fs_sup:find_node(Node)).
+-spec notify_procs(boolean(), state()) -> any().
+notify_procs(IsConsuming, #state{node=Node, events=Events}) ->
+    Fun = fun(Evt, Acc) ->
+                  Acc ++ gproc:lookup_pids({'p', 'l', ?FS_EVENT_REG_MSG(Node, Evt)})
+          end,
+    [notify_proc(IsConsuming, Pid) || Pid <- lists:usort(lists:foldl(Fun, [], Events))].
+
+-spec notify_proc(boolean(), pid()) -> any().
+notify_proc(IsConsuming, Pid) ->
+    Pid ! {'option', <<"Publish-Channel-State">>, not IsConsuming}.
+
+-spec handle_heartbeat(state()) -> state().
+handle_heartbeat(#state{active='true'}=State) ->
+    State#state{heartbeat=kz_time:current_tstamp()};
+handle_heartbeat(#state{active='false'}=State) ->
+    _ = notify_procs('true', State),
+    State#state{active='true', heartbeat=kz_time:current_tstamp()}.
+
+-spec check_elapsed(state()) -> state().
+check_elapsed(#state{active='true', heartbeat=Heartbeat} = State) ->
+    case kz_time:elapsed_ms(Heartbeat) > ?HEARTBEAT_MAX_ELAPSED_MS of
+        'true' ->
+            _ = notify_procs('false', State),
+            State#state{active='false'};
+        'false' -> State
+    end;
+check_elapsed(#state{active='false'} = State) -> State.

@@ -60,7 +60,7 @@ init([Node, Options]) ->
 
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
 
-    NodeB = kz_util:to_binary(Node),
+    NodeB = kz_term:to_binary(Node),
     Args = [Node, Options],
     Modules = kz_json:merge_jobjs(ecallmgr_config:get(<<"extension_modules">>, ?CHILDREN), ?CHILDREN),
     Children = kz_json:foldl(fun(Module, V, Acc) ->
@@ -71,11 +71,11 @@ init([Node, Options]) ->
 
 -spec child_name(binary(), list(), binary(), binary()) -> any().
 child_name(NodeB, Args, Module, <<"supervisor">>) ->
-    Name = kz_util:to_atom(<<NodeB/binary, "_", Module/binary>>, 'true'),
-    Mod = kz_util:to_atom(<<"ecallmgr_fs_", Module/binary>>, 'true'),
+    Name = kz_term:to_atom(<<NodeB/binary, "_", Module/binary>>, 'true'),
+    Mod = kz_term:to_atom(<<"ecallmgr_fs_", Module/binary>>, 'true'),
     ?SUPER_NAME_ARGS(Mod, Name, Args);
 child_name(NodeB, Args, Module, <<"worker">>) ->
-    Name = kz_util:to_atom(<<NodeB/binary, "_", Module/binary>>, 'true'),
-    Mod = kz_util:to_atom(<<"ecallmgr_fs_", Module/binary>>, 'true'),
+    Name = kz_term:to_atom(<<NodeB/binary, "_", Module/binary>>, 'true'),
+    Mod = kz_term:to_atom(<<"ecallmgr_fs_", Module/binary>>, 'true'),
     ?WORKER_NAME_ARGS(Mod, Name, Args).
 
