@@ -9,9 +9,6 @@
    ,{env, [{amqp, [{producers, [{state, [{events, ["CHANNEL_CREATE"
                                                   ,"CHANNEL_ANSWER"
                                                   ,"CHANNEL_DESTROY"
-                                                  ,"CHANNEL_BRIDGE"
-                                                  ,"CHANNEL_UNBRIDGE"
-                                                  ,"CALL_UPDATE"
                                                   ,"HEARTBEAT"
                                                   ]}
                                         ,{params, [{"exchange-type", "topic"}
