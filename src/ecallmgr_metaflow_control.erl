@@ -43,7 +43,7 @@ handle_queue_commands([Command|Commands], DefJObj, Node, DP) ->
             handle_queue_commands(Commands, DefJObj, Node, DP ++ Cmd)
     end.
 
--spec control_process(atom(), kz_json:object(), atom()) -> 'ok'.
+-spec control_process(atom(), kz_json:object(), atom()) -> 'ok' | fs_apps().
 control_process(Fun, Cmd, Node) ->
     kz_util:put_callid(Cmd),
     Category = kz_api:event_category(Cmd),
@@ -83,8 +83,8 @@ exec_dialplan(Node, UUID, DP) ->
 -spec get_module(ne_binary(), ne_binary()) -> atom().
 get_module(Category, Name) ->
     ModuleName = <<"ecallmgr_", Category/binary, "_", Name/binary>>,
-    try kz_util:to_atom(ModuleName)
+    try kz_term:to_atom(ModuleName)
     catch
         'error':'badarg' ->
-            kz_util:to_atom(ModuleName, 'true')
+            kz_term:to_atom(ModuleName, 'true')
     end.

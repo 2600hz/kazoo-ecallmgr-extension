@@ -195,7 +195,7 @@ request_metaflow(_Node, _Leg, _Channel) -> 'ok'.
 -spec process_metaflow(atom(), api_binary(), kz_json:object(), channel()) -> no_return().
 process_metaflow(Node, UUID, JObj, _Channel) ->
     lager:debug("metaflow binding received"),
-    EndpointId = kz_json:get_value(<<"Endpoint-ID">>, JObj, kz_util:rand_hex_binary(16)),
+    EndpointId = kz_json:get_value(<<"Endpoint-ID">>, JObj, kz_binary:rand_hex(16)),
     ListenOn = kz_json:get_value(<<"Listen-On">>, JObj, <<"self">>),
     BindingDigit = kz_json:get_value(<<"Binding-Digit">>, JObj, <<"*">>),
     CollectTimeout = kz_json:get_integer_value(<<"Collect-Timeout">>, JObj, 15000),
@@ -235,7 +235,7 @@ process_metaflow(Node, UUID, JObj, _Channel) ->
 
 -spec send_api(atom(), ne_binary(), dialplan()) -> no_return().
 send_api(Node, UUID, API) ->
-    [ecallmgr_util:send_cmd(Node, UUID, AppName, kz_util:to_binary(AppData)) || {AppName, AppData} <- API].
+    [ecallmgr_util:send_cmd(Node, UUID, AppName, kz_term:to_binary(AppData)) || {AppName, AppData} <- API].
 
 -spec metaflow_target(ne_binary()) -> dialplan_action().
 metaflow_target(TargetLeg) ->
@@ -247,7 +247,7 @@ clear_bind_digit_action(EndpointId) ->
 
 -spec bind_digit_input_timeout(integer()) -> dialplan_action().
 bind_digit_input_timeout(Timeout) ->
-    {<<"set">>, ["bind_digit_input_timeout=", kz_util:to_binary(Timeout)]}.
+    {<<"set">>, ["bind_digit_input_timeout=", kz_term:to_binary(Timeout)]}.
 
 -spec digit_action_set_realm(binary()) -> dialplan_action().
 digit_action_set_realm(Realm) ->

@@ -11,7 +11,8 @@
 	,unbind_q/2
         ]).
 
--export([declare_exchanges/0, routing_key_format/0]).
+%%-export([declare_exchanges/0, routing_key_format/0]).
+-export([declare_exchanges/0]).
 
 -include_lib("kazoo/include/kz_types.hrl").
 -include_lib("kazoo_amqp/include/kz_api.hrl").
@@ -55,20 +56,23 @@ unbind_q(Queue, [_|Restrict], Props) ->
 unbind_q(_, [], _) -> 'ok'.
 
 
--spec routing_key_format() -> binary().
-routing_key_format() -> <<"#FreeSWITCH,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID">>.
+%% -spec routing_key_format() -> binary().
+%% routing_key_format() -> <<"#FreeSWITCH,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID">>.
 
 
 -spec routing_key(kz_proplist()) -> binary().
 routing_key(Props) ->
-    routing_key(props:get_value('hostname', Props, <<"*">>)
-	       ,props:get_value('event', Props, <<"*">>)
-	       ,props:get_value('callid', Props, <<"*">>)
+    routing_key(props:get_value('profile', Props, <<"*">>)
+               ,props:get_value('hostname', Props, <<"*">>)
+               ,props:get_value('event', Props, <<"*">>)
+      	       ,props:get_value('callid', Props, <<"*">>)
                ).
 
--spec routing_key(binary(), binary(), binary()) -> binary().
-routing_key(Hostname, Event, CallId) ->
+-spec routing_key(binary(), binary(), binary(), binary()) -> binary().
+routing_key(Profile, Hostname, Event, CallId) ->
     list_to_binary([<<"FreeSWITCH.">>
+           ,amqp_util:encode(Profile)
+           ,"."
 		   ,amqp_util:encode(Hostname)
 		   ,"."
 		   ,amqp_util:encode(Event)

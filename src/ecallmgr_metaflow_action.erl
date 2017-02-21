@@ -54,7 +54,7 @@ handle_metaflow_action(UUID, JObj, ControlQ, FSProps, Node) ->
 
 -spec route_metaflow_action(ne_binary(), kz_proplist(), atom()) -> 'ok'.
 route_metaflow_action(UUID, Props, Node) ->
-    FetchId = kz_util:rand_hex_binary(16),
+    FetchId = kz_binary:rand_hex(16),
     Request = ecallmgr_fs_router_util:route_req(UUID, FetchId, Props, Node),
     ReqResp = kz_amqp_worker:call(Request
                                  ,fun kapi_route:publish_req/1

@@ -290,7 +290,7 @@ route_resp_xml(<<"application">>, _Routes, JObj, Props) ->
 
 -spec route_resp_log_winning_node() -> xml_el().
 route_resp_log_winning_node() ->
-    action_el(<<"log">>, [<<"NOTICE log|${uuid}|", (kz_util:to_binary(node()))/binary, " won metaflow control">>]).
+    action_el(<<"log">>, [<<"NOTICE log|${uuid}|", (kz_term:to_binary(node()))/binary, " won metaflow control">>]).
 
 -spec route_resp_ccvs(atom(), ne_binary(), kz_json:object()) -> xml_els().
 route_resp_ccvs(Node, UUID, JObj) ->

@@ -15,7 +15,6 @@
 -export([stop/1]).
 
 -export([freeswitch_node_modules/0]).
--export([freeswitch_node_modules/1]).
 
 %% Application callbacks
 

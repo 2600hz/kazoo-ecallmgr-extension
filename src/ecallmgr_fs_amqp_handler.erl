@@ -22,7 +22,7 @@ handle_req(JObj, Props) ->
     Event = kz_json:get_value(<<"Event-Subclass">>, JObj, kz_json:get_value(<<"Event-Name">>, JObj)),
     EventProps = [{<<"Switch-URL">>, props:get_value('Switch-URL', Props)}
                  ,{<<"Switch-URI">>, props:get_value('Switch-URI', Props)}
-                 ,{<<"Switch-Node">>, kz_util:to_binary(Node)}
+                 ,{<<"Switch-Node">>, kz_term:to_binary(Node)}
                  ,{<<"Force-Publish-Event-State">>, 'true'}
                   | kz_json:to_proplist(JObj)
                  ],
@@ -59,9 +59,7 @@ process_event(Node, UUID, <<"CHANNEL_CREATE">> = Event, Props) ->
 process_event(_Node, UUID, <<"CHANNEL_DESTROY">> = Event, Props) ->
     lager:debug("processing freeswitch amqp event ~s for callid ~s", [Event, UUID]),
     ecallmgr_call_events:process_channel_event(Props);
-process_event(_Node, UUID, <<"CHANNEL_HANGUP_COMPLETE">> = Event, _Props) ->
-    lager:debug("ignoring freeswitch amqp event ~s for callid ~s", [Event, UUID]);
-process_event(Node, UUID, <<"conference::maintenance">> = Event, Props) ->
+process_event(Node, UUID, <<"PRESENCE_IN">> = Event, Props) ->
     lager:debug("processing freeswitch amqp event ~s for callid ~s", [Event, UUID]),
     gproc:send({'p', 'l', ?FS_EVENT_REG_MSG(Node, Event)}, {'event', [UUID | Props]});
 process_event(_Node, UUID, Event, Props) ->
