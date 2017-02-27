@@ -23,9 +23,7 @@
 -spec handle_config_req(atom(), ne_binary(), ne_binary(), kz_proplist() | 'undefined') -> fs_sendmsg_ret().
 handle_config_req(Node, Id, <<"amqp.conf">>, _Props) ->
     kz_util:put_callid(Id),
-    lager:debug("AMQP CONFIG"),
     JObj = ecallmgr_fs_amqp:amqp_producers(),
-    lager:debug("AMQP CONFIG2 ~p", [JObj]),
             try amqp_conf_xml(JObj) of
                 {'ok', ConfigXml} ->
                     lager:debug("sending amqp XML to ~s: ~s", [Node, ConfigXml]),

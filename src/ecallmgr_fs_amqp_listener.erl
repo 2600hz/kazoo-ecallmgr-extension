@@ -222,7 +222,6 @@ notify_proc(IsConsuming, Pid) ->
 
 -spec handle_heartbeat(state()) -> state().
 handle_heartbeat(#state{active='true', profile=_Profile}=State) ->
-    lager:debug("heartbeat for active profile ~s", [_Profile]),
     State#state{heartbeat=kz_time:current_tstamp()};
 handle_heartbeat(#state{active='false', profile=_Profile}=State) ->
     lager:debug("heartbeat for inactive profile ~s, activating", [_Profile]),
