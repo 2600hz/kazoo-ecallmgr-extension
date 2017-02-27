@@ -61,14 +61,14 @@ amqp_part_el(JObj) ->
                         Profile = kz_json:get_value(Key, JObj),
                         [#xmlElement{name='profile'
                                     ,attributes=[ecallmgr_fs_xml:xml_attrib('name', Key)]
-                                    ,content=amqp_profile_el(Profile)
+                                    ,content=amqp_profile_el(Key, Profile)
                                     }
                          | Xml
                         ]
                 end, [], kz_json:get_keys(JObj)).
 
-amqp_profile_el(JObj) ->
-    [amqp_connections_el()
+amqp_profile_el(Key, JObj) ->
+    [amqp_connections_el(Key)
     ,#xmlElement{name='params'
                 ,content=amqp_settings_el(JObj)
                 }
@@ -91,22 +91,22 @@ amqp_settings_el(JObj) ->
 
 amqp_event_filter(JObj) ->
     Events = kz_json:get_value(<<"events">>, JObj, []),
-    EventFilter = lists:foldl(fun amqp_event_filter_fold/2, [], Events),
+    EventFilter = lists:foldr(fun amqp_event_filter_fold/2, [], Events),
     kz_term:to_binary(string:join(EventFilter, ",")).
 
 amqp_event_filter_fold(Ev, Acc) ->
     [ kz_term:to_list(<<"SWITCH_EVENT_", Ev/binary>>) | Acc].
 
-amqp_connections_el() ->
+amqp_connections_el(Key) ->
     #xmlElement{name='connections'
-               ,content=[amqp_connection_el()]
+               ,content=[amqp_connection_el(Key)]
                }
         .
 
-amqp_connection_el() ->
+amqp_connection_el(Key) ->
     #xmlElement{name='connection'
                ,content=amqp_connection_params_el()
-               ,attributes=[ecallmgr_fs_xml:xml_attrib('name', <<"primary">>)]
+               ,attributes=[ecallmgr_fs_xml:xml_attrib('name', <<Key/binary, "_primary">>)]
                }
         .
 

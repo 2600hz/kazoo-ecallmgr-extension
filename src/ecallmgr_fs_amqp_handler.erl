@@ -53,8 +53,8 @@ url_decode(V)
 url_decode(KV) -> KV.
 
 process_event(Node, UUID, <<"CHANNEL_CREATE">> = Event, Props) ->
-    NewProps = ecallmgr_fs_loopback:filter(Node, UUID, Props),
     lager:debug("processing freeswitch amqp event ~s for callid ~s", [Event, UUID]),
+    NewProps = ecallmgr_fs_loopback:filter(Node, UUID, Props),
     ecallmgr_call_events:process_channel_event(NewProps);
 process_event(_Node, UUID, <<"CHANNEL_DESTROY">> = Event, Props) ->
     lager:debug("processing freeswitch amqp event ~s for callid ~s", [Event, UUID]),

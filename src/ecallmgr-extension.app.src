@@ -6,24 +6,24 @@
    ,{registered, [ ]}
    ,{applications, [ kazoo_apps, ecallmgr]}
    ,{mod, {ecallmgr_ext_app, []}}
-   ,{env, [{amqp, [{producers, [{state, [{events, ["CHANNEL_CREATE"
-                                                  ,"CHANNEL_ANSWER"
-                                                  ,"CHANNEL_DESTROY"
-                                                  ,"HEARTBEAT"
-                                                  ]}
-                                        ,{params, [{"exchange-type", "topic"}
-                                                 ,{"exchange-name", "freeswitch"}
-                                                 ,{"exchange-durable", false}
-                                                 ,{"content-type", "application/json"}
-                                                 ,{"delivery-timestamp", false}
-                                                 ,{"delivery-mode", 0}
-                                                 ,{"circuit_breaker_ms", 10000}
-                                                 ,{"reconnect_interval_ms", 1}
-                                                 ,{"send_queue_size", 25000}
-                                                 ,{"enable_fallback_format_fields", 1}
-                                                 ,{"format_fields", "#FreeSWITCH,#channel,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID|#Core-UUID"}
-                                                 ]}
-                                        ]
+   ,{env, [{amqp, [{producers, [{channel, [{events, ["CHANNEL_CREATE"
+                                                    ,"CHANNEL_ANSWER"
+                                                    ,"CHANNEL_DESTROY"
+                                                    ,"HEARTBEAT"
+                                                    ]}
+                                          ,{params, [{"exchange-type", "topic"}
+                                                   ,{"exchange-name", "freeswitch"}
+                                                   ,{"exchange-durable", false}
+                                                   ,{"content-type", "application/json"}
+                                                   ,{"delivery-timestamp", false}
+                                                   ,{"delivery-mode", 0}
+                                                   ,{"circuit_breaker_ms", 10000}
+                                                   ,{"reconnect_interval_ms", 1}
+                                                   ,{"send_queue_size", 25000}
+                                                   ,{"enable_fallback_format_fields", 1}
+                                                   ,{"format_fields", "#FreeSWITCH,#channel,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID|Core-UUID"}
+                                                   ]}
+                                          ]
                                 }
                                ,{presence, [{events, ["PRESENCE_IN"
                                                      ,"HEARTBEAT"
@@ -38,7 +38,7 @@
                                                      ,{"reconnect_interval_ms", 1}
                                                      ,{"send_queue_size", 25000}
                                                      ,{"enable_fallback_format_fields", 1}
-                                                     ,{"format_fields", "#FreeSWITCH,#presence,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID|#Core-UUID"}
+                                                     ,{"format_fields", "#FreeSWITCH,#presence,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID|Core-UUID"}
                                                      ]}
                                            ]
                                 }

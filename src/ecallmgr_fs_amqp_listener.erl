@@ -221,18 +221,23 @@ notify_proc(IsConsuming, Pid) ->
     Pid ! {'option', <<"Publish-Channel-State">>, not IsConsuming}.
 
 -spec handle_heartbeat(state()) -> state().
-handle_heartbeat(#state{active='true'}=State) ->
+handle_heartbeat(#state{active='true', profile=_Profile}=State) ->
+    lager:debug("heartbeat for active profile ~s", [_Profile]),
     State#state{heartbeat=kz_time:current_tstamp()};
-handle_heartbeat(#state{active='false'}=State) ->
+handle_heartbeat(#state{active='false', profile=_Profile}=State) ->
+    lager:debug("heartbeat for inactive profile ~s, activating", [_Profile]),
     _ = notify_procs('true', State),
     State#state{active='true', heartbeat=kz_time:current_tstamp()}.
 
 -spec check_elapsed(state()) -> state().
-check_elapsed(#state{active='true', heartbeat=Heartbeat} = State) ->
+check_elapsed(#state{heartbeat=0} = State) -> State;
+check_elapsed(#state{active='true', heartbeat=Heartbeat, profile=_Profile} = State) ->
     case kz_time:elapsed_ms(Heartbeat) > ?HEARTBEAT_MAX_ELAPSED_MS of
         'true' ->
+            lager:debug("deactivating profile ~s", [_Profile]),
             _ = notify_procs('false', State),
             State#state{active='false'};
         'false' -> State
     end;
-check_elapsed(#state{active='false'} = State) -> State.
+check_elapsed(#state{active='false', profile=_Profile} = State) ->
+    State.
