@@ -41,8 +41,11 @@
 
 -define(SERVER, ?MODULE).
 
+-define(FREESWITCH_HEARTBEAT, 30).
+-define(FUDGE_HEARTBEAT, 15).
 -define(HEARTBEAT_TIMER_MS, 15 * ?MILLISECONDS_IN_SECOND).
--define(HEARTBEAT_MAX_ELAPSED_MS, 45 * ?MILLISECONDS_IN_SECOND).
+-define(AMQP_HEARTBEAT, ?FUDGE_HEARTBEAT + ?FREESWITCH_HEARTBEAT).
+-define(HEARTBEAT_MAX_ELAPSED_MS, ?AMQP_HEARTBEAT * ?MILLISECONDS_IN_SECOND).
 
 -record(state, {node :: atom()
                ,switch_url :: api_binary()
@@ -234,7 +237,8 @@ handle_heartbeat(#state{active='false', profile=Profile, node=Node, heartbeat=He
 -spec check_elapsed(state()) -> state().
 check_elapsed(#state{heartbeat=0} = State) -> State;
 check_elapsed(#state{active='true', heartbeat=Heartbeat, node=Node, profile=Profile} = State) ->
-    case kz_time:elapsed_ms(Heartbeat) > ?HEARTBEAT_MAX_ELAPSED_MS of
+    Nodes = kz_nodes:whapp_count('ecallmgr'),
+    case kz_time:elapsed_ms(Heartbeat) > Nodes * ?HEARTBEAT_MAX_ELAPSED_MS of
         'true' ->
             lager:debug(?SYSTEM_ALERT, [Profile, "deactivated", node(), Node]),
             kz_notify:system_alert(?SYSTEM_ALERT, [Profile, "deactivated", node(), Node]),
