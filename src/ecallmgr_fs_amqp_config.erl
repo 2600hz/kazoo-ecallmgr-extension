@@ -92,6 +92,8 @@ amqp_event_filter(JObj) ->
     EventFilter = lists:foldr(fun amqp_event_filter_fold/2, [], Events),
     kz_term:to_binary(string:join(EventFilter, ",")).
 
+amqp_event_filter_fold(<<"CUSTOM:", Ev/binary>>, Acc) ->
+    [ kz_term:to_list(Ev) | Acc];
 amqp_event_filter_fold(Ev, Acc) ->
     [ kz_term:to_list(<<"SWITCH_EVENT_", Ev/binary>>) | Acc].
 
