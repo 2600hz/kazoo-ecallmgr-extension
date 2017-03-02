@@ -24,6 +24,7 @@
 -include("ecallmgr-extension.hrl").
 -include("gen_listener_spec.hrl").
 
+-define(SYSTEM_ALERT, "AMQP Profile ~s ~s in node ~s from ~s").
 
 -define(RESPONDERS, [{'ecallmgr_fs_amqp_handler'
                      ,[{<<"*">>, <<"*">>}]
@@ -223,17 +224,20 @@ notify_proc(IsConsuming, Pid) ->
 -spec handle_heartbeat(state()) -> state().
 handle_heartbeat(#state{active='true', profile=_Profile}=State) ->
     State#state{heartbeat=kz_time:current_tstamp()};
-handle_heartbeat(#state{active='false', profile=_Profile}=State) ->
-    lager:debug("heartbeat for inactive profile ~s, activating", [_Profile]),
+handle_heartbeat(#state{active='false', profile=Profile, node=Node, heartbeat=Heartbeat}=State) ->
+    lager:debug("heartbeat for inactive profile ~s, activating", [Profile]),
     _ = notify_procs('true', State),
+    _ = Heartbeat =/= 0 andalso
+            kz_notify:system_alert(?SYSTEM_ALERT, [Profile, "activated", node(), Node]),
     State#state{active='true', heartbeat=kz_time:current_tstamp()}.
 
 -spec check_elapsed(state()) -> state().
 check_elapsed(#state{heartbeat=0} = State) -> State;
-check_elapsed(#state{active='true', heartbeat=Heartbeat, profile=_Profile} = State) ->
+check_elapsed(#state{active='true', heartbeat=Heartbeat, node=Node, profile=Profile} = State) ->
     case kz_time:elapsed_ms(Heartbeat) > ?HEARTBEAT_MAX_ELAPSED_MS of
         'true' ->
-            lager:debug("deactivating profile ~s", [_Profile]),
+            lager:debug(?SYSTEM_ALERT, [Profile, "deactivated", node(), Node]),
+            kz_notify:system_alert(?SYSTEM_ALERT, [Profile, "deactivated", node(), Node]),
             _ = notify_procs('false', State),
             State#state{active='false'};
         'false' -> State
