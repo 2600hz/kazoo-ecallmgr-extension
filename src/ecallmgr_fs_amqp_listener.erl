@@ -214,7 +214,10 @@ code_change(_OldVsn, State, _Extra) ->
     {'ok', State}.
 
 -spec notify_procs(boolean(), state()) -> any().
-notify_procs(IsConsuming, #state{node=Node, events=Events}) ->
+notify_procs(IsConsuming, #state{node=Node, events=EvtList}) ->
+    Events = lists:map(fun(<<"CUSTOM:", Event/binary>>) -> Event;
+                          (Event) -> Event
+                       end, EvtList),
     Fun = fun(Evt, Acc) ->
                   Acc ++ gproc:lookup_pids({'p', 'l', ?FS_EVENT_REG_MSG(Node, Evt)})
           end,
@@ -246,5 +249,5 @@ check_elapsed(#state{active='true', heartbeat=Heartbeat, node=Node, profile=Prof
             State#state{active='false'};
         'false' -> State
     end;
-check_elapsed(#state{active='false', profile=_Profile} = State) ->
+check_elapsed(#state{active='false'} = State) ->
     State.

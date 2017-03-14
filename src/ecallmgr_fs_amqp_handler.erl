@@ -62,6 +62,9 @@ process_event(_Node, UUID, <<"CHANNEL_DESTROY">> = Event, Props) ->
 process_event(Node, UUID, <<"PRESENCE_IN">> = Event, Props) ->
     lager:debug("processing freeswitch amqp event ~s for callid ~s", [Event, UUID]),
     gproc:send({'p', 'l', ?FS_EVENT_REG_MSG(Node, Event)}, {'event', [UUID | Props]});
+process_event(Node, UUID, <<"KZ_PRESENCE_DIALOG">> = Event, Props) ->
+    lager:debug("processing freeswitch amqp event ~s for callid ~s", [Event, UUID]),
+    gproc:send({'p', 'l', ?FS_EVENT_REG_MSG(Node, Event)}, {'event', [UUID | Props]});
 process_event(Node, UUID, <<"conference::maintenance">> = Event, Props) ->
     lager:debug("processing freeswitch amqp event ~s for callid ~s", [Event, UUID]),
     gproc:send({'p', 'l', ?FS_EVENT_REG_MSG(Node, Event)}, {'event', [UUID | Props]});
