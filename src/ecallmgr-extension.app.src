@@ -9,7 +9,6 @@
    ,{env, [{amqp, [{producers, [{channel, [{events, ["CHANNEL_CREATE"
                                                     ,"CHANNEL_ANSWER"
                                                     ,"CHANNEL_DESTROY"
-                                                    ,"HEARTBEAT"
                                                     ]}
                                           ,{params, [{"exchange-type", "topic"}
                                                    ,{"exchange-name", "freeswitch"}
@@ -26,7 +25,6 @@
                                           ]
                                 }
                                ,{presence, [{events, ["CUSTOM:KZ_PRESENCE_DIALOG"
-                                                     ,"HEARTBEAT"
                                                      ]}
                                            ,{params, [{"exchange-type", "topic"}
                                                      ,{"exchange-name", "freeswitch"}
@@ -42,11 +40,27 @@
                                                      ]}
                                            ]
                                 }
+                               ,{recordings, [{events, ["RECORD_START"
+                                                       ,"RECORD_STOP"
+                                                       ]}
+                                             ,{params, [{"exchange-type", "topic"}
+                                                       ,{"exchange-name", "freeswitch"}
+                                                       ,{"exchange-durable", false}
+                                                       ,{"content-type", "application/json"}
+                                                       ,{"delivery-timestamp", false}
+                                                       ,{"delivery-mode", 0}
+                                                       ,{"circuit_breaker_ms", 10000}
+                                                       ,{"reconnect_interval_ms", 1}
+                                                       ,{"send_queue_size", 25000}
+                                                       ,{"enable_fallback_format_fields", 1}
+                                                       ,{"format_fields", "#FreeSWITCH,#recordings,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID|Core-UUID"}
+                                                       ]}
+                                             ]
+                                }
 %%
 %% freeswitch mod_amqp does not handle custom events for now
 %%
                                ,{conference, [{events, ["CUSTOM:conference::maintenance"
-                                                       ,"HEARTBEAT"
                                                        ]}
                                              ,{params, [{"exchange-type", "topic"}
                                                        ,{"exchange-name", "freeswitch"}
@@ -61,6 +75,25 @@
                                                        ,{"format_fields", "#FreeSWITCH,#conference,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Conference-Name|Conference-Unique-ID|Unique-ID|Core-UUID"}
                                                        ]}
                                              ]
+                                }
+                               ,{heartbeat, [{events, ["HEARTBEAT"
+                                                      ]}
+                                            ,{queue_name, <<>>}
+                                            ,{queue_options, []}
+                                            ,{consume_options, []}
+                                            ,{params, [{"exchange-type", "topic"}
+                                                      ,{"exchange-name", "freeswitch"}
+                                                      ,{"exchange-durable", false}
+                                                      ,{"content-type", "application/json"}
+                                                      ,{"delivery-timestamp", false}
+                                                      ,{"delivery-mode", 0}
+                                                      ,{"circuit_breaker_ms", 10000}
+                                                      ,{"reconnect_interval_ms", 1}
+                                                      ,{"send_queue_size", 25000}
+                                                      ,{"enable_fallback_format_fields", 1}
+                                                      ,{"format_fields", "#FreeSWITCH,#heartbeat,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Conference-Name|Conference-Unique-ID|Unique-ID|Core-UUID"}
+                                                      ]}
+                                            ]
                                 }
                                 ]
                    }]

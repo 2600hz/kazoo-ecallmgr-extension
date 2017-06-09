@@ -57,6 +57,7 @@
                ,timer = 'undefined' :: timer:tref() | 'undefined'
                ,heartbeat = 0 :: integer()
                ,active = 'false' :: boolean()
+               ,configuration :: kz_json:object()
                }).
 
 -type state() :: #state{}.
@@ -87,12 +88,14 @@ start_link(Node, Options, Profile) ->
 init([Node, Options, Profile]) ->
     put('callid', ?LOG_SYSTEM_ID),
     lager:debug("starting new fs amqp handler"),
-    Key = [<<"producers">>, Profile, <<"events">>],
-    Events = kz_json:get_list_value(Key, ecallmgr_fs_amqp:amqp_producers(), []),
+    Producers = ecallmgr_fs_amqp:amqp_producers(),
+    Configuration = kz_json:get_value([<<"producers">>, Profile], Producers),
+    Events = kz_json:get_list_value(<<"events">>, Configuration, []),
     gen_server:cast(self(), 'check_sip_url'),
     {'ok', #state{node=Node
                  ,options=Options
                  ,profile=Profile
+                 ,configuration=Configuration
                  ,events=Events
                  }}.
 
@@ -112,6 +115,7 @@ handle_call(_Request, _From, State) ->
 handle_cast('check_sip_url', #state{node=Node
                                    ,profile=Profile
                                    ,switch_info='false'
+                                   ,configuration=Configuration
                                    }=State) ->
     try ecallmgr_fs_nodes:sip_url(Node) of
         'undefined' ->
@@ -125,9 +129,9 @@ handle_cast('check_sip_url', #state{node=Node
             Nodename = ecallmgr_fs_node:hostname(Node),
             Params = [{'responders', ?RESPONDERS}
                      ,{'bindings', ?BINDINGS(Nodename, Profile)}
-                     ,{'queue_name', ?QUEUE_NAME(Nodename, Profile)}
-                     ,{'queue_options', ?QUEUE_OPTIONS}
-                     ,{'consume_options', ?CONSUME_OPTIONS}
+                     ,{'queue_name', kz_json:get_binary_value(<<"queue_name">>, Configuration, ?QUEUE_NAME(Nodename, Profile))}
+                     ,{'queue_options', kz_json:get_list_value(<<"queue_options">>, Configuration, ?QUEUE_OPTIONS)}
+                     ,{'consume_options', kz_json:get_list_value(<<"consume_options">>, Configuration, ?CONSUME_OPTIONS)}
                      ],
             gen_listener:start_listener(self(), Params),
             {'noreply', State#state{switch_uri=SwitchURI
@@ -214,14 +218,8 @@ code_change(_OldVsn, State, _Extra) ->
     {'ok', State}.
 
 -spec notify_procs(boolean(), state()) -> any().
-notify_procs(IsConsuming, #state{node=Node, events=EvtList}) ->
-    Events = lists:map(fun(<<"CUSTOM:", Event/binary>>) -> Event;
-                          (Event) -> Event
-                       end, EvtList),
-    Fun = fun(Evt, Acc) ->
-                  Acc ++ gproc:lookup_pids({'p', 'l', ?FS_EVENT_REG_MSG(Node, Evt)})
-          end,
-    [notify_proc(IsConsuming, Pid) || Pid <- lists:usort(lists:foldl(Fun, [], Events))].
+notify_procs(IsConsuming, #state{node=Node}) ->
+    [notify_proc(IsConsuming, Pid) || Pid <- gproc:lookup_pids({'p', 'l', ?FS_OPTION_MSG(Node)})].
 
 -spec notify_proc(boolean(), pid()) -> any().
 notify_proc(IsConsuming, Pid) ->
@@ -241,7 +239,7 @@ handle_heartbeat(#state{active='false', profile=Profile, node=Node, heartbeat=He
 check_elapsed(#state{heartbeat=0} = State) -> State;
 check_elapsed(#state{active='true', heartbeat=Heartbeat, node=Node, profile=Profile} = State) ->
     Nodes = kz_nodes:whapp_count('ecallmgr'),
-    case kz_time:elapsed_ms(Heartbeat) > Nodes * ?HEARTBEAT_MAX_ELAPSED_MS of
+    case kz_time:elapsed_ms(Heartbeat) > Nodes *  (?FREESWITCH_HEARTBEAT + ?HEARTBEAT_MAX_ELAPSED_MS) of
         'true' ->
             lager:debug(?SYSTEM_ALERT, [Profile, "deactivated", node(), Node]),
             kz_notify:system_alert(?SYSTEM_ALERT, [Profile, "deactivated", node(), Node]),
