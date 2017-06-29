@@ -5,18 +5,18 @@
 %%% @end
 %%% @contributors
 %%%-------------------------------------------------------------------
--module(ecallmgr_ext_sup).
+-module(metaflow_sup).
 
 -behaviour(supervisor).
 
--include("ecallmgr-extension.hrl").
+-include("metaflow.hrl").
 
 -define(SERVER, ?MODULE).
 
 -export([start_link/0]).
 -export([init/1]).
 
--define(CHILDREN, [?SUPER('metaflow_sup')]).
+-define(CHILDREN, [?SUPER('metaflow_fsm_sup')]).
 
 %% ===================================================================
 %% API functions

@@ -5,20 +5,22 @@
 %%% @end
 %%% @contributors
 %%%-------------------------------------------------------------------
--module(ecallmgr_metaflow_action).
+-module(metaflow_action).
 
 
--export([handle_metaflow_action/3]).
+-export([handle_req/2]).
 
--include("ecallmgr-extension.hrl").
+-include("metaflow.hrl").
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
 
--spec handle_metaflow_action(kz_json:object(), ne_binary(), atom()) -> 'ok'.
-handle_metaflow_action(JObj, ControlQ, Node) ->
+-spec handle_req(kz_json:object(), kz_proplist()) -> 'ok'.
+handle_req(JObj, Props) ->
+    Node = props:get_value('FSNode', Props),
+    ControlQ = props:get_value('Control-Q', Props), 
     UUID = kz_api:call_id(JObj),
     case ecallmgr_fs_channel:fetch(UUID, 'record') of
         {'error', 'not_found'} -> lager:debug("channel ~s not found locally, exiting", [UUID]);

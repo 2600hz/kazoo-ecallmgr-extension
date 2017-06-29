@@ -1,24 +1,26 @@
 %%%-------------------------------------------------------------------
 %%% @copyright (C) 2011-2016, 2600Hz INC
 %%% @doc
-%%% Receive route(dialplan) requests from FS, request routes and respond
+%%% Receive flow requests
 %%% @end
 %%% @contributors
 %%%-------------------------------------------------------------------
--module(ecallmgr_metaflow_flow).
+-module(metaflow_flow).
 
 
--export([handle_metaflow_flow/3]).
+-export([handle_req/2]).
 
--include("ecallmgr-extension.hrl").
+-include("metaflow.hrl").
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
 
--spec handle_metaflow_flow(kz_json:object(), ne_binary(), atom()) -> 'ok'.
-handle_metaflow_flow(JObj, ControlQ, Node) ->
+-spec handle_req(kz_json:object(), kz_proplist()) -> 'ok'.
+handle_req(JObj, Props) ->
+    Node = props:get_value('FSNode', Props),
+    ControlQ = props:get_value('Control-Q', Props), 
     UUID = kz_api:call_id(JObj),
     case ecallmgr_fs_channel:fetch(UUID, 'record') of
         {'error', 'not_found'} -> lager:debug("channel ~s not found locally, exiting", [UUID]);
@@ -42,7 +44,7 @@ handle_metaflow_flow(UUID, JObj, ControlQ, FSProps, Node) ->
                ,{<<"Custom-Routing-Headers">>, kz_json:from_list(CRHs)}
                ,{<<"Application-Logical-Direction">>, <<"inbound">>}
                ,{<<"Control-Queue">>, ControlQ}
-               ],    
+               ],
     Props = props:set_values(ReqProps, FSProps),
     route_metaflow_flow(UUID, Props, Node).
 
