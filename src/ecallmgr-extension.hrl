@@ -11,12 +11,8 @@
 -define(APP_NAME, <<"ecallmgr-extension">>).
 -define(APP_VERSION, <<"4.0.0">>).
 
--define(METAFLOW_TARGET_VAR, <<"metaflow_bind_target">>).
-
 -define(EXT_NODE_MODULES,
         [<<"event_amqp_sup">>
-        ,<<"route_metaflow">>
-        ,<<"bowout">>
         ,<<"metaflow">>
         ]).
 

@@ -1,24 +1,24 @@
 %%%-------------------------------------------------------------------
 %%% @copyright (C) 2011-2016, 2600Hz INC
 %%% @doc
-%%% Receive route(dialplan) requests from FS, request routes and respond
+%%% Receive call command and executes
 %%% @end
 %%% @contributors
-%%%   James Aimonetti
 %%%-------------------------------------------------------------------
--module(ecallmgr_metaflow_control).
+-module(metaflow_control).
 
 
--export([handle_call_command/2]).
+-export([handle_req/2]).
 
--include("ecallmgr-extension.hrl").
+-include("metaflow.hrl").
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
--spec handle_call_command(kz_json:object(), atom()) -> 'ok'.
-handle_call_command(JObj, Node) ->
+-spec handle_req(kz_json:object(), kz_proplist()) -> 'ok'.
+handle_req(JObj, Props) ->
+    Node = props:get_value('FSNode', Props),
     case kz_json:get_value(<<"Application-Name">>, JObj) of
         <<"queue">> ->
             'true' = kapi_dialplan:queue_v(JObj),

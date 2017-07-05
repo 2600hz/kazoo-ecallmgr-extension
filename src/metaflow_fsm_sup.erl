@@ -5,18 +5,19 @@
 %%% @end
 %%% @contributors
 %%%-------------------------------------------------------------------
--module(ecallmgr_ext_sup).
+-module(metaflow_fsm_sup).
 
 -behaviour(supervisor).
 
--include("ecallmgr-extension.hrl").
+-include("metaflow.hrl").
 
 -define(SERVER, ?MODULE).
 
 -export([start_link/0]).
 -export([init/1]).
+-export([new/4]).
 
--define(CHILDREN, [?SUPER('metaflow_sup')]).
+-define(CHILDREN, [?WORKER_TYPE('metaflow_fsm', 'temporary')]).
 
 %% ===================================================================
 %% API functions
@@ -44,11 +45,17 @@ start_link() ->
 %%--------------------------------------------------------------------
 -spec init(any()) -> sup_init_ret().
 init([]) ->
-    kz_util:set_startup(),
-    RestartStrategy = 'one_for_one',
-    MaxRestarts = 5,
-    MaxSecondsBetweenRestarts = 10,
+    RestartStrategy = 'simple_one_for_one',
+    MaxRestarts = 0,
+    MaxSecondsBetweenRestarts = 1,
 
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
 
     {'ok', {SupFlags, ?CHILDREN}}.
+
+-spec new(atom(), ne_binary(), ne_binary(), kz_json:object()) -> sup_startchild_ret() | 'ok'.
+new(Node, UUID, OtherUUID, JObj) ->
+    case gproc:lookup_values({'p', 'l', ?METAFLOW_REG_MSG(UUID)}) of
+        [] -> supervisor:start_child(?SERVER, [Node, UUID, OtherUUID, JObj]);
+        _ -> lager:debug("metaflow for ~s already in place", [UUID])
+    end.
