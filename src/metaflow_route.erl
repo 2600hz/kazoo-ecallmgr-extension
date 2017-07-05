@@ -40,11 +40,6 @@ init_metaflow_props(Node, Props) ->
 -spec add_metaflow_missing_props(kz_proplist()) -> kz_proplist().
 add_metaflow_missing_props(Props) ->
     Number = metaflow_number(props:get_value(<<"Hunt-Destination-Number">>, Props)),
-%%     TargetLeg = props:get_value(?GET_VAR(?METAFLOW_TARGET_VAR), Props),
-%%     Direction = case TargetLeg of
-%%                     <<"self">> -> <<"outbound">>;
-%%                     <<"peer">> -> <<"inbound">>
-%%                 end,
     CRHs = [{<<"Metaflow-Request-Type">>, <<"in-call">>}
            ,{<<"Metaflow-Request">>, Number}
            ,{<<"Other-Leg-Call-ID">>, kzd_freeswitch:other_leg_call_id(Props)}
@@ -53,11 +48,7 @@ add_metaflow_missing_props(Props) ->
                  [{<<"Resource-Type">>,<<"metaflow">>}
                  ,{<<"Custom-Routing-Headers">>, kz_json:from_list(CRHs)}
                  ,{<<"Route-Resp-Xml-Fun">>, fun route_resp_xml/4}
-%%                 ,{<<"Application-Logical-Direction">>, Direction}
-%%                 ,{<<"Hunt-Destination-Number">>, Number}
                  ]),
-    %% TODO
-    %% override request to simplify things and handling on konami-pro ?
     props:set_values(AddProps, Props).
 
 -spec metaflow_number(binary()) -> binary().

@@ -137,13 +137,6 @@ handle_info(_Info, StateName, State) ->
     lager:debug("unhandled msg in ~s: ~p", [StateName, _Info]),
     {'next_state', StateName, State}.
 
-
-%% -spec process_event(api_binary(), kz_proplist(), atom()) -> any().
-%% process_event(UUID, Props, Node) ->
-%%     kz_util:put_callid(UUID),
-%%     EventName = props:get_value(<<"Event-Subclass">>, Props, props:get_value(<<"Event-Name">>, Props)),
-%%     process_specific_event(EventName, UUID, Props, Node).
-
 -spec process_specific_event(ne_binary(), api_binary(), kz_proplist(), atom()) -> any().
 process_specific_event(<<"CHANNEL_DESTROY">>, _UUID, _Props, _Node) ->
     gen_fsm:send_event(self(), 'stop');
@@ -238,28 +231,13 @@ arm(#{digit_timeout := Timeout}=State) ->
           ,collected_dtmf => <<>>
           }.
 
-
--spec maybe_fast_rearm(ne_binary(), ne_binary(), binary()) -> binary().
--spec maybe_fast_rearm(ne_binary(), ne_binary(), binary(), boolean()) -> binary().
-
-maybe_fast_rearm(DTMF, BindingDigit, Collected) ->
-    maybe_fast_rearm(DTMF, BindingDigit, Collected, 'false'
-%                    ,kapps_config:get_is_true(?CONFIG_CAT, <<"use_fast_rearm">>, 'false')
-                    ).
-
-maybe_fast_rearm(DTMF, _BindingDigit, Collected, 'false') -> <<Collected/binary, DTMF/binary>>;
-maybe_fast_rearm(DoubleBindingDigit, DoubleBindingDigit, <<>>, 'true') -> DoubleBindingDigit;
-maybe_fast_rearm(DTMFisBindingDigit, DTMFisBindingDigit, _Collected, 'true') -> <<>>;
-maybe_fast_rearm(DTMF, _BindingDigit, Collected, 'true') -> <<Collected/binary, DTMF/binary>>.
-
 -spec add_dtmf(state(), ne_binary()) -> state().
 add_dtmf(#{collected_dtmf := Collected
           ,digit_timeout_ref := OldRef
           ,digit_timeout := Timeout
-          ,binding_digit := BindingDigit
           }=State, DTMF) ->
     lager:debug("recv dtmf '~s' while armed, adding to '~s'", [DTMF, Collected]),
     maybe_cancel_timer(OldRef),
     State#{digit_timeout_ref => gen_fsm:start_timer(Timeout, 'digit_timeout')
-          ,collected_dtmf => maybe_fast_rearm(DTMF, BindingDigit, Collected)
+          ,collected_dtmf => <<Collected/binary, DTMF/binary>>
           }.
