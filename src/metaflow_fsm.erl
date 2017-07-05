@@ -162,32 +162,32 @@ code_change(_OldVsn, StateName, State, _Extra) ->
                           'false' |
                           {'number', kz_json:object()} |
                           {'patterm', kz_json:object()}.
-has_metaflow(Collected, Ns, Ps) ->
-    case has_number(Collected, Ns) of
-        'false' -> has_pattern(Collected, Ps);
+has_metaflow(Collected, Numbers, Patterns) ->
+    case has_number(Collected, Numbers) of
+        'false' -> has_pattern(Collected, Patterns);
         N -> N
     end.
 
 -spec has_number(ne_binary(), kz_json:object()) ->
                         'false' |
                         {'number', kz_json:object()}.
-has_number(Collected, Ns) ->
-    case kz_json:get_value(Collected, Ns) of
+has_number(Collected, Numbers) ->
+    case kz_json:get_value(Collected, Numbers) of
         'undefined' -> 'false';
-        N -> {'number', N}
+        Number -> {'number', Number}
     end.
 
 -spec has_pattern(ne_binary(), kz_json:object()) ->
                          'false' |
                          {'pattern', kz_json:object()}.
-has_pattern(Collected, Ps) ->
-    Regexes = kz_json:get_keys(Ps),
-    has_pattern(Collected, Ps, Regexes).
+has_pattern(Collected, Patterns) ->
+    Regexes = kz_json:get_keys(Patterns),
+    has_pattern(Collected, Patterns, Regexes).
 
-has_pattern(_Collected, _Ps, []) -> 'false';
-has_pattern(Collected, Ps, [Regex|Regexes]) ->
+has_pattern(_Collected, _Patterns, []) -> 'false';
+has_pattern(Collected, Patterns, [Regex|Regexes]) ->
     case re:run(Collected, Regex, [{'capture', 'all_but_first', 'binary'}]) of
-        'nomatch' -> has_pattern(Collected, Ps, Regexes);
+        'nomatch' -> has_pattern(Collected, Patterns, Regexes);
         {'match', _Captured} -> {'pattern', Collected}
     end.
 
