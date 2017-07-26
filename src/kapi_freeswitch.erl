@@ -14,7 +14,7 @@
 %%-export([declare_exchanges/0, routing_key_format/0]).
 -export([declare_exchanges/0]).
 
--include_lib("kazoo/include/kz_types.hrl").
+-include_lib("kazoo_stdlib/include/kz_types.hrl").
 -include_lib("kazoo_amqp/include/kz_api.hrl").
 
 -define(EXCHANGE_FREESWITCH, <<"freeswitch">>).
