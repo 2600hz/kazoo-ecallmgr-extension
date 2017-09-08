@@ -21,7 +21,6 @@
 
 -define(CHILDREN, kz_json:from_list(
             [{<<"event_amqp_sup">>, ?NODE_SUPERVISOR}
-            ,{<<"route_metaflow">>, ?NODE_WORKER}
             ,{<<"bowout">>, ?NODE_WORKER}
             ,{<<"metaflow">>, ?NODE_WORKER}
             ])).
@@ -65,7 +64,10 @@ init([Node, Options]) ->
     Modules = kz_json:merge_jobjs(ecallmgr_config:get(<<"extension_modules">>, ?CHILDREN), ?CHILDREN),
     Children = kz_json:foldl(fun(Module, V, Acc) ->
                                      Type = kz_json:get_ne_binary_value(<<"type">>, V),
-                                     [child_name(NodeB, Args, Module, Type) | Acc]
+                                     case child_name(NodeB, Args, Module, Type) of
+                                         'undefined' -> Acc;
+                                         Child -> [Child | Acc]
+                                     end
                              end, [], Modules),
     {'ok', {SupFlags, Children}}.
 
@@ -74,6 +76,7 @@ child_name(NodeB, Args, Module, <<"supervisor">>) ->
     Name = kz_util:to_atom(<<NodeB/binary, "_", Module/binary>>, 'true'),
     Mod = kz_util:to_atom(<<"ecallmgr_fs_", Module/binary>>, 'true'),
     ?SUPER_NAME_ARGS(Mod, Name, Args);
+child_name(_NodeB, _Args, <<"route_metaflow">>, <<"worker">>) -> 'undefined';
 child_name(NodeB, Args, Module, <<"worker">>) ->
     Name = kz_util:to_atom(<<NodeB/binary, "_", Module/binary>>, 'true'),
     Mod = kz_util:to_atom(<<"ecallmgr_fs_", Module/binary>>, 'true'),
