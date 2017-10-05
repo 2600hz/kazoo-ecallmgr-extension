@@ -27,7 +27,7 @@ handle_req(JObj, Props) ->
         {'ok', #channel{handling_locally='true'}} ->
             lager:debug("getting channel data for ~s", [UUID]),
             case ecallmgr_fs_channel:channel_data(Node, UUID) of
-                {'ok', Props} -> handle_metaflow_action(UUID, JObj, ControlQ, Props, Node);
+                {'ok', ChannelProps} -> handle_metaflow_action(UUID, JObj, ControlQ, ChannelProps, Node);
                 {'error', Error} -> lager:debug("error ~p getting channel data for ~s, exiting", [Error, UUID])
             end;
         {'ok', #channel{}} -> lager:debug("channel ~s not handled on this node, exiting", [UUID])
