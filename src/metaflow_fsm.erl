@@ -28,35 +28,31 @@
 
 -include("metaflow.hrl").
 
--type state() :: #{}.
-
+-type state() :: map().
 
 %%%===================================================================
 %%% API
 %%%===================================================================
-
 -spec start_link(atom(), ne_binary(), ne_binary(), kz_json:object()) -> any().
 start_link(Node, UUID, OtherUUID, JObj) ->
     gen_fsm:start_link(?MODULE, {Node, UUID, OtherUUID, JObj}, []).
 
-
 %%%===================================================================
 %%% gen_fsm callbacks
 %%%===================================================================
-
 -spec init({atom(), ne_binary(), ne_binary(), kz_json:object()}) -> {'ok', 'unarmed', state()}.
 init({Node, UUID, OtherUUID, JObj}) ->
     kz_util:put_callid(UUID),
 
     lager:debug("starting metaflow fsm for call-id ~s", [UUID]),
-    EndpointId = kz_json:get_value(<<"Endpoint-ID">>, JObj, kz_binary:rand_hex(16)),
-    ListenOn = kz_json:get_value(<<"Listen-On">>, JObj, <<"self">>),
-    BindingDigit = kz_json:get_value(<<"Binding-Digit">>, JObj, <<"*">>),
+    EndpointId = kz_json:get_ne_binary_value(<<"Endpoint-ID">>, JObj, kz_binary:rand_hex(16)),
+    ListenOn = kz_json:get_ne_binary_value(<<"Listen-On">>, JObj, <<"self">>),
+    BindingDigit = kz_json:get_ne_binary_value(<<"Binding-Digit">>, JObj, <<"*">>),
     CollectTimeout = kz_json:get_integer_value(<<"Collect-Timeout">>, JObj, 1000),
-    Patterns = kz_json:get_value(<<"Patterns">>, JObj, kz_json:new()),
-    Numbers = kz_json:get_value(<<"Numbers">>, JObj, kz_json:new()),
-    TargetLeg = kz_json:get_value(<<"Target-Leg">>, JObj, ListenOn),
-    EventLeg = kz_json:get_value(<<"Event-Leg">>, JObj, ListenOn),
+    Patterns = kz_json:get_json_value(<<"Patterns">>, JObj, kz_json:new()),
+    Numbers = kz_json:get_json_value(<<"Numbers">>, JObj, kz_json:new()),
+    TargetLeg = kz_json:get_ne_binary_value(<<"Target-Leg">>, JObj, ListenOn),
+    EventLeg = kz_json:get_ne_binary_value(<<"Event-Leg">>, JObj, ListenOn),
 
     gen_fsm:send_all_state_event(self(), 'bind'),
 
@@ -157,7 +153,6 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-
 -spec has_metaflow(ne_binary(), kz_json:object(), kz_json:object()) ->
                           'false' |
                           {'number', kz_json:object()} |
