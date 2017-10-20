@@ -1,3 +1,4 @@
+```json
 {
    "modules": [
        "node",
@@ -12,8 +13,8 @@
        "event_stream_sup",
 
        "extension_node_sup",  <<==== will add all extensions (amqp_sup and route_metaflow)
-          "event_amqp_sup",   <<<=== if only amqp extension wanted 
-          "route_metaflow",   <<<=== if only konami-pro incall route req wanted 
+          "event_amqp_sup",   <<<=== if only amqp extension wanted
+          "route_metaflow",   <<<=== if only konami-pro incall route req wanted
    ],
    "fs_amqp_listeners": 1,  <<==== if needed more listeners, not completed as some cfg values are handled here
    "configuration_handlers": {
@@ -88,7 +89,7 @@
        }
    ],
    "publish_channel_state": false,  <<=== will not publish from event_stream
-   >>>>>> amqp.conf.xml in here so we don't show we're using it  
+   >>>>>> amqp.conf.xml in here so we don't show we're using it
    >>>>>> connection is fetched from primary broker
    "amqp": {
        "producers": {
@@ -115,3 +116,4 @@
        }
    }
  }
+ ```
