@@ -111,8 +111,8 @@ armed(_Event, _From, State) ->
 
 -spec handle_event(any(), atom(), state()) -> handle_fsm_ret(state()).
 handle_event('bind', _StateName, #{node := Node
-                                 ,uuid := UUID
-                                 } = State) ->
+                                  ,uuid := UUID
+                                  } = State) ->
     case gproc:reg({'p', 'l', ?FS_CALL_EVENT_MSG(Node, <<"CHANNEL_DESTROY">>, UUID)}) =:= 'true'
         andalso gproc:reg({'p', 'l', ?FS_CALL_EVENT_MSG(Node, <<"DTMF">>, UUID)}) =:= 'true'
         andalso gproc:reg({'p', 'l', ?METAFLOW_REG_MSG(UUID)}) =:= 'true'

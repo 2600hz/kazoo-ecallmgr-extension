@@ -20,11 +20,11 @@
 -define(NODE_SUPERVISOR, ?NODE_CHILD_TYPE(<<"supervisor">>)).
 
 -define(CHILDREN, kz_json:from_list(
-            [{<<"event_amqp_sup">>, ?NODE_SUPERVISOR}
-            ,{<<"route_metaflow">>, ?NODE_WORKER}
-            ,{<<"bowout">>, ?NODE_WORKER}
-            ,{<<"metaflow">>, ?NODE_WORKER}
-            ])).
+                    [{<<"event_amqp_sup">>, ?NODE_SUPERVISOR}
+                    ,{<<"route_metaflow">>, ?NODE_WORKER}
+                    ,{<<"bowout">>, ?NODE_WORKER}
+                    ,{<<"metaflow">>, ?NODE_WORKER}
+                    ])).
 
 %% ===================================================================
 %% API functions
