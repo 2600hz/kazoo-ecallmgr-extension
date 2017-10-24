@@ -101,5 +101,6 @@
         ,{node_modules, ["event_amqp_sup"
                         ,"metaflow"
                         ]}
+        ,{schemas_to_priv, true}
         ]}
  ]}.
