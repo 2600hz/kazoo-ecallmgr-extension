@@ -1,1 +1,41 @@
-{"type":"object","description":"Schema for ecallmgr system_config","_id":"system_config.ecallmgr","$schema":"http://json-schema.org/draft-04/schema#"}
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "_id": "system_config.ecallmgr",
+    "description": "Schema for ecallmgr system_config",
+    "properties": {
+        "extension_modules": {
+            "default": {
+                "bowout": {
+                    "type": "worker"
+                },
+                "event_amqp_sup": {
+                    "type": "supervisor"
+                },
+                "metaflow": {
+                    "type": "worker"
+                },
+                "route_metaflow": {
+                    "type": "worker"
+                }
+            },
+            "description": "ecallmgr extension_modules",
+            "type": "object"
+        },
+        "fs_amqp_listeners": {
+            "default": 1,
+            "description": "ecallmgr fs_amqp_listeners",
+            "type": "integer"
+        },
+        "metaflow_routing_bindings": {
+            "default": [
+                "metaflow"
+            ],
+            "description": "ecallmgr metaflow_routing_bindings",
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        }
+    },
+    "type": "object"
+}
