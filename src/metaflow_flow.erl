@@ -20,7 +20,7 @@
 -spec handle_req(kz_json:object(), kz_proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
     Node = props:get_value('FSNode', Props),
-    ControlQ = props:get_value('Control-Q', Props), 
+    ControlQ = props:get_value('Control-Q', Props),
     UUID = kz_api:call_id(JObj),
     case ecallmgr_fs_channel:fetch(UUID, 'record') of
         {'error', 'not_found'} -> lager:debug("channel ~s not found locally, exiting", [UUID]);
@@ -39,7 +39,7 @@ handle_metaflow_flow(UUID, JObj, ControlQ, FSProps, Node) ->
            ,{<<"Metaflow">>, kz_json:get_value(<<"Flow">>, JObj)}
            ,{<<"Other-Leg-Call-ID">>, kzd_freeswitch:other_leg_call_id(FSProps)}
            ],
-    
+
     ReqProps = [{<<"Resource-Type">>,<<"metaflow">>}
                ,{<<"Custom-Routing-Headers">>, kz_json:from_list(CRHs)}
                ,{<<"Application-Logical-Direction">>, <<"inbound">>}

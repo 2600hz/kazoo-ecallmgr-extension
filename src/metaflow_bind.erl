@@ -39,15 +39,15 @@ request_metaflow(Node, Leg, OtherLegUUID, {'ok', #channel{handling_locally='true
           ,{<<"Authorizing-ID">>, AuthorizingId}
           ,{<<"Resource-ID">>, ResourceId}
           ,{<<"CallFlow-ID">>, CallFlowId}
-          | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
+           | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
           ],
     case gproc:lookup_values({'p', 'l', ?METAFLOW_REG_MSG(UUID)}) =:= []
-       andalso kz_amqp_worker:call(API, fun kapi_metaflow:publish_bind_req/1, fun kapi_metaflow:binding_v/1)
+        andalso kz_amqp_worker:call(API, fun kapi_metaflow:publish_bind_req/1, fun kapi_metaflow:binding_v/1)
     of
         {'ok', JObj} -> process_metaflow(Node, UUID, OtherLegUUID, JObj, Channel);
         'false' -> lager:debug("metaflow for ~s already in place", [UUID]);
         _Else -> lager:debug("error requesting metaflow binding : ~p", [_Else])
-    end;       
+    end;
 request_metaflow(_Node, _Leg, _OtherLegUUID, _Channel) -> 'ok'.
 
 -spec process_metaflow(atom(), ne_binary(), ne_binary(), kz_json:object(), channel()) -> no_return().

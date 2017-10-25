@@ -25,18 +25,18 @@ handle_config_req(Node, Id, <<"amqp.conf">>, _Props) ->
     kz_util:put_callid(Id),
     lager:debug("handling amqp configuration"),
     JObj = ecallmgr_fs_amqp:amqp_producers(),
-            try amqp_conf_xml(JObj) of
-                {'ok', ConfigXml} ->
-                    lager:debug("sending amqp XML to ~s: ~s", [Node, ConfigXml]),
-                    ecallmgr_fs_nodes:add_capability(Node, ?AMQP_CAPABILITY),
-                    freeswitch:fetch_reply(Node, Id, 'configuration', erlang:iolist_to_binary(ConfigXml))
-            catch
-                _E:_R ->
-                    lager:info("amqp configuration resp failed to convert to XML (~s): ~p", [_E, _R]),
-                    kz_util:log_stacktrace(),
-                    {'ok', Resp} = ecallmgr_fs_xml:not_found(),
-                    freeswitch:fetch_reply(Node, Id, 'configuration', iolist_to_binary(Resp))
-            end.
+    try amqp_conf_xml(JObj) of
+        {'ok', ConfigXml} ->
+            lager:debug("sending amqp XML to ~s: ~s", [Node, ConfigXml]),
+            ecallmgr_fs_nodes:add_capability(Node, ?AMQP_CAPABILITY),
+            freeswitch:fetch_reply(Node, Id, 'configuration', erlang:iolist_to_binary(ConfigXml))
+    catch
+        _E:_R ->
+            lager:info("amqp configuration resp failed to convert to XML (~s): ~p", [_E, _R]),
+            kz_util:log_stacktrace(),
+            {'ok', Resp} = ecallmgr_fs_xml:not_found(),
+            freeswitch:fetch_reply(Node, Id, 'configuration', iolist_to_binary(Resp))
+    end.
 
 -spec amqp_conf_xml(kz_json:object()) -> {'ok', iolist()}.
 amqp_conf_xml(JObj) ->
