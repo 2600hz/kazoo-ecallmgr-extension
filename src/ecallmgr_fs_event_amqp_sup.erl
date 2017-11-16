@@ -33,9 +33,9 @@ start_link(Node, Options) ->
     Profiles = kz_json:get_keys(<<"producers">>, ecallmgr_fs_amqp:amqp_producers()),
     kz_util:spawn(fun() -> timer:sleep(1000),
                            [supervisor:start_child(Pid, [Profile])
-                              || Profile <- Profiles, _ <- lists:seq(1, Workers)
+                            || Profile <- Profiles, _ <- lists:seq(1, Workers)
                            ]
-                  end),   
+                  end),
     {'ok', Pid}.
 
 %% ===================================================================

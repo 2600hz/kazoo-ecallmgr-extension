@@ -8,7 +8,7 @@
 -module(kapi_freeswitch).
 
 -export([bind_q/2
-	,unbind_q/2
+        ,unbind_q/2
         ]).
 
 %%-export([declare_exchanges/0, routing_key_format/0]).
@@ -65,19 +65,19 @@ routing_key(Props) ->
     routing_key(props:get_value('profile', Props, <<"*">>)
                ,props:get_value('hostname', Props, <<"*">>)
                ,props:get_value('event', Props, <<"*">>)
-      	       ,props:get_value('callid', Props, <<"*">>)
+               ,props:get_value('callid', Props, <<"*">>)
                ).
 
 -spec routing_key(binary(), binary(), binary(), binary()) -> binary().
 routing_key(Profile, Hostname, Event, CallId) ->
     list_to_binary([<<"FreeSWITCH.">>
-           ,amqp_util:encode(Profile)
-           ,"."
-		   ,amqp_util:encode(Hostname)
-		   ,"."
-		   ,amqp_util:encode(Event)
-		   ,"."
-		   ,amqp_util:encode(CallId)
+                   ,amqp_util:encode(Profile)
+                   ,"."
+                   ,amqp_util:encode(Hostname)
+                   ,"."
+                   ,amqp_util:encode(Event)
+                   ,"."
+                   ,amqp_util:encode(CallId)
                    ]).
 
 %%--------------------------------------------------------------------

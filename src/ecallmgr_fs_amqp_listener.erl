@@ -34,7 +34,7 @@
                                          ,{'hostname', HN}
                                          ,{'profile', P}
                                          ]}
-                      ]).
+                         ]).
 -define(QUEUE_NAME(HN, P), <<"fs_amqp_", P/binary, "_shared_listener_", HN/binary>>).
 -define(QUEUE_OPTIONS, [{'exclusive', 'false'}]).
 -define(CONSUME_OPTIONS, [{'exclusive', 'false'}]).
@@ -231,8 +231,8 @@ handle_heartbeat(#state{active='true', profile=_Profile}=State) ->
 handle_heartbeat(#state{active='false', profile=Profile, node=Node, heartbeat=Heartbeat}=State) ->
     lager:debug("heartbeat for inactive profile ~s, activating", [Profile]),
     _ = notify_procs('true', State),
-    _ = Heartbeat =/= 0 andalso
-            kz_notify:system_alert(?SYSTEM_ALERT, [Profile, "activated", node(), Node]),
+    _ = Heartbeat =/= 0
+        andalso kz_notify:system_alert(?SYSTEM_ALERT, [Profile, "activated", node(), Node]),
     State#state{active='true', heartbeat=kz_time:current_tstamp()}.
 
 -spec check_elapsed(state()) -> state().

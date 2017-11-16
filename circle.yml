@@ -1,0 +1,67 @@
+machine:
+  environment:
+    OTP_VERSION: 19.3
+    PATH: ${HOME}/.kerl/$OTP_VERSION/bin:${PATH}
+    KAZOO_ROOT: ${HOME}/kazoo
+    CHANGED: "applications/ecallmgr_extension/"
+  services:
+    - rabbitmq-server
+    - docker
+#    - couchdb-server
+
+checkout:
+  override:
+    - ./scripts/circleci.bash
+
+general:
+  branches:
+    ignore:
+      - /3\.[0-9]+/
+      - 4.0
+
+dependencies:
+  cache_directories:
+    - ~/.kerl
+    - ~/kazoo
+  pre:
+      - bash $KAZOO_ROOT/scripts/circleci-build-erlang.sh:
+          timeout: 1800
+      - pip install --upgrade pip
+      - pip install PyYAML mkdocs pyembed-markdown jsonschema
+test:
+  pre:
+    - $KAZOO_ROOT/scripts/state-of-docs.sh || true:
+        pwd: ../kazoo
+    - $KAZOO_ROOT/scripts/code_checks.bash $CHANGED:
+        pwd: ../kazoo
+    - TO_FMT="$CHANGED" make fmt:
+        pwd: ../kazoo
+    - . ~/.kerl/$OTP_VERSION/activate && make:
+        pwd: ../kazoo
+    - . ~/.kerl/$OTP_VERSION/activate && make code_checks:
+        pwd: ../kazoo
+    - $KAZOO_ROOT/scripts/validate-js.sh $CHANGED:
+        pwd: ../kazoo
+    - . ~/.kerl/$OTP_VERSION/activate && make apis:
+        pwd: ../kazoo
+    - make validate-schemas:
+        pwd: ../kazoo
+    - ./scripts/check-unstaged.bash
+    - $KAZOO_ROOT/scripts/check-unstaged.bash:
+        pwd: ../kazoo
+    - . ~/.kerl/$OTP_VERSION/activate && make xref:
+        pwd: ../kazoo
+    - . ~/.kerl/$OTP_VERSION/activate && make sup_completion:
+        pwd: ../kazoo
+    - . ~/.kerl/$OTP_VERSION/activate; make build-plt; TO_DIALYZE="$CHANGED/ebin" make dialyze:
+        pwd: ../kazoo
+    - . ~/.kerl/$OTP_VERSION/activate && make elvis:
+        pwd: ../kazoo
+    - . ~/.kerl/$OTP_VERSION/activate && make build-ci-release:
+        pwd: ../kazoo
+    - . ~/.kerl/$OTP_VERSION/activate && $KAZOO_ROOT/scripts/check-release-startup.sh:
+        pwd: ../kazoo
+  post:
+    - mkdir $CIRCLE_ARTIFACTS/logs
+    - mv $KAZOO_ROOT/_rel/kazoo/log/* $CIRCLE_ARTIFACTS/logs/
+    - mv $KAZOO_ROOT/rel/relx.config $CIRCLE_ARTIFACTS/logs/
