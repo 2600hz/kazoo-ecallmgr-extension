@@ -9,7 +9,7 @@
 
 -export([init/0, handle_req/2]).
 
--include("ecallmgr-extension.hrl").
+-include("ecallmgr_extension.hrl").
 
 -spec init() -> 'ok'.
 init() -> 'ok'.

@@ -12,7 +12,7 @@
 -export([amqp_producers/0]).
 
 
--include("ecallmgr-extension.hrl").
+-include("ecallmgr_extension.hrl").
 
 -spec amqp_producers() -> kz_json:object().
 amqp_producers() ->
