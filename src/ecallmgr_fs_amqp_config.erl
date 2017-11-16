@@ -9,7 +9,7 @@
 
 -export([handle_config_req/4]).
 
--include("ecallmgr-extension.hrl").
+-include("ecallmgr_extension.hrl").
 
 
 -define(AMQP_CAPABILITY, kz_json:from_list([{<<"module">>, <<"mod_amqp">>}

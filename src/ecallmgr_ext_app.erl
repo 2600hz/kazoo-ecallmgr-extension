@@ -9,7 +9,7 @@
 
 -behaviour(application).
 
--include("ecallmgr-extension.hrl").
+-include("ecallmgr_extension.hrl").
 
 -export([start/2]).
 -export([stop/1]).

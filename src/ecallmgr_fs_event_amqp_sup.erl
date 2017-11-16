@@ -9,7 +9,7 @@
 
 -behaviour(supervisor).
 
--include("ecallmgr-extension.hrl").
+-include("ecallmgr_extension.hrl").
 
 -export([start_link/2]).
 -export([init/1]).

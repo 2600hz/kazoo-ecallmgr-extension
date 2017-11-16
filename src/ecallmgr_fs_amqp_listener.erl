@@ -21,7 +21,7 @@
         ,code_change/3
         ]).
 
--include("ecallmgr-extension.hrl").
+-include("ecallmgr_extension.hrl").
 -include("gen_listener_spec.hrl").
 
 -define(SYSTEM_ALERT, "AMQP Profile ~s ~s in node ~s from ~s").
@@ -86,7 +86,7 @@ start_link(Node, Options, Profile) ->
 %% @end
 %%--------------------------------------------------------------------
 init([Node, Options, Profile]) ->
-    put('callid', ?LOG_SYSTEM_ID),
+    put('callid', ?DEFAULT_LOG_SYSTEM_ID),
     lager:debug("starting new fs amqp handler"),
     Producers = ecallmgr_fs_amqp:amqp_producers(),
     Configuration = kz_json:get_value([<<"producers">>, Profile], Producers),
