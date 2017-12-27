@@ -23,6 +23,7 @@ handle_req(JObj, Props) ->
     EventProps = [{<<"Switch-URL">>, props:get_value('Switch-URL', Props)}
                  ,{<<"Switch-URI">>, props:get_value('Switch-URI', Props)}
                  ,{<<"Switch-Node">>, kz_term:to_binary(Node)}
+                 ,{<<"Switch-Nodename">>, kz_term:to_binary(Node)}
                  ,{<<"Force-Publish-Event-State">>, 'true'}
                   | kz_json:to_proplist(JObj)
                  ],
