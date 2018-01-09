@@ -25,12 +25,12 @@
 %%
 %% @end
 %%--------------------------------------------------------------------
--spec bind_q(ne_binary(), kz_proplist()) -> 'ok'.
+-spec bind_q(kz_term:ne_binary(), kz_term:proplist()) -> 'ok'.
 bind_q(Queue, Props) ->
     RestrictTo = props:get_value('restrict_to', Props),
     bind_q(Queue, RestrictTo, Props).
 
--spec bind_q(ne_binary(), api_binaries(), kz_proplist()) -> 'ok'.
+-spec bind_q(kz_term:ne_binary(), kz_term:api_binaries(), kz_term:proplist()) -> 'ok'.
 bind_q(Queue, 'undefined', _) ->
     amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
 bind_q(Queue, ['key'|Restrict], Props) ->
@@ -40,12 +40,12 @@ bind_q(Queue, [_|Restrict], Props) ->
     bind_q(Queue, Restrict, Props);
 bind_q(_, [], _) -> 'ok'.
 
--spec unbind_q(ne_binary(), kz_proplist()) -> 'ok'.
+-spec unbind_q(kz_term:ne_binary(), kz_term:proplist()) -> 'ok'.
 unbind_q(Queue, Props) ->
     RestrictTo = props:get_value('restrict_to', Props),
     unbind_q(Queue, RestrictTo, Props).
 
--spec unbind_q(ne_binary(), api_binary(), kz_proplist()) -> 'ok'.
+-spec unbind_q(kz_term:ne_binary(), kz_term:api_binary(), kz_term:proplist()) -> 'ok'.
 unbind_q(Queue, 'undefined', _) ->
     amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
 unbind_q(Queue, ['key'|Restrict], Props) ->
@@ -60,7 +60,7 @@ unbind_q(_, [], _) -> 'ok'.
 %% routing_key_format() -> <<"#FreeSWITCH,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID">>.
 
 
--spec routing_key(kz_proplist()) -> binary().
+-spec routing_key(kz_term:proplist()) -> binary().
 routing_key(Props) ->
     routing_key(props:get_value('profile', Props, <<"*">>)
                ,props:get_value('hostname', Props, <<"*">>)
