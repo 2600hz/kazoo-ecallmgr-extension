@@ -33,14 +33,14 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
--spec start_link(atom(), ne_binary(), ne_binary(), kz_json:object()) -> any().
+-spec start_link(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object()) -> any().
 start_link(Node, UUID, OtherUUID, JObj) ->
     gen_fsm:start_link(?MODULE, {Node, UUID, OtherUUID, JObj}, []).
 
 %%%===================================================================
 %%% gen_fsm callbacks
 %%%===================================================================
--spec init({atom(), ne_binary(), ne_binary(), kz_json:object()}) -> {'ok', 'unarmed', state()}.
+-spec init({atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object()}) -> {'ok', 'unarmed', state()}.
 init({Node, UUID, OtherUUID, JObj}) ->
     kz_util:put_callid(UUID),
 
@@ -70,8 +70,8 @@ init({Node, UUID, OtherUUID, JObj}) ->
                        ,listen_on => ListenOn
                        }}.
 
--spec unarmed(any(), state()) -> handle_fsm_ret(state()).
--spec unarmed(any(), atom(), state()) -> handle_sync_event_ret(state()).
+-spec unarmed(any(), state()) -> kz_types:handle_fsm_ret(state()).
+-spec unarmed(any(), atom(), state()) -> kz_types:handle_sync_event_ret(state()).
 unarmed('stop', State) ->
     {'stop', 'normal', State};
 unarmed({'dtmf', BindingDigit}, #{binding_digit := BindingDigit}=State) ->
@@ -88,8 +88,8 @@ unarmed(_Event, _From, State) ->
     lager:debug("unhandled unarmed/3: ~p", [_Event]),
     {'reply', {'error', 'not_implemented'}, 'unarmed', State}.
 
--spec armed(any(), state()) -> handle_fsm_ret(state()).
--spec armed(any(), atom(), state()) -> handle_sync_event_ret(state()).
+-spec armed(any(), state()) -> kz_types:handle_fsm_ret(state()).
+-spec armed(any(), atom(), state()) -> kz_types:handle_sync_event_ret(state()).
 armed('stop', State) ->
     {'stop', 'normal', State};
 armed({'dtmf', Digit}, State) ->
@@ -105,7 +105,7 @@ armed(_Event, _From, State) ->
     lager:debug("unhandled armed/3: ~p", [_Event]),
     {'reply', {'error', 'not_implemented'}, 'armed', State}.
 
--spec handle_event(any(), atom(), state()) -> handle_fsm_ret(state()).
+-spec handle_event(any(), atom(), state()) -> kz_types:handle_fsm_ret(state()).
 handle_event('bind', _StateName, #{node := Node
                                   ,uuid := UUID
                                   } = State) ->
@@ -120,12 +120,12 @@ handle_event(_Event, StateName, State) ->
     lager:debug("unhandled event in ~s: ~p", [StateName, _Event]),
     {'next_state', StateName, State}.
 
--spec handle_sync_event(any(), {pid(),any()}, atom(), state()) -> handle_sync_event_ret(state()).
+-spec handle_sync_event(any(), {pid(),any()}, atom(), state()) -> kz_types:handle_sync_event_ret(state()).
 handle_sync_event(_Event, _From, StateName, State) ->
     lager:debug("unhandled sync_event in ~s: ~p", [StateName, _Event]),
     {'reply', {'error', 'not_implemented'}, StateName, State}.
 
--spec handle_info(any(), atom(), state()) -> handle_fsm_ret(state()).
+-spec handle_info(any(), atom(), state()) -> kz_types:handle_fsm_ret(state()).
 handle_info({'event', Event, [UUID | Props]}, StateName, #{node := Node} = State) ->
     process_specific_event(Event, UUID, Props, Node),
     {'next_state', StateName, State};
@@ -133,7 +133,7 @@ handle_info(_Info, StateName, State) ->
     lager:debug("unhandled msg in ~s: ~p", [StateName, _Info]),
     {'next_state', StateName, State}.
 
--spec process_specific_event(ne_binary(), api_binary(), kz_proplist(), atom()) -> any().
+-spec process_specific_event(kz_term:ne_binary(), kz_term:api_binary(), kz_term:proplist(), atom()) -> any().
 process_specific_event(<<"CHANNEL_DESTROY">>, _UUID, _Props, _Node) ->
     gen_fsm:send_event(self(), 'stop');
 process_specific_event(<<"DTMF">>, _UUID, Props, _Node) ->
@@ -153,7 +153,7 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
--spec has_metaflow(ne_binary(), kz_json:object(), kz_json:object()) ->
+-spec has_metaflow(kz_term:ne_binary(), kz_json:object(), kz_json:object()) ->
                           'false' |
                           {'number', kz_json:object()} |
                           {'patterm', kz_json:object()}.
@@ -163,7 +163,7 @@ has_metaflow(Collected, Numbers, Patterns) ->
         N -> N
     end.
 
--spec has_number(ne_binary(), kz_json:object()) ->
+-spec has_number(kz_term:ne_binary(), kz_json:object()) ->
                         'false' |
                         {'number', kz_json:object()}.
 has_number(Collected, Numbers) ->
@@ -172,7 +172,7 @@ has_number(Collected, Numbers) ->
         Number -> {'number', Number}
     end.
 
--spec has_pattern(ne_binary(), kz_json:object()) ->
+-spec has_pattern(kz_term:ne_binary(), kz_json:object()) ->
                          'false' |
                          {'pattern', kz_json:object()}.
 has_pattern(Collected, Patterns) ->
@@ -215,7 +215,7 @@ maybe_handle_code(#{numbers := Ns
         {'pattern', _P} -> fire_metaflow(Node, UUID, Collected)
     end.
 
--spec fire_metaflow(atom(), ne_binary(), ne_binary()) -> 'ok'.
+-spec fire_metaflow(atom(), kz_term:ne_binary(), kz_term:ne_binary()) -> 'ok'.
 fire_metaflow(Node, UUID, Collected) ->
     lager:debug("firing metaflow ~s : ~s", [UUID, Collected]),
     ecallmgr_util:send_cmd(Node, UUID, "execute_extension", <<Collected/binary, " XML metaflow">>).
@@ -226,7 +226,7 @@ arm(#{digit_timeout := Timeout}=State) ->
           ,collected_dtmf => <<>>
           }.
 
--spec add_dtmf(state(), ne_binary()) -> state().
+-spec add_dtmf(state(), kz_term:ne_binary()) -> state().
 add_dtmf(#{collected_dtmf := Collected
           ,digit_timeout_ref := OldRef
           ,digit_timeout := Timeout

@@ -31,8 +31,8 @@
 -define(DEFAULT_BINDINGS, [?DEFAULT_METAFLOW_CONTEXT]).
 
 -record(state, {node = 'undefined' :: atom()
-               ,options = [] :: kz_proplist()
-               ,control_q :: api_binary()
+               ,options = [] :: kz_term:proplist()
+               ,control_q :: kz_term:api_binary()
                }).
 
 -define(PROP_MATCHING_DIGITS, <<"variable_last_matching_digits">>).
@@ -64,8 +64,8 @@
 %%--------------------------------------------------------------------
 %% @doc Starts the server
 %%--------------------------------------------------------------------
--spec start_link(atom()) -> startlink_ret().
--spec start_link(atom(), kz_proplist()) -> startlink_ret().
+-spec start_link(atom()) -> kz_types:startlink_ret().
+-spec start_link(atom(), kz_term:proplist()) -> kz_types:startlink_ret().
 start_link(Node) -> start_link(Node, []).
 start_link(Node, Options) ->
     gen_listener:start_link(?SERVER, [{'responders', ?RESPONDERS}

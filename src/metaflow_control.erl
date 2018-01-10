@@ -16,7 +16,7 @@
 %%% API
 %%%===================================================================
 
--spec handle_req(kz_json:object(), kz_proplist()) -> 'ok'.
+-spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
     Node = props:get_value('FSNode', Props),
     case kz_json:get_value(<<"Application-Name">>, JObj) of
@@ -80,7 +80,7 @@ control_process(Fun, Cmd, Node) ->
 exec_dialplan(Node, UUID, DP) ->
     [ecallmgr_util:send_cmd(Node, UUID, AppName, AppData) || {AppName, AppData} <- DP].
 
--spec get_module(ne_binary(), ne_binary()) -> atom().
+-spec get_module(kz_term:ne_binary(), kz_term:ne_binary()) -> atom().
 get_module(Category, Name) ->
     ModuleName = <<"ecallmgr_", Category/binary, "_", Name/binary>>,
     try kz_term:to_atom(ModuleName)

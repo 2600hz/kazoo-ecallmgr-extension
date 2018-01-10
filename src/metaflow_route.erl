@@ -18,7 +18,7 @@
 
 -include("metaflow.hrl").
 
--spec handle_metaflow_route(atom(), atom(), ne_binary(), ne_binary(), kz_proplist()) -> 'ok'.
+-spec handle_metaflow_route(atom(), atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_term:proplist()) -> 'ok'.
 handle_metaflow_route(Section, Node, FetchId, UUID, FSProps) ->
     kz_util:put_callid(UUID),
     Props = init_metaflow_props(Node, FSProps),
@@ -31,13 +31,13 @@ handle_metaflow_route(Section, Node, FetchId, UUID, FSProps) ->
 %%% Internal functions
 %%%===================================================================
 
--spec init_metaflow_props(atom(), kz_proplist()) -> kz_proplist().
+-spec init_metaflow_props(atom(), kz_term:proplist()) -> kz_term:proplist().
 init_metaflow_props(Node, Props) ->
     Routines = [fun add_metaflow_missing_props/1
                ],
     lists:foldl(fun(F,P) -> F(P) end, [{<<"FreeSWITCH-Node">>, Node} | Props], Routines).
 
--spec add_metaflow_missing_props(kz_proplist()) -> kz_proplist().
+-spec add_metaflow_missing_props(kz_term:proplist()) -> kz_term:proplist().
 add_metaflow_missing_props(Props) ->
     Number = metaflow_number(props:get_value(<<"Hunt-Destination-Number">>, Props)),
     CRHs = [{<<"Metaflow-Request-Type">>, <<"in-call">>}
@@ -55,7 +55,7 @@ add_metaflow_missing_props(Props) ->
 metaflow_number(<<"*", Number/binary>>) -> Number;
 metaflow_number(Number) -> Number.
 
--spec start_metaflow_handling(atom(), ne_binary(), ne_binary(), kz_json:object(), kz_proplist()) -> 'ok'.
+-spec start_metaflow_handling(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), kz_term:proplist()) -> 'ok'.
 start_metaflow_handling(_Node, FetchId, CallId, JObj, Props) ->
     ControlQ = props:get_value(<<"Control-Queue">>, Props),
     CCVs = [{[<<"Custom-Channel-Vars">>, <<"Application-Name">>], kz_json:get_value(<<"App-Name">>, JObj)}
@@ -63,7 +63,7 @@ start_metaflow_handling(_Node, FetchId, CallId, JObj, Props) ->
            ],
     send_metaflow_win(ControlQ, FetchId, CallId, kz_json:set_values(CCVs, JObj)).
 
--spec send_metaflow_win(ne_binary(), ne_binary(), ne_binary(), kz_json:object()) -> 'ok'.
+-spec send_metaflow_win(kz_term:ne_binary(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object()) -> 'ok'.
 send_metaflow_win(ControlQ, FetchId, CallId, JObj) ->
     ControllerQ = kz_api:server_id(JObj),
     CCVs = kz_json:get_value(<<"Custom-Channel-Vars">>, JObj),
@@ -77,7 +77,7 @@ send_metaflow_win(ControlQ, FetchId, CallId, JObj) ->
     Publisher = fun(API) -> kapi_route:publish_win(ControllerQ, API) end,
     kz_amqp_worker:cast(Win, Publisher).
 
--spec route_resp_xml(ne_binary(), kz_json:objects(), kz_json:object(), kz_proplist()) -> {'ok', iolist()}.
+-spec route_resp_xml(kz_term:ne_binary(), kz_json:objects(), kz_json:object(), kz_term:proplist()) -> {'ok', iolist()}.
 route_resp_xml(<<"application">>, _Routes, JObj, Props) ->
     Node = props:get_value(<<"FreeSWITCH-Node">>, Props),
     UUID = props:get_value(<<"Unique-UUID">>, Props),
@@ -90,11 +90,11 @@ route_resp_xml(<<"application">>, _Routes, JObj, Props) ->
     SectionEl = section_el(<<"dialplan">>, <<"Metaflow Application Response">>, ContextEl),
     {'ok', xmerl:export([SectionEl], 'fs_xml')}.
 
--spec route_resp_log_winning_node() -> xml_el().
+-spec route_resp_log_winning_node() -> kz_types:xml_el().
 route_resp_log_winning_node() ->
     action_el(<<"log">>, [<<"NOTICE log|${uuid}|", (kz_term:to_binary(node()))/binary, " won metaflow control">>]).
 
--spec route_resp_ccvs(atom(), ne_binary(), kz_json:object()) -> xml_els().
+-spec route_resp_ccvs(atom(), kz_term:ne_binary(), kz_json:object()) -> kz_types:xml_els().
 route_resp_ccvs(Node, UUID, JObj) ->
     case kz_json:get_value(<<"Custom-Channel-Vars">>, JObj) of
         'undefined' -> [];

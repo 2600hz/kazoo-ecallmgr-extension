@@ -48,12 +48,12 @@
 -define(HEARTBEAT_MAX_ELAPSED_MS, ?AMQP_HEARTBEAT * ?MILLISECONDS_IN_SECOND).
 
 -record(state, {node :: atom()
-               ,switch_url :: api_binary()
-               ,switch_uri :: api_binary()
+               ,switch_url :: kz_term:api_binary()
+               ,switch_uri :: kz_term:api_binary()
                ,switch_info = 'false' :: boolean()
-               ,options :: kz_proplist()
-               ,profile :: ne_binary()
-               ,events :: ne_binaries()
+               ,options :: kz_term:proplist()
+               ,profile :: kz_term:ne_binary()
+               ,events :: kz_term:ne_binaries()
                ,timer = 'undefined' :: timer:tref() | 'undefined'
                ,heartbeat = 0 :: integer()
                ,active = 'false' :: boolean()
@@ -65,7 +65,7 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
--spec start_link(atom(), kz_proplist(), ne_binary()) -> startlink_ret().
+-spec start_link(atom(), kz_term:proplist(), kz_term:ne_binary()) -> kz_types:startlink_ret().
 start_link(Node, Options, Profile) ->
     gen_listener:start_link(?MODULE, [], [Node, Options, Profile]).
 

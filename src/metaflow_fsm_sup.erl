@@ -26,7 +26,7 @@
 %%--------------------------------------------------------------------
 %% @public
 %% @doc Starts the supervisor
--spec start_link() -> startlink_ret().
+-spec start_link() -> kz_types:startlink_ret().
 start_link() ->
     supervisor:start_link({'local', ?SERVER}, ?MODULE, []).
 
@@ -43,7 +43,7 @@ start_link() ->
 %% specifications.
 %% @end
 %%--------------------------------------------------------------------
--spec init(any()) -> sup_init_ret().
+-spec init(any()) -> kz_types:sup_init_ret().
 init([]) ->
     RestartStrategy = 'simple_one_for_one',
     MaxRestarts = 0,
@@ -53,7 +53,7 @@ init([]) ->
 
     {'ok', {SupFlags, ?CHILDREN}}.
 
--spec new(atom(), ne_binary(), ne_binary(), kz_json:object()) -> sup_startchild_ret() | 'ok'.
+-spec new(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object()) -> kz_types:sup_startchild_ret() | 'ok'.
 new(Node, UUID, OtherUUID, JObj) ->
     case gproc:lookup_values({'p', 'l', ?METAFLOW_REG_MSG(UUID)}) of
         [] -> supervisor:start_child(?SERVER, [Node, UUID, OtherUUID, JObj]);
