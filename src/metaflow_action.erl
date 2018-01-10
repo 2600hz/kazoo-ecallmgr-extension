@@ -17,7 +17,7 @@
 %%%===================================================================
 
 
--spec handle_req(kz_json:object(), kz_proplist()) -> 'ok'.
+-spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
     Node = props:get_value('FSNode', Props),
     ControlQ = props:get_value('Control-Q', Props),
@@ -33,7 +33,7 @@ handle_req(JObj, Props) ->
         {'ok', #channel{}} -> lager:debug("channel ~s not handled on this node, exiting", [UUID])
     end.
 
--spec handle_metaflow_action(ne_binary(), kz_json:object(), ne_binary(), kz_proplist(), atom()) -> 'ok'.
+-spec handle_metaflow_action(kz_term:ne_binary(), kz_json:object(), kz_term:ne_binary(), kz_term:proplist(), atom()) -> 'ok'.
 handle_metaflow_action(UUID, JObj, ControlQ, FSProps, Node) ->
     lager:debug("METAFLOW ACTION"),
     %%    CCVs = ecallmgr_fs_channel:channel_ccvs(Channel),
@@ -54,7 +54,7 @@ handle_metaflow_action(UUID, JObj, ControlQ, FSProps, Node) ->
     Props = props:set_values(ReqProps, FSProps),
     route_metaflow_action(UUID, Props, Node).
 
--spec route_metaflow_action(ne_binary(), kz_proplist(), atom()) -> 'ok'.
+-spec route_metaflow_action(kz_term:ne_binary(), kz_term:proplist(), atom()) -> 'ok'.
 route_metaflow_action(UUID, Props, Node) ->
     FetchId = kz_binary:rand_hex(16),
     Request = ecallmgr_fs_router_util:route_req(UUID, FetchId, Props, Node),
@@ -71,7 +71,7 @@ route_metaflow_action(UUID, Props, Node) ->
             start_metaflow_handling(Node, FetchId, UUID, JObj, Props)
     end.
 
--spec start_metaflow_handling(atom(), ne_binary(), ne_binary(), kz_json:object(), kz_proplist()) -> 'ok'.
+-spec start_metaflow_handling(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), kz_term:proplist()) -> 'ok'.
 start_metaflow_handling(_Node, FetchId, CallId, JObj, Props) ->
     ControlQ = props:get_value(<<"Control-Queue">>, Props),
     CCVs = [{[<<"Custom-Channel-Vars">>, <<"Application-Name">>], kz_json:get_value(<<"App-Name">>, JObj)}
@@ -79,7 +79,7 @@ start_metaflow_handling(_Node, FetchId, CallId, JObj, Props) ->
            ],
     send_metaflow_win(ControlQ, FetchId, CallId, kz_json:set_values(CCVs, JObj)).
 
--spec send_metaflow_win(ne_binary(), ne_binary(), ne_binary(), kz_json:object()) -> 'ok'.
+-spec send_metaflow_win(kz_term:ne_binary(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object()) -> 'ok'.
 send_metaflow_win(ControlQ, FetchId, CallId, JObj) ->
     ControllerQ = kz_api:server_id(JObj),
     CCVs = kz_json:get_value(<<"Custom-Channel-Vars">>, JObj),
