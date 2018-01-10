@@ -13,7 +13,7 @@
 -include("metaflow.hrl").
 
 
--spec handle_bridge(atom(), api_binary(), kz_proplist()) -> any().
+-spec handle_bridge(atom(), kz_term:api_binary(), kz_term:proplist()) -> any().
 handle_bridge(Node, _UUID, Props) ->
     ALeg = props:get_value(<<"Bridge-A-Unique-ID">>, Props),
     BLeg = props:get_value(<<"Bridge-B-Unique-ID">>, Props),
@@ -22,7 +22,7 @@ handle_bridge(Node, _UUID, Props) ->
     BChannel = ecallmgr_fs_channel:fetch(BLeg, 'record'),
     kz_util:spawn(fun request_metaflow/4, [Node, <<"B">>, ALeg, BChannel]).
 
--spec request_metaflow(atom(), ne_binary(), ne_binary(), channel()) -> any().
+-spec request_metaflow(atom(), kz_term:ne_binary(), kz_term:ne_binary(), channel()) -> any().
 request_metaflow(Node, Leg, OtherLegUUID, {'ok', #channel{handling_locally='true'
                                                          ,account_id=?NE_BINARY=AccountId
                                                          ,uuid=UUID
@@ -50,7 +50,7 @@ request_metaflow(Node, Leg, OtherLegUUID, {'ok', #channel{handling_locally='true
     end;
 request_metaflow(_Node, _Leg, _OtherLegUUID, _Channel) -> 'ok'.
 
--spec process_metaflow(atom(), ne_binary(), ne_binary(), kz_json:object(), channel()) -> no_return().
+-spec process_metaflow(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), channel()) -> no_return().
 process_metaflow(Node, UUID, OtherLegUUID, JObj, _Channel) ->
     lager:debug("metaflow binding received"),
     Patterns = kz_json:get_json_value(<<"Patterns">>, JObj, kz_json:new()),

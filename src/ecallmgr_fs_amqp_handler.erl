@@ -14,7 +14,7 @@
 -spec init() -> 'ok'.
 init() -> 'ok'.
 
--spec handle_req(kz_json:object(), kz_proplist()) -> 'ok'.
+-spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
     Node = props:get_value('FSNode', Props),
     UUID = kz_json:get_value(<<"Unique-ID">>, JObj),
@@ -29,7 +29,7 @@ handle_req(JObj, Props) ->
                  ],
     process_event(Node, UUID, Event, decode(EventProps)).
 
--spec decode(kz_proplist()) -> kz_proplist().
+-spec decode(kz_term:proplist()) -> kz_term:proplist().
 decode(Props) ->
     lists:map(fun url_decode/1, Props).
 

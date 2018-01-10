@@ -24,7 +24,7 @@
 %% Starts the supervisor
 %% @end
 %%--------------------------------------------------------------------
--spec start_link(atom(), kz_proplist()) -> startlink_ret().
+-spec start_link(atom(), kz_term:proplist()) -> kz_types:startlink_ret().
 start_link(Node, Options) ->
     {'ok', Pid} = supervisor:start_link(?MODULE
                                        ,[Node, Options]
@@ -51,7 +51,7 @@ start_link(Node, Options) ->
 %% specifications.
 %% @end
 %%--------------------------------------------------------------------
--spec init(list()) -> sup_init_ret().
+-spec init(list()) -> kz_types:sup_init_ret().
 init([Node, Props]) ->
     RestartStrategy = 'simple_one_for_one',
     MaxRestarts = 0,
