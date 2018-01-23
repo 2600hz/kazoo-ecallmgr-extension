@@ -71,7 +71,6 @@ init({Node, UUID, OtherUUID, JObj}) ->
                        }}.
 
 -spec unarmed(any(), state()) -> kz_types:handle_fsm_ret(state()).
--spec unarmed(any(), atom(), state()) -> kz_types:handle_sync_event_ret(state()).
 unarmed('stop', State) ->
     {'stop', 'normal', State};
 unarmed({'dtmf', BindingDigit}, #{binding_digit := BindingDigit}=State) ->
@@ -84,12 +83,12 @@ unarmed(_Event, State) ->
     lager:debug("unhandled unarmed/2: ~p", [_Event]),
     {'next_state', 'unarmed', State, 'hibernate'}.
 
+-spec unarmed(any(), atom(), state()) -> kz_types:handle_sync_event_ret(state()).
 unarmed(_Event, _From, State) ->
     lager:debug("unhandled unarmed/3: ~p", [_Event]),
     {'reply', {'error', 'not_implemented'}, 'unarmed', State}.
 
 -spec armed(any(), state()) -> kz_types:handle_fsm_ret(state()).
--spec armed(any(), atom(), state()) -> kz_types:handle_sync_event_ret(state()).
 armed('stop', State) ->
     {'stop', 'normal', State};
 armed({'dtmf', Digit}, State) ->
@@ -101,6 +100,7 @@ armed(_Event, State) ->
     lager:debug("unhandled armed/2: ~p", [_Event]),
     {'next_state', 'armed', State}.
 
+-spec armed(any(), atom(), state()) -> kz_types:handle_sync_event_ret(state()).
 armed(_Event, _From, State) ->
     lager:debug("unhandled armed/3: ~p", [_Event]),
     {'reply', {'error', 'not_implemented'}, 'armed', State}.
