@@ -1,10 +1,8 @@
-%%%-------------------------------------------------------------------
-%%% @copyright (C) 2012-2016, 2600Hz
+%%%-----------------------------------------------------------------------------
+%%% @copyright (C) 2012-2018, 2600Hz
 %%% @doc
-%%%
 %%% @end
-%%% @contributors
-%%%-------------------------------------------------------------------
+%%%-----------------------------------------------------------------------------
 -module(ecallmgr_ext_app).
 
 -behaviour(application).
@@ -18,7 +16,6 @@
 
 %% Application callbacks
 
-%% @public
 %% @doc Implement the application start behaviour
 -spec start(application:start_type(), any()) -> kz_types:startapp_ret().
 start(_StartType, _StartArgs) ->
@@ -26,7 +23,6 @@ start(_StartType, _StartArgs) ->
     _ = freeswitch_nodesup_bind(),
     ecallmgr_ext_sup:start_link().
 
-%% @public
 %% @doc Implement the application stop behaviour
 -spec stop(any()) -> any().
 stop(_State) ->

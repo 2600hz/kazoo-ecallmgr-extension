@@ -1,10 +1,8 @@
-%%%-------------------------------------------------------------------
-%%% @copyright (C) 2011-2016, 2600Hz INC
-%%% @doc
-%%% Receive route(dialplan) requests from FS, request routes and respond
+%%%-----------------------------------------------------------------------------
+%%% @copyright (C) 2011-2018, 2600Hz
+%%% @doc Receive route(dialplan) requests from FS, request routes and respond
 %%% @end
-%%% @contributors
-%%%-------------------------------------------------------------------
+%%%-----------------------------------------------------------------------------
 -module(metaflow_route).
 
 -export([handle_metaflow_route/5]).
@@ -27,10 +25,14 @@ handle_metaflow_route(Section, Node, FetchId, UUID, FSProps) ->
         {'ok', JObj} -> start_metaflow_handling(Node, FetchId, UUID, JObj, Props)
     end.
 
-%%%===================================================================
+%%%=============================================================================
 %%% Internal functions
-%%%===================================================================
+%%%=============================================================================
 
+%%------------------------------------------------------------------------------
+%% @doc
+%% @end
+%%------------------------------------------------------------------------------
 -spec init_metaflow_props(atom(), kz_term:proplist()) -> kz_term:proplist().
 init_metaflow_props(Node, Props) ->
     Routines = [fun add_metaflow_missing_props/1
