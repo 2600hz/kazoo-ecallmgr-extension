@@ -1,10 +1,8 @@
-%%%-------------------------------------------------------------------
-%%% @copyright (C) 2012-2016, 2600Hz INC
+%%%-----------------------------------------------------------------------------
+%%% @copyright (C) 2012-2018, 2600Hz
 %%% @doc
-%%%
 %%% @end
-%%% @contributors
-%%%-------------------------------------------------------------------
+%%%-----------------------------------------------------------------------------
 -module(ecallmgr_fs_extension_node_sup).
 
 -behaviour(supervisor).
@@ -26,32 +24,30 @@
                     ,{<<"metaflow">>, ?NODE_WORKER}
                     ])).
 
-%% ===================================================================
+%%==============================================================================
 %% API functions
-%% ===================================================================
+%%==============================================================================
 
-%%--------------------------------------------------------------------
-%% @public
-%% @doc Starts the supervisor
-%%--------------------------------------------------------------------
+%%------------------------------------------------------------------------------
+%% @doc Starts the supervisor.
+%% @end
+%%------------------------------------------------------------------------------
 -spec start_link(atom(), kz_term:proplist()) -> kz_types:startlink_ret().
 start_link(Node, Options) ->
     lager:debug("starting ecallmgr extension supervisor for node ~p", [Node]),
     supervisor:start_link(?MODULE, [Node, Options]).
 
-%% ===================================================================
+%%==============================================================================
 %% Supervisor callbacks
-%% ===================================================================
+%%==============================================================================
 
-%%--------------------------------------------------------------------
-%% @public
-%% @doc
-%% Whenever a supervisor is started using supervisor:start_link/[2,3],
+%%------------------------------------------------------------------------------
+%% @doc Whenever a supervisor is started using `supervisor:start_link/[2,3]',
 %% this function is called by the new process to find out about
 %% restart strategy, maximum restart frequency and child
 %% specifications.
 %% @end
-%%--------------------------------------------------------------------
+%%------------------------------------------------------------------------------
 -spec init(list()) -> kz_types:sup_init_ret().
 init([Node, Options]) ->
     RestartStrategy = 'one_for_one',
@@ -78,4 +74,3 @@ child_name(NodeB, Args, Module, <<"worker">>) ->
     Name = kz_term:to_atom(<<NodeB/binary, "_", Module/binary>>, 'true'),
     Mod = kz_term:to_atom(<<"ecallmgr_fs_", Module/binary>>, 'true'),
     ?WORKER_NAME_ARGS(Mod, Name, Args).
-
