@@ -28,9 +28,9 @@ bind_q(Queue, Props) ->
 
 -spec bind_q(kz_term:ne_binary(), kz_term:api_binaries(), kz_term:proplist()) -> 'ok'.
 bind_q(Queue, 'undefined', _) ->
-    amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
+    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
 bind_q(Queue, ['key'|Restrict], Props) ->
-    amqp_util:bind_q_to_exchange(Queue, routing_key(Props), ?EXCHANGE_FREESWITCH),
+    kz_amqp_util:bind_q_to_exchange(Queue, routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, [_|Restrict], Props) ->
     bind_q(Queue, Restrict, Props);
@@ -43,9 +43,9 @@ unbind_q(Queue, Props) ->
 
 -spec unbind_q(kz_term:ne_binary(), kz_term:api_binary(), kz_term:proplist()) -> 'ok'.
 unbind_q(Queue, 'undefined', _) ->
-    amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
+    kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
 unbind_q(Queue, ['key'|Restrict], Props) ->
-    amqp_util:unbind_q_from_exchange(Queue, routing_key(Props), ?EXCHANGE_FREESWITCH),
+    kz_amqp_util:unbind_q_from_exchange(Queue, routing_key(Props), ?EXCHANGE_FREESWITCH),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, [_|Restrict], Props) ->
     unbind_q(Queue, Restrict, Props);
@@ -67,13 +67,13 @@ routing_key(Props) ->
 -spec routing_key(binary(), binary(), binary(), binary()) -> binary().
 routing_key(Profile, Hostname, Event, CallId) ->
     list_to_binary([<<"FreeSWITCH.">>
-                   ,amqp_util:encode(Profile)
+                   ,kz_amqp_util:encode(Profile)
                    ,"."
-                   ,amqp_util:encode(Hostname)
+                   ,kz_amqp_util:encode(Hostname)
                    ,"."
-                   ,amqp_util:encode(Event)
+                   ,kz_amqp_util:encode(Event)
                    ,"."
-                   ,amqp_util:encode(CallId)
+                   ,kz_amqp_util:encode(CallId)
                    ]).
 
 %%------------------------------------------------------------------------------
@@ -82,4 +82,4 @@ routing_key(Profile, Hostname, Event, CallId) ->
 %%------------------------------------------------------------------------------
 -spec declare_exchanges() -> 'ok'.
 declare_exchanges() ->
-    amqp_util:new_exchange(?EXCHANGE_FREESWITCH, ?TYPE_FREESWITCH).
+    kz_amqp_util:new_exchange(?EXCHANGE_FREESWITCH, ?TYPE_FREESWITCH).
