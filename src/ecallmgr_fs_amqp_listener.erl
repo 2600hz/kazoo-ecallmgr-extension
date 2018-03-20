@@ -213,19 +213,18 @@ notify_proc(IsConsuming, Pid) ->
 
 -spec handle_heartbeat(state()) -> state().
 handle_heartbeat(#state{active='true', profile=_Profile}=State) ->
-    State#state{heartbeat=kz_time:current_tstamp()};
+    State#state{heartbeat=kz_time:now_ms()};
 handle_heartbeat(#state{active='false', profile=Profile, node=Node, heartbeat=Heartbeat}=State) ->
     lager:debug("heartbeat for inactive profile ~s, activating", [Profile]),
     _ = notify_procs('true', State),
     _ = Heartbeat =/= 0
         andalso kz_notify:system_alert(?SYSTEM_ALERT, [Profile, "activated", node(), Node]),
-    State#state{active='true', heartbeat=kz_time:current_tstamp()}.
+    State#state{active='true', heartbeat=kz_time:now_ms()}.
 
 -spec check_elapsed(state()) -> state().
 check_elapsed(#state{heartbeat=0} = State) -> State;
 check_elapsed(#state{active='true', heartbeat=Heartbeat, node=Node, profile=Profile} = State) ->
-    Nodes = kz_nodes:whapp_count('ecallmgr'),
-    case kz_time:elapsed_ms(Heartbeat) > Nodes *  (?FREESWITCH_HEARTBEAT + ?HEARTBEAT_MAX_ELAPSED_MS) of
+    case kz_time:elapsed_ms(Heartbeat) > (?FREESWITCH_HEARTBEAT + ?HEARTBEAT_MAX_ELAPSED_MS) of
         'true' ->
             lager:debug(?SYSTEM_ALERT, [Profile, "deactivated", node(), Node]),
             kz_notify:system_alert(?SYSTEM_ALERT, [Profile, "deactivated", node(), Node]),
