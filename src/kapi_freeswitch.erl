@@ -45,7 +45,7 @@ unbind_q(Queue, Props) ->
 unbind_q(Queue, 'undefined', _) ->
     kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
 unbind_q(Queue, ['key'|Restrict], Props) ->
-    kz_amqp_util:unbind_q_from_exchange(Queue, routing_key(Props), ?EXCHANGE_FREESWITCH),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, routing_key(Props), ?EXCHANGE_FREESWITCH),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, [_|Restrict], Props) ->
     unbind_q(Queue, Restrict, Props);
