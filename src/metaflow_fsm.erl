@@ -169,7 +169,7 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 -spec has_metaflow(kz_term:ne_binary(), kz_json:object(), kz_json:object()) ->
                           'false' |
                           {'number', kz_json:object()} |
-                          {'patterm', kz_json:object()}.
+                          {'pattern', kz_json:object()}.
 has_metaflow(Collected, Numbers, Patterns) ->
     case has_number(Collected, Numbers) of
         'false' -> has_pattern(Collected, Patterns);
