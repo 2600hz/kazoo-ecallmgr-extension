@@ -56,7 +56,7 @@ init({Node, UUID, OtherUUID, JObj}) ->
     EndpointId = kz_json:get_ne_binary_value(<<"Endpoint-ID">>, JObj, kz_binary:rand_hex(16)),
     ListenOn = kz_json:get_ne_binary_value(<<"Listen-On">>, JObj, <<"self">>),
     BindingDigit = kz_json:get_ne_binary_value(<<"Binding-Digit">>, JObj, <<"*">>),
-    CollectTimeout = kz_json:get_integer_value(<<"Collect-Timeout">>, JObj, 1000),
+    DigitTimeout = kz_json:get_integer_value(<<"Digit-Timeout">>, JObj, 1000),
     Patterns = kz_json:get_json_value(<<"Patterns">>, JObj, kz_json:new()),
     Numbers = kz_json:get_json_value(<<"Numbers">>, JObj, kz_json:new()),
     TargetLeg = kz_json:get_ne_binary_value(<<"Target-Leg">>, JObj, ListenOn),
@@ -69,7 +69,7 @@ init({Node, UUID, OtherUUID, JObj}) ->
                        ,numbers => Numbers
                        ,patterns => Patterns
                        ,binding_digit => BindingDigit
-                       ,digit_timeout => CollectTimeout
+                       ,digit_timeout => DigitTimeout
                        ,uuid => UUID
                        ,other_uuid => OtherUUID
                        ,target_leg => TargetLeg
