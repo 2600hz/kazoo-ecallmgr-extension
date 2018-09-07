@@ -17,5 +17,7 @@
         ,<<"metaflow">>
         ]).
 
+-define(CONFIG_CAT, <<"ecallmgr">>).
+
 -define(ECALLMGR_EXTENSION_HRL, 'true').
 -endif.
