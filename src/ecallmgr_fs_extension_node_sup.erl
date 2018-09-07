@@ -58,11 +58,14 @@ init([Node, Options]) ->
 
     NodeB = kz_term:to_binary(Node),
     Args = [Node, Options],
-    Modules = kz_json:merge_jobjs(ecallmgr_config:get(<<"extension_modules">>, ?CHILDREN), ?CHILDREN),
+    Modules = kz_json:merge_jobjs(kapps_config:get(?CONFIG_CAT, <<"extension_modules">>, ?CHILDREN), ?CHILDREN),
     Children = kz_json:foldl(fun(Module, V, Acc) ->
                                      Type = kz_json:get_ne_binary_value(<<"type">>, V),
                                      [child_name(NodeB, Args, Module, Type) | Acc]
-                             end, [], Modules),
+                             end
+                            ,[]
+                            ,Modules
+                            ),
     {'ok', {SupFlags, Children}}.
 
 -spec child_name(binary(), list(), binary(), binary()) -> any().
