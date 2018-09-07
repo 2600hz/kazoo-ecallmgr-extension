@@ -17,7 +17,7 @@ handle_req(JObj, Props) ->
     Node = props:get_value('FSNode', Props),
     UUID = kz_json:get_value(<<"Unique-ID">>, JObj),
     kz_util:put_callid(UUID),
-    Event = kz_json:get_value(<<"Event-Subclass">>, JObj, kz_json:get_value(<<"Event-Name">>, JObj)),
+    Event = kz_json:get_value(<<"Event-Subclass">>, JObj, kz_api:event_name(JObj)),
     EventProps = [{<<"Switch-URL">>, props:get_value('Switch-URL', Props)}
                  ,{<<"Switch-URI">>, props:get_value('Switch-URI', Props)}
                  ,{<<"Switch-Node">>, kz_term:to_binary(Node)}

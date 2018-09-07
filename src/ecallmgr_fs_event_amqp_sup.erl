@@ -25,7 +25,7 @@ start_link(Node, Options) ->
     {'ok', Pid} = supervisor:start_link(?MODULE
                                        ,[Node, Options]
                                        ),
-    Workers = ecallmgr_config:get_integer(<<"fs_amqp_listeners">>, 1),
+    Workers = kapps_config:get_integer(?CONFIG_CAT, <<"fs_amqp_listeners">>, 1),
     Profiles = kz_json:get_keys(<<"producers">>, ecallmgr_fs_amqp:amqp_producers()),
     kz_util:spawn(fun() -> timer:sleep(1000),
                            [supervisor:start_child(Pid, [Profile])

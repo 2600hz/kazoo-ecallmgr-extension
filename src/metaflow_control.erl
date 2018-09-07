@@ -55,7 +55,7 @@ control_process(Fun, Cmd, Node) ->
                ,[Category
                 ,Event
                 ,kz_json:get_value(<<"Application-Name">>, Cmd)
-                ,kz_json:get_value(<<"Msg-ID">>, Cmd, <<>>)
+                ,kz_api:msg_id(Cmd, <<>>)
                 ]),
     CallId = kz_json:get_value(<<"Call-ID">>, Cmd),
     Mod = get_module(Category, Event),
