@@ -54,6 +54,9 @@ process_metaflow(Node, UUID, OtherLegUUID, JObj, _Channel) ->
     Patterns = kz_json:get_json_value(<<"Patterns">>, JObj, kz_json:new()),
     Numbers = kz_json:get_json_value(<<"Numbers">>, JObj, kz_json:new()),
 
+    lager:debug("numbers: ~p", [Numbers]),
+    lager:debug("patterns: ~p", [Patterns]),
+
     case kz_json:get_keys(Patterns) =/= []
         orelse kz_json:get_keys(Numbers) =/= []
     of
