@@ -10,7 +10,6 @@
 
 -include("metaflow.hrl").
 
-
 -spec handle_bridge(atom(), kz_term:api_binary(), kz_term:proplist()) -> any().
 handle_bridge(Node, _UUID, Props) ->
     ALeg = props:get_value(<<"Bridge-A-Unique-ID">>, Props),
