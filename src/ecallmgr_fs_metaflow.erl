@@ -38,7 +38,7 @@
 
 -define(BINDINGS, [{'self', []}
                   ,{'dialplan', []}
-                  ,{'metaflow', [{restrict_to, ['action', 'flow']}, 'federate']}
+                  ,{'metaflow', [{'restrict_to', ['action', 'flow']}, 'federate']}
                   ]).
 
 -define(RESPONDERS, [{'metaflow_control'
