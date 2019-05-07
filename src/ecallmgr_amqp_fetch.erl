@@ -1,0 +1,158 @@
+%%%-----------------------------------------------------------------------------
+%%% @copyright (C) 2012-2019, 2600Hz
+%%% @doc
+%%% @end
+%%%-----------------------------------------------------------------------------
+-module(ecallmgr_amqp_fetch).
+
+-behaviour(gen_listener).
+
+-export([start_link/0]).
+
+-export([init/1
+        ,handle_call/3
+        ,handle_cast/2
+        ,handle_info/2
+        ,handle_event/2
+        ,handle_req/2
+        ,terminate/2
+        ,code_change/3
+        ]).
+
+-include("ecallmgr_extension.hrl").
+-include("gen_listener_spec.hrl").
+
+-define(RESPONDERS, [{?MODULE
+                     ,[{<<"*">>, <<"*">>}]
+                     }
+                    ]).
+-define(BINDINGS, [{'freeswitch', [{'restrict_to', ['fetch']}
+                                  ]}
+                  ]).
+
+-define(QUEUE_NAME, <<"ecallmgr_amqp_fetch">>).
+-define(QUEUE_OPTIONS, [{'exclusive', 'false'}]).
+-define(CONSUME_OPTIONS, [{'exclusive', 'false'}]).
+
+
+%%%=============================================================================
+%%% API
+%%%=============================================================================
+
+%%------------------------------------------------------------------------------
+%% @doc
+%% @end
+%%------------------------------------------------------------------------------
+-spec start_link() -> kz_types:startlink_ret().
+start_link() ->
+    gen_listener:start_link(?MODULE
+                           ,[{'responders', ?RESPONDERS}
+                            ,{'bindings', ?BINDINGS}
+                            ,{'queue_name', ?QUEUE_NAME}
+                            ,{'queue_options', ?QUEUE_OPTIONS}
+                            ,{'consume_options', ?CONSUME_OPTIONS}
+                            ]
+                           ,[]).
+
+
+%%%=============================================================================
+%%% gen_server callbacks
+%%%=============================================================================
+
+%%------------------------------------------------------------------------------
+%% @doc Initializes the server
+%%
+%% @end
+%%------------------------------------------------------------------------------
+init([]) ->
+    lager:debug("starting new ecallmgr amqp fetch listener"),
+    {'ok', #{}}.
+
+handle_call(_Request, _From, State) ->
+    {'reply', {'error', 'not_implemented'}, State}.
+
+%%------------------------------------------------------------------------------
+%% @doc Handling cast messages
+%%
+%% @end
+%%------------------------------------------------------------------------------
+handle_cast({'gen_listener',{'is_consuming', _IsConsuming}}, State) ->
+    {'noreply', State};
+handle_cast({'gen_listener',{'created_queue', _Q}}, State) ->
+    {'noreply', State};
+handle_cast(_Cast, State) ->
+    lager:debug("unhandled cast: ~p", [_Cast]),
+    {'noreply', State, 'hibernate'}.
+
+%%------------------------------------------------------------------------------
+%% @doc Handling all non call/cast messages
+%%
+%% @end
+%%------------------------------------------------------------------------------
+handle_info(_Info, State) ->
+    lager:debug("unhandled message: ~p", [_Info]),
+    {'noreply', State}.
+
+%%------------------------------------------------------------------------------
+%% @doc Allows listener to pass options to handlers
+%%
+%% @end
+%%------------------------------------------------------------------------------
+handle_event(_JObj, _State) -> {'reply', []}.
+
+%%------------------------------------------------------------------------------
+%% @doc This function is called by a gen_server when it is about to
+%% terminate. It should be the opposite of Module:init/1 and do any
+%% necessary cleaning up. When it returns, the gen_server terminates
+%% with Reason. The return value is ignored.
+%%
+%% @end
+%%------------------------------------------------------------------------------
+terminate(_Reason, _State) ->
+    lager:debug("ecallmgr amqp fetch termination: ~p", [ _Reason]).
+
+%%------------------------------------------------------------------------------
+%% @doc Convert process state when code is changed
+%%
+%% @end
+%%------------------------------------------------------------------------------
+code_change(_OldVsn, State, _Extra) ->
+    {'ok', State}.
+
+-spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
+handle_req(JObj, Props) ->
+    kz_util:put_callid(JObj),
+    Node = kzd_fetch:node(JObj),
+    FetchId = kzd_fetch:fetch_uuid(JObj),
+    CoreUUID = kzd_fetch:core_uuid(JObj),
+    Key = kzd_fetch:fetch_key_value(JObj),
+    Section = kzd_fetch:fetch_section(JObj),
+    Version = kzd_fetch:fetch_version(JObj),
+    Event = kz_term:to_lower_binary(kz_api:event_name(JObj)),
+    RKs = lists:filter(fun kz_term:is_not_empty/1, [<<"fetch">>, Section, Version, Event, Key]),
+%%    RKs = [kz_amqp_util:encode(Bin) || Bin <- lists:filter(fun kz_term:is_not_empty/1, [<<"fetch">>, Section, Version, Event, Key])],
+
+    Routing = kz_binary:join(RKs, <<".">>),
+    lager:debug("requesting binding for ~s", [Routing]),
+    Map = #{node => Node
+           ,section => kz_term:to_atom(Section, 'true')
+           ,fetch_id => FetchId
+           ,payload => JObj
+           ,version => kz_term:to_atom(Version, 'true')
+           ,core_uuid => kz_term:to_atom(CoreUUID, 'true')
+           ,routing => Routing
+           ,call_id => kzd_fetch:call_id(JObj)
+           ,server_id => kz_api:server_id(JObj)
+           ,basic => props:get_value('basic', Props)
+           },
+    case kazoo_bindings:map(Routing, Map) of
+        [] ->
+%            lager:debug_unsafe("FETCH NOT FOUND : ~s", [kz_json:encode(JObj, ['pretty'])]),
+            not_found(Map);
+        _ -> 'ok'
+    end.
+
+not_found(#{node := Node, fetch_id := FetchId, section := Section, routing := Routing}=Ctx) ->
+    lager:debug("replying not found to ~s request ~s from node ~s with routing ~s", [Section, FetchId, Node, Routing]),
+    {'ok', XmlResp} = ecallmgr_fs_xml:not_found(),
+    freeswitch:fetch_reply(Ctx#{reply => iolist_to_binary(XmlResp)}).

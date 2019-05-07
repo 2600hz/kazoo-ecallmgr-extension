@@ -13,11 +13,14 @@
 -define(APP_VERSION, <<"4.0.0">>).
 
 -define(EXT_NODE_MODULES,
-        [<<"event_amqp_sup">>
-        ,<<"metaflow">>
+        [<<"node">>
+        ,<<"notify">>
+        ,<<"resource">>
         ]).
 
 -define(CONFIG_CAT, <<"ecallmgr">>).
+
+%-define(API_SUPERVISOR_NAME(Node), kz_term:to_atom(<<"api_sup_", (kz_term:to_binary(Node))/binary>>, true)).
 
 -define(ECALLMGR_EXTENSION_HRL, 'true').
 -endif.

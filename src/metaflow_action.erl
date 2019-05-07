@@ -28,7 +28,9 @@ handle_req(JObj, Props) ->
         {'ok', #channel{handling_locally='true'}} ->
             lager:debug("getting channel data for ~s", [UUID]),
             case ecallmgr_fs_channel:channel_data(Node, UUID) of
-                {'ok', ChannelProps} -> handle_metaflow_action(UUID, JObj, ControlQ, ChannelProps, Node);
+                {'ok', ChannelProps} ->
+                    lager:debug("got channel data for ~s : ~s", [UUID, kz_json:encode(ChannelProps, ['pretty'])]),
+                    handle_metaflow_action(UUID, JObj, ControlQ, ChannelProps, Node);
                 {'error', Error} -> lager:debug("error ~p getting channel data for ~s, exiting", [Error, UUID])
             end;
         {'ok', #channel{}} -> lager:debug("channel ~s not handled on this node, exiting", [UUID])
@@ -36,15 +38,12 @@ handle_req(JObj, Props) ->
 
 -spec handle_metaflow_action(kz_term:ne_binary(), kz_json:object(), kz_term:ne_binary(), kz_term:proplist(), atom()) -> 'ok'.
 handle_metaflow_action(UUID, JObj, ControlQ, FSProps, Node) ->
-    lager:debug("METAFLOW ACTION"),
-    %%    CCVs = ecallmgr_fs_channel:channel_ccvs(Channel),
     Metaflow = [{<<"module">>, kz_json:get_value(<<"Action">>, JObj)}
                ,{<<"data">>, kz_json:get_value(<<"Data">>, JObj)}
                ],
     CRHs = [{<<"Metaflow-Request-Type">>, <<"metaflow">>}
            ,{<<"Metaflow">>, kz_json:from_list(Metaflow)}
-           ,{<<"Other-Leg-Call-ID">>, kzd_freeswitch:other_leg_call_id(FSProps)}
-            %%           ,{<<"Channel">>, ecallmgr_fs_channel:to_api_json(Channel)}
+           ,{<<"Other-Leg-Call-ID">>, kz_evt_freeswitch:other_leg_call_id(FSProps)}
            ],
 
     ReqProps = [{<<"Resource-Type">>,<<"metaflow">>}
@@ -52,13 +51,20 @@ handle_metaflow_action(UUID, JObj, ControlQ, FSProps, Node) ->
                ,{<<"Application-Logical-Direction">>, <<"inbound">>}
                ,{<<"Control-Queue">>, ControlQ}
                ],
-    Props = props:set_values(ReqProps, FSProps),
+%%    Props = props:set_values(ReqProps, FSProps),
+    Props = kz_json:set_values(ReqProps, FSProps),
     route_metaflow_action(UUID, Props, Node).
 
 -spec route_metaflow_action(kz_term:ne_binary(), kz_term:proplist(), atom()) -> 'ok'.
 route_metaflow_action(UUID, Props, Node) ->
     FetchId = kz_binary:rand_hex(16),
-    Request = ecallmgr_fs_router_util:route_req(UUID, FetchId, Props, Node),
+%%    Request = ecallmgr_fs_router_util:route_req(UUID, FetchId, Props, Node),
+%%    lager:debug("METAFLOW ACVTION ~p", [Request]),
+    MoreProps = [{<<"Call-ID">>, UUID}
+                ,{[<<"Custom-Channel-Vars">>, <<"Fetch-ID">>], FetchId}
+                  | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
+                ],
+    Request = kz_json:set_values(MoreProps, kz_api:remove_defaults(Props)),
     ReqResp = kz_amqp_worker:call(Request
                                  ,fun kapi_route:publish_req/1
                                  ,fun kapi_route:is_actionable_resp/1
@@ -74,7 +80,7 @@ route_metaflow_action(UUID, Props, Node) ->
 
 -spec start_metaflow_handling(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), kz_term:proplist()) -> 'ok'.
 start_metaflow_handling(_Node, FetchId, CallId, JObj, Props) ->
-    ControlQ = props:get_value(<<"Control-Queue">>, Props),
+    ControlQ = kz_json:get_value(<<"Control-Queue">>, Props),
     CCVs = [{[<<"Custom-Channel-Vars">>, <<"Application-Name">>], kz_json:get_value(<<"App-Name">>, JObj)}
            ,{[<<"Custom-Channel-Vars">>, <<"Application-Node">>], kz_json:get_value(<<"Node">>, JObj)}
            ],
@@ -82,6 +88,7 @@ start_metaflow_handling(_Node, FetchId, CallId, JObj, Props) ->
 
 -spec send_metaflow_win(kz_term:ne_binary(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object()) -> 'ok'.
 send_metaflow_win(ControlQ, FetchId, CallId, JObj) ->
+    lager:debug("ROUTE REP ~s", [kz_json:encode(JObj, ['pretty'])]),
     ControllerQ = kz_api:server_id(JObj),
     CCVs = kz_json:get_value(<<"Custom-Channel-Vars">>, JObj),
     Win = [{<<"Msg-ID">>, FetchId}

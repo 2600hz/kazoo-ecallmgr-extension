@@ -7,6 +7,7 @@
 
 
 -export([handle_req/2]).
+-export([exec_payload/2]).
 
 -include("metaflow.hrl").
 
@@ -20,7 +21,12 @@
 %%------------------------------------------------------------------------------
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
+    lager:debug_unsafe("~s", [kz_json:encode(JObj, ['pretty'])]),
     Node = props:get_value('FSNode', Props),
+    exec_payload(Node, JObj).
+
+-spec exec_payload(atom(), kz_json:object()) -> 'ok'.
+exec_payload(Node, JObj) ->
     case kz_json:get_value(<<"Application-Name">>, JObj) of
         <<"queue">> ->
             'true' = kapi_dialplan:queue_v(JObj),
@@ -31,6 +37,7 @@ handle_req(JObj, Props) ->
             exec_dialplan(Node, UUID, DP);
         _AName -> control_process('exec_cmd', JObj, Node)
     end.
+    
 
 handle_queue_commands([], _, _Node, DP) -> DP;
 handle_queue_commands([Command|Commands], DefJObj, Node, DP) ->
@@ -55,7 +62,7 @@ control_process(Fun, Cmd, Node) ->
                ,[Category
                 ,Event
                 ,kz_json:get_value(<<"Application-Name">>, Cmd)
-                ,kz_api:msg_id(Cmd, <<>>)
+                ,kz_json:get_value(<<"Msg-ID">>, Cmd, <<>>)
                 ]),
     CallId = kz_json:get_value(<<"Call-ID">>, Cmd),
     Mod = get_module(Category, Event),

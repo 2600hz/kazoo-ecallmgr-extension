@@ -34,25 +34,24 @@ handle_req(JObj, Props) ->
         {'ok', #channel{}} -> lager:debug("channel ~s not handled on this node, exiting", [UUID])
     end.
 
--spec handle_metaflow_flow(kz_term:ne_binary(), kz_json:object(), kz_term:ne_binary(), kz_term:proplist(), atom()) -> 'ok'.
-handle_metaflow_flow(UUID, JObj, ControlQ, FSProps, Node) ->
+-spec handle_metaflow_flow(kz_term:ne_binary(), kz_json:object(), kz_term:ne_binary(), kz_json:object(), atom()) -> 'ok'.
+handle_metaflow_flow(UUID, JObj, ControlQ, ChannelJObj, Node) ->
     CRHs = [{<<"Metaflow-Request-Type">>, <<"metaflow">>}
            ,{<<"Metaflow">>, kz_json:get_value(<<"Flow">>, JObj)}
-           ,{<<"Other-Leg-Call-ID">>, kzd_freeswitch:other_leg_call_id(FSProps)}
+           ,{<<"Other-Leg-Call-ID">>, kz_json:get_ne_binary_value(<<"Other-Leg-Call-ID">>, ChannelJObj)}
            ],
 
+    FetchId = kz_binary:rand_hex(16),
     ReqProps = [{<<"Resource-Type">>,<<"metaflow">>}
                ,{<<"Custom-Routing-Headers">>, kz_json:from_list(CRHs)}
                ,{<<"Application-Logical-Direction">>, <<"inbound">>}
                ,{<<"Control-Queue">>, ControlQ}
+               ,{<<"Call-ID">>, UUID}
+               ,{<<"Msg-ID">>, FetchId}
+               ,{[<<"Custom-Channel-Vars">>, <<"Fetch-ID">>], null}
+               | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
                ],
-    Props = props:set_values(ReqProps, FSProps),
-    route_metaflow_flow(UUID, Props, Node).
-
--spec route_metaflow_flow(kz_term:ne_binary(), kz_term:proplist(), atom()) -> 'ok'.
-route_metaflow_flow(UUID, Props, Node) ->
-    FetchId = kz_binary:rand_hex(16),
-    Request = ecallmgr_fs_router_util:route_req(UUID, FetchId, Props, Node),
+    Request = kz_json:set_values(ReqProps, kz_api:remove_defaults(ChannelJObj)),
     ReqResp = kz_amqp_worker:call(Request
                                  ,fun kapi_route:publish_req/1
                                  ,fun kapi_route:is_actionable_resp/1
@@ -61,14 +60,13 @@ route_metaflow_flow(UUID, Props, Node) ->
     case ReqResp of
         {'error', _R} ->
             lager:info("did not receive route response for request ~s: ~p", [FetchId, _R]);
-        {'ok', JObj} ->
-            'true' = kapi_route:resp_v(JObj),
-            start_metaflow_handling(Node, FetchId, UUID, JObj, Props)
+        {'ok', Resp} ->
+            'true' = kapi_route:resp_v(Resp),
+            start_metaflow_handling(Node, FetchId, UUID, Resp, ControlQ)
     end.
 
--spec start_metaflow_handling(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), kz_term:proplist()) -> 'ok'.
-start_metaflow_handling(_Node, FetchId, CallId, JObj, Props) ->
-    ControlQ = props:get_value(<<"Control-Queue">>, Props),
+-spec start_metaflow_handling(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), kz_term:ne_binary()) -> 'ok'.
+start_metaflow_handling(_Node, FetchId, CallId, JObj, ControlQ) ->
     CCVs = [{[<<"Custom-Channel-Vars">>, <<"Application-Name">>], kz_json:get_value(<<"App-Name">>, JObj)}
            ,{[<<"Custom-Channel-Vars">>, <<"Application-Node">>], kz_json:get_value(<<"Node">>, JObj)}
            ],
