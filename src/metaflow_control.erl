@@ -68,20 +68,18 @@ control_process(Fun, Cmd, Node) ->
     Mod = get_module(Category, Event),
     try Mod:Fun(Node, CallId, Cmd, self())
     catch
-        _:{'error', 'nosession'} ->
+        _:{'error', 'nosession'}:_ ->
             lager:debug("unable to execute command, no session");
-        'error':{'badmatch', {'error', 'nosession'}} ->
+        'error':{'badmatch', {'error', 'nosession'}}:_ ->
             lager:debug("unable to execute command, no session");
-        'error':{'badmatch', {'error', ErrMsg}} ->
-            ST = erlang:get_stacktrace(),
+        'error':{'badmatch', {'error', ErrMsg}}:ST ->
             lager:debug("invalid command ~s: ~p", [kz_json:get_value(<<"Application-Name">>, Cmd), ErrMsg]),
             kz_util:log_stacktrace(ST);
-        'throw':{'msg', ErrMsg} ->
+        'throw':{'msg', ErrMsg}:_ ->
             lager:debug("error while executing command ~s: ~s", [kz_json:get_value(<<"Application-Name">>, Cmd), ErrMsg]);
-        'throw':Msg ->
+        'throw':Msg:_ ->
             lager:debug("failed to execute ~s: ~s", [kz_json:get_value(<<"Application-Name">>, Cmd), Msg]);
-        _A:_B ->
-            ST = erlang:get_stacktrace(),
+        _A:_B:ST ->
             lager:debug("exception (~s) while executing ~s: ~p", [_A, kz_json:get_value(<<"Application-Name">>, Cmd), _B]),
             kz_util:log_stacktrace(ST)
     end.
@@ -94,6 +92,6 @@ get_module(Category, Name) ->
     ModuleName = <<"ecallmgr_", Category/binary, "_", Name/binary>>,
     try kz_term:to_atom(ModuleName)
     catch
-        'error':'badarg' ->
+        'error':'badarg':_ ->
             kz_term:to_atom(ModuleName, 'true')
     end.

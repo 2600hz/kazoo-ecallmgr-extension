@@ -223,6 +223,6 @@ true_event(<<"sofia::replaced">>) -> {call, 'CHANNEL_REPLACED'};
 true_event(<<"sofia::intercepted">>) -> {call, 'CHANNEL_INTERCEPTED'};
 true_event(<<"spandsp::", _/binary>>) -> {call, 'CHANNEL_FAX_STATUS'};
 true_event(<<"conference::maintenance">>) -> {conference, 'event'};
-true_event(<<"loopback::bowout">>) -> {call, 'CHANNEL_REPLACED'};
+true_event(<<"loopback::bowout">>) -> {call, 'CHANNEL_BOWOUT'};
 true_event(<<"loopback::direct">>) -> {call, 'CHANNEL_DIRECT'};
 true_event(Event) -> {call, kz_term:to_atom(Event, 'true')}.
