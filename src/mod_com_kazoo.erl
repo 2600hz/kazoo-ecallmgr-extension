@@ -251,8 +251,17 @@ sync_channel(Node, UUID) ->
     end.
 
 -spec sendmsg(atom(), kz_term:ne_binary(), list()) -> fs_api_return().
-sendmsg(Node, UUID, API) ->
-    cmd(Node, UUID, API).
+sendmsg(Node, UUID, Headers) ->
+    Cmd = [{kz_term:to_binary(K), kz_term:to_binary(V)}|| {K, V} <- Headers],
+    Payload = [{<<"Call-ID">>, UUID}
+              ,{<<"Headers">>, kz_json:from_list(Cmd)}
+              ],
+    send(Node, Payload, fun kapi_freeswitch:publish_message/1),
+    receive
+        {switch_reply, Msg} -> Msg
+    after ?API_TIMEOUT ->
+            {error, 'timeout'}
+    end.
 
 -spec sendmsgs(atom(), kz_term:ne_binary(), list()) -> fs_api_return().
 sendmsgs(Node, UUID, API) ->

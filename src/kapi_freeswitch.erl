@@ -17,6 +17,7 @@
 -export([command/1, command_v/1]).
 -export([commands/1, commands_v/1]).
 -export([version/1, version_v/1]).
+-export([message/1, message_v/1]).
 
 -export([publish_event/1, publish_event/2]).
 -export([publish_config/1, publish_config/2]).
@@ -26,6 +27,7 @@
 -export([publish_bgapi/1, publish_bgapi/2]).
 -export([publish_json_api/1, publish_json_api/2]).
 -export([publish_version/1, publish_version/2]).
+-export([publish_message/1, publish_message/2]).
 
 -export([publish_directory_reply/4
         ,publish_dialplan_reply/4
@@ -128,6 +130,13 @@
 -define(VERSION_REQ_TYPES, []).
 
 
+%% message Request
+-define(MESSAGE_REQ_HEADERS, [<<"Core-UUID">>, <<"Call-ID">>, <<"Headers">>]).
+-define(OPTIONAL_MESSAGE_REQ_HEADERS, []).
+-define(MESSAGE_REQ_VALUES, [{<<"Event-Category">>, <<"freeswitch">>}
+                            ,{<<"Event-Name">>, <<"sendmsg">>}
+                            ]).
+-define(MESSAGE_REQ_TYPES, [{<<"Call-ID">>, fun is_binary/1}]).
 
 %%------------------------------------------------------------------------------
 %% @doc publish api request to freeswitch
@@ -266,6 +275,23 @@ version(JObj) -> version(kz_json:to_proplist(JObj)).
 version_v(Prop) when is_list(Prop) ->
     kz_api:validate(Prop, ?VERSION_REQ_HEADERS, ?VERSION_REQ_VALUES, ?VERSION_REQ_TYPES);
 version_v(JObj) -> version_v(kz_json:to_proplist(JObj)).
+
+%%------------------------------------------------------------------------------
+%% @doc publish message request to freeswitch session
+%% @end
+%%------------------------------------------------------------------------------
+-spec message(kz_term:api_terms()) -> {'ok', iolist()} | {'error', string()}.
+message(Prop) when is_list(Prop) ->
+    case message_v(Prop) of
+        'true' -> kz_api:build_message(Prop, ?MESSAGE_REQ_HEADERS, ?OPTIONAL_MESSAGE_REQ_HEADERS);
+        'false' -> {'error', "Proplist failed validation for freeswitch message request"}
+    end;
+message(JObj) -> message(kz_json:to_proplist(JObj)).
+
+-spec message_v(kz_term:api_terms()) -> boolean().
+message_v(Prop) when is_list(Prop) ->
+    kz_api:validate(Prop, ?MESSAGE_REQ_HEADERS, ?MESSAGE_REQ_VALUES, ?MESSAGE_REQ_TYPES);
+message_v(JObj) -> message_v(kz_json:to_proplist(JObj)).
 
 
 -spec core_uuid(kz_term:api_terms()) -> binary().
@@ -635,5 +661,15 @@ publish_version(JObj) ->
 -spec publish_version(kz_term:api_terms(), kz_term:ne_binary()) -> 'ok'.
 publish_version(Req, ContentType) ->
     {'ok', Payload} = kz_api:prepare_api_payload(Req, ?VERSION_REQ_VALUES, fun version/1),
+    RK = routing_key([<<"commands">>, core_uuid(Req)]),
+    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH_COMMANDS, RK, Payload, ContentType).
+
+-spec publish_message(kz_term:api_terms()) -> 'ok'.
+publish_message(JObj) ->
+    publish_message(JObj, ?DEFAULT_CONTENT_TYPE).
+
+-spec publish_message(kz_term:api_terms(), kz_term:ne_binary()) -> 'ok'.
+publish_message(Req, ContentType) ->
+    {'ok', Payload} = kz_api:prepare_api_payload(Req, ?MESSAGE_REQ_VALUES, fun message/1),
     RK = routing_key([<<"commands">>, core_uuid(Req)]),
     kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH_COMMANDS, RK, Payload, ContentType).
