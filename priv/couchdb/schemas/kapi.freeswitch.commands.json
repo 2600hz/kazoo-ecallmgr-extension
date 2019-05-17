@@ -1,0 +1,37 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "_id": "kapi.freeswitch.commands",
+    "description": "AMQP API for freeswitch.commands",
+    "properties": {
+        "Call-ID": {
+            "type": "string"
+        },
+        "Commands": {
+            "items": {
+                "type": "object"
+            },
+            "type": "array"
+        },
+        "Core-UUID": {
+            "type": "string"
+        },
+        "Event-Category": {
+            "enum": [
+                "freeswitch"
+            ],
+            "type": "string"
+        },
+        "Event-Name": {
+            "enum": [
+                "commands"
+            ],
+            "type": "string"
+        }
+    },
+    "required": [
+        "Call-ID",
+        "Commands",
+        "Core-UUID"
+    ],
+    "type": "object"
+}

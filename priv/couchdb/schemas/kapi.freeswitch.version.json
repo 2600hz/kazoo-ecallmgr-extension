@@ -1,0 +1,26 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "_id": "kapi.freeswitch.version",
+    "description": "AMQP API for freeswitch.version",
+    "properties": {
+        "Core-UUID": {
+            "type": "string"
+        },
+        "Event-Category": {
+            "enum": [
+                "freeswitch"
+            ],
+            "type": "string"
+        },
+        "Event-Name": {
+            "enum": [
+                "version"
+            ],
+            "type": "string"
+        }
+    },
+    "required": [
+        "Core-UUID"
+    ],
+    "type": "object"
+}

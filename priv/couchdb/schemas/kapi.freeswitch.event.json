@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "_id": "kapi.freeswitch.event",
+    "description": "AMQP API for freeswitch.event",
+    "properties": {
+        "Call-ID": {
+            "type": "string"
+        },
+        "Core-UUID": {
+            "type": "string"
+        },
+        "Event-Category": {
+            "enum": [
+                "freeswitch"
+            ],
+            "type": "string"
+        },
+        "Event-Name": {
+            "enum": [
+                "sendevent"
+            ],
+            "type": "string"
+        },
+        "Fire-Event-Name": {
+            "type": "string"
+        },
+        "Fire-Event-Subclass": {
+            "type": "string"
+        },
+        "Headers": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "Core-UUID",
+        "Fire-Event-Name"
+    ],
+    "type": "object"
+}
