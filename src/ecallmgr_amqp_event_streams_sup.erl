@@ -25,7 +25,7 @@
 -spec start_link() -> kz_types:startlink_ret().
 start_link() ->
     {'ok', Pid} = supervisor:start_link({local, ?SERVER}, ?MODULE, []),
-    Streams = ?FS_EVENTS,
+    Streams = ?FS_EVENTS -- ?FS_EXTENSION_EXCLUDE_EVENTS,
     kz_util:spawn(fun() -> [supervisor:start_child(Pid, [Stream]) || Stream <- Streams] end),
     {'ok', Pid}.
 

@@ -158,14 +158,6 @@ log_event(#{event := 'undefined'
            ,payload := JObj
            }) ->
     lager:debug_unsafe("received unknown fs event : ~s", [kz_json:encode(JObj, ['pretty'])]);
-%% log_event(#{event := <<"CHANNEL_CREATE">>
-%%            ,payload := JObj
-%%            }) ->
-%%     lager:debug_unsafe("received CHANNEL_CREATE fs event : ~s", [kz_json:encode(JObj, ['pretty'])]);
-%% log_event(#{event := <<"CHANNEL_REPLACED">>
-%%            ,payload := JObj
-%%            }) ->
-%%     lager:debug_unsafe("received CHANNEL_REPLACED fs event : ~s", [kz_json:encode(JObj, ['pretty'])]);
 log_event(#{category := Category
            ,event := Event
            }) ->

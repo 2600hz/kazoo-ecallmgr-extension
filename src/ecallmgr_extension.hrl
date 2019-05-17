@@ -20,7 +20,9 @@
 
 -define(CONFIG_CAT, <<"ecallmgr">>).
 
-%-define(API_SUPERVISOR_NAME(Node), kz_term:to_atom(<<"api_sup_", (kz_term:to_binary(Node))/binary>>, true)).
+
+-define(FS_EXTENSION_EXCLUDE_EVENTS, [{'presence', ['PRESENCE_IN']}
+                                     ]).
 
 -define(ECALLMGR_EXTENSION_HRL, 'true').
 -endif.
