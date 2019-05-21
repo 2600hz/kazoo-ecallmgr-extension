@@ -37,7 +37,7 @@ exec_payload(Node, JObj) ->
             exec_dialplan(Node, UUID, DP);
         _AName -> control_process('exec_cmd', JObj, Node)
     end.
-    
+
 
 handle_queue_commands([], _, _Node, DP) -> DP;
 handle_queue_commands([Command|Commands], DefJObj, Node, DP) ->

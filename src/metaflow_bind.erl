@@ -20,10 +20,10 @@ init() ->
 
 -spec handle_bridge(map()) -> any().
 handle_bridge(#{payload := JObj}=Map) ->
-%%    lager:debug_unsafe("METAFLOW BIND BRIDGE ~s", [kz_json:encode(JObj, [pretty])]),
+    %%    lager:debug_unsafe("METAFLOW BIND BRIDGE ~s", [kz_json:encode(JObj, [pretty])]),
     ThisNode = kz_term:to_binary(node()),
     ControlNode = kz_json:get_ne_binary_value([<<"Call-Control">>, <<"Node">>], JObj, ThisNode),
-%    MetaflowNode = kz_json:get_ne_binary_value([<<"Metaflow-Control">>, <<"Node">>], JObj),
+                                                %    MetaflowNode = kz_json:get_ne_binary_value([<<"Metaflow-Control">>, <<"Node">>], JObj),
     maybe_request_metaflow(ThisNode, ControlNode, Map).
 
 maybe_request_metaflow(ThisNode, ThisNode, #{node := Node, payload := JObj}) ->
@@ -36,17 +36,17 @@ maybe_request_metaflow(ThisNode, ThisNode, #{node := Node, payload := JObj}) ->
     kz_util:spawn(fun request_metaflow/3, [Node, BLeg, BChannel]);
 maybe_request_metaflow(ThisNode, OtherNode, _Map) ->
     lager:debug("not handling request metaflow ~s / ~s", [ThisNode, OtherNode]).
-    
+
 -spec request_metaflow(atom(), kz_term:ne_binary(), channel()) -> any().
 request_metaflow(Node, _UUID, {'ok', #channel{handling_locally='true'
-                                      ,is_loopback='false'
-                                      ,account_id=?NE_BINARY=AccountId
-                                      ,uuid=UUID
-                                      ,authorizing_id=AuthorizingId
-                                      ,resource_id=ResourceId
-                                      ,callflow_id=CallFlowId
-                                      ,node=Node
-                                      }}) ->
+                                             ,is_loopback='false'
+                                             ,account_id=?NE_BINARY=AccountId
+                                             ,uuid=UUID
+                                             ,authorizing_id=AuthorizingId
+                                             ,resource_id=ResourceId
+                                             ,callflow_id=CallFlowId
+                                             ,node=Node
+                                             }}) ->
     kz_util:put_callid(UUID),
     API = [{<<"Account-ID">>, AccountId}
           ,{<<"Call-ID">>, UUID}
@@ -74,7 +74,7 @@ handle_metaflow(Map) ->
 -spec send_request(map()) -> any().
 send_request(#{fetch_id := FetchId, payload := Payload}=Map) ->
     lager:debug_unsafe("METAFLOW EVT  ~s", [kz_json:encode(Payload, [pretty])]),
-%    Node = kz_json:get_atom_value(<<"Node">>, JObj),
+                                                %    Node = kz_json:get_atom_value(<<"Node">>, JObj),
     CRProps = [{<<"Metaflow-Request-Type">>, <<"in-call">>}
               ,{<<"Other-Leg-Call-ID">>, kz_json:get_binary_value(<<"Other-Leg-Call-ID">>, Payload)}
               ,{<<"Metaflow-Request">>, kz_json:get_binary_value(<<"Metaflow-Collected-Digits">>, Payload)}
@@ -86,7 +86,7 @@ send_request(#{fetch_id := FetchId, payload := Payload}=Map) ->
             ,{<<"Custom-Routing-Headers">>, kz_json:from_list(CRProps)}
             ,{<<"Msg-ID">>, FetchId}
             ,{[<<"Custom-Channel-Vars">>, <<"Fetch-ID">>], FetchId}
-              | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
+             | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
             ],
     Request = kz_json:set_values(Props, Payload),
     ReqResp = kz_amqp_worker:call(Request
@@ -105,7 +105,7 @@ send_request(#{fetch_id := FetchId, payload := Payload}=Map) ->
             Map#{controller_q => ControllerQ, metaflow => #{payload => JObj}}
     end.
 
-    -spec maybe_send_route_win(map()) -> map().
+-spec maybe_send_route_win(map()) -> map().
 maybe_send_route_win(#{metaflow := #{payload := Reply}}=Map) ->
     case kz_json:get_ne_binary_value(<<"Method">>, Reply) =:= <<"application">> of
         'true' -> send_metaflow_win(Map);
@@ -119,7 +119,7 @@ send_metaflow_win(#{fetch_id := FetchId, call_id := CallId, payload := _Payload,
     Win = [{<<"Msg-ID">>, FetchId}
           ,{<<"Call-ID">>, CallId}
           ,{<<"Control-Queue">>, list_to_binary(["pid://", kz_term:to_binary(Pid), "/", ControlQ])}
-%          ,{<<"Control-PID">>, ControlP}
+                                                %          ,{<<"Control-PID">>, ControlP}
            | kz_api:default_headers(ControlQ, <<"dialplan">>, <<"route_win">>, ?APP_NAME, ?APP_VERSION)
           ],
     lager:debug("sending metaflow route_win to ~s", [ControllerQ]),
@@ -135,5 +135,4 @@ metaflow_receiver(#{node := Node} = Map) ->
     after
         15000 -> lager:debug("metaflow receiver exit")
     end.
-        
-    
+

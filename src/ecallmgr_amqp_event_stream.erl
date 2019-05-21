@@ -21,7 +21,6 @@
         ]).
 
 -include("ecallmgr_extension.hrl").
--include("gen_listener_spec.hrl").
 
 -define(RESPONDERS, [{?MODULE
                      ,[{<<"*">>, <<"*">>}]
@@ -38,7 +37,7 @@
 
 -define(SERVER, ?MODULE).
 
-
+-type state() :: map().
 -type bindings() :: atom() | [atom(),...] | kz_term:ne_binary() | kz_term:ne_binaries().
 -type profile() :: {atom() | kz_term:ne_binary(), bindings()}.
 
@@ -72,10 +71,12 @@ start_link({Name, Events}=Profile) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec init(list()) -> {'ok', state()}.
 init([{Name, _} = Profile, Bindings]) ->
     lager:info("starting new amqp event stream listener for ~s", [Name]),
     {'ok', #{profile => Profile, bindings => Bindings}}.
 
+-spec handle_call(any(), kz_term:pid_ref(), state()) -> kz_types:handle_call_ret_state(state()).
 handle_call(_Request, _From, State) ->
     {'reply', {'error', 'not_implemented'}, State}.
 
@@ -84,6 +85,7 @@ handle_call(_Request, _From, State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec handle_cast(any(), state()) -> kz_types:handle_cast_ret_state(state()).
 handle_cast({'gen_listener',{'is_consuming', _IsConsuming}}, State) ->
     {'noreply', State};
 handle_cast({'gen_listener',{'created_queue', _Q}}, State) ->
@@ -97,6 +99,7 @@ handle_cast(_Cast, State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec handle_info(any(), state()) -> kz_types:handle_info_ret_state(state()).
 handle_info(_Info, State) ->
     lager:debug("unhandled message: ~p", [_Info]),
     {'noreply', State}.
@@ -106,6 +109,7 @@ handle_info(_Info, State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec handle_event(kz_json:object(), state()) -> gen_listener:handle_event_return().
 handle_event(_JObj, _State) ->
     {'reply', []}.
 
@@ -117,6 +121,7 @@ handle_event(_JObj, _State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec terminate(any(), state()) -> 'ok'.
 terminate(_Reason, #{profile := {Name, _}}) ->
     lager:debug("amqp event stream for ~s termination: ~p", [ Name, _Reason]).
 
@@ -125,6 +130,7 @@ terminate(_Reason, #{profile := {Name, _}}) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec code_change(any(), state(), any()) -> {'ok', state()}.
 code_change(_OldVsn, State, _Extra) ->
     {'ok', State}.
 
@@ -162,7 +168,7 @@ log_event(#{category := Category
            ,event := Event
            }) ->
     lager:debug_unsafe("received fs ~s : ~s", [Category, Event]).
-    
+
 run_bindings(Ctx) ->
     Stages = [fun run_event/1
              ,fun run_process/1

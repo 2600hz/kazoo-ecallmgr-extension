@@ -51,18 +51,18 @@ handle_metaflow_action(UUID, JObj, ControlQ, FSProps, Node) ->
                ,{<<"Application-Logical-Direction">>, <<"inbound">>}
                ,{<<"Control-Queue">>, ControlQ}
                ],
-%%    Props = props:set_values(ReqProps, FSProps),
+    %%    Props = props:set_values(ReqProps, FSProps),
     Props = kz_json:set_values(ReqProps, FSProps),
     route_metaflow_action(UUID, Props, Node).
 
 -spec route_metaflow_action(kz_term:ne_binary(), kz_term:proplist(), atom()) -> 'ok'.
 route_metaflow_action(UUID, Props, Node) ->
     FetchId = kz_binary:rand_hex(16),
-%%    Request = ecallmgr_fs_router_util:route_req(UUID, FetchId, Props, Node),
-%%    lager:debug("METAFLOW ACVTION ~p", [Request]),
+    %%    Request = ecallmgr_fs_router_util:route_req(UUID, FetchId, Props, Node),
+    %%    lager:debug("METAFLOW ACVTION ~p", [Request]),
     MoreProps = [{<<"Call-ID">>, UUID}
                 ,{[<<"Custom-Channel-Vars">>, <<"Fetch-ID">>], FetchId}
-                  | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
+                 | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
                 ],
     Request = kz_json:set_values(MoreProps, kz_api:remove_defaults(Props)),
     ReqResp = kz_amqp_worker:call(Request

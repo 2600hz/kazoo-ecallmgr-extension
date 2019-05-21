@@ -20,7 +20,6 @@
         ]).
 
 -include("ecallmgr_extension.hrl").
--include("gen_listener_spec.hrl").
 
 -define(RESPONDERS, [{?MODULE
                      ,[{<<"*">>, <<"*">>}]
@@ -34,6 +33,7 @@
 -define(QUEUE_OPTIONS, [{'exclusive', 'false'}]).
 -define(CONSUME_OPTIONS, [{'exclusive', 'false'}]).
 
+-type state() :: map().
 
 %%%=============================================================================
 %%% API
@@ -64,10 +64,12 @@ start_link() ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec init(list()) -> {'ok', state()}.
 init([]) ->
     lager:debug("starting new ecallmgr amqp fetch listener"),
     {'ok', #{}}.
 
+-spec handle_call(any(), kz_term:pid_ref(), state()) -> kz_types:handle_call_ret_state(state()).
 handle_call(_Request, _From, State) ->
     {'reply', {'error', 'not_implemented'}, State}.
 
@@ -76,6 +78,7 @@ handle_call(_Request, _From, State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec handle_cast(any(), state()) -> kz_types:handle_cast_ret_state(state()).
 handle_cast({'gen_listener',{'is_consuming', _IsConsuming}}, State) ->
     {'noreply', State};
 handle_cast({'gen_listener',{'created_queue', _Q}}, State) ->
@@ -89,6 +92,7 @@ handle_cast(_Cast, State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec handle_info(any(), state()) -> kz_types:handle_info_ret_state(state()).
 handle_info(_Info, State) ->
     lager:debug("unhandled message: ~p", [_Info]),
     {'noreply', State}.
@@ -98,6 +102,7 @@ handle_info(_Info, State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec handle_event(kz_json:object(), state()) -> gen_listener:handle_event_return().
 handle_event(_JObj, _State) -> {'reply', []}.
 
 %%------------------------------------------------------------------------------
@@ -108,6 +113,7 @@ handle_event(_JObj, _State) -> {'reply', []}.
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec terminate(any(), state()) -> 'ok'.
 terminate(_Reason, _State) ->
     lager:debug("ecallmgr amqp fetch termination: ~p", [ _Reason]).
 
@@ -116,6 +122,7 @@ terminate(_Reason, _State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec code_change(any(), state(), any()) -> {'ok', state()}.
 code_change(_OldVsn, State, _Extra) ->
     {'ok', State}.
 
@@ -130,7 +137,7 @@ handle_req(JObj, Props) ->
     Version = kzd_fetch:fetch_version(JObj),
     Event = kz_term:to_lower_binary(kz_api:event_name(JObj)),
     RKs = lists:filter(fun kz_term:is_not_empty/1, [<<"fetch">>, Section, Version, Event, Key]),
-%%    RKs = [kz_amqp_util:encode(Bin) || Bin <- lists:filter(fun kz_term:is_not_empty/1, [<<"fetch">>, Section, Version, Event, Key])],
+    %%    RKs = [kz_amqp_util:encode(Bin) || Bin <- lists:filter(fun kz_term:is_not_empty/1, [<<"fetch">>, Section, Version, Event, Key])],
 
     Routing = kz_binary:join(RKs, <<".">>),
     lager:debug("requesting binding for ~s", [Routing]),
@@ -147,7 +154,7 @@ handle_req(JObj, Props) ->
            },
     case kazoo_bindings:map(Routing, Map) of
         [] ->
-%            lager:debug_unsafe("FETCH NOT FOUND : ~s", [kz_json:encode(JObj, ['pretty'])]),
+                                                %            lager:debug_unsafe("FETCH NOT FOUND : ~s", [kz_json:encode(JObj, ['pretty'])]),
             not_found(Map);
         _ -> 'ok'
     end.

@@ -19,7 +19,6 @@
         ]).
 
 -include("ecallmgr_extension.hrl").
--include("gen_listener_spec.hrl").
 
 -define(CHECK_INTERVAL, 2000).
 -define(NODE_EXPIRATION, 25000).
@@ -66,14 +65,17 @@ start_link() ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec init(list()) -> {'ok', state()}.
 init([]) ->
     kz_util:put_callid(?MODULE),
     lager:info("starting new fs amqp monitor"),
     {'ok', #{nodes => #{}}, ?CHECK_INTERVAL}.
 
+-spec handle_call(any(), kz_term:pid_ref(), state()) -> kz_types:handle_call_ret_state(state()).
 handle_call(_Request, _From, State) ->
     {'reply', {'error', 'not_implemented'}, State}.
 
+-spec handle_cast(any(), state()) -> kz_types:handle_cast_ret_state(state()).
 handle_cast({'gen_listener',{'is_consuming', 'false'}}, State) ->
     {'noreply', State#{active => 'false'}, ?CHECK_INTERVAL};
 handle_cast({'gen_listener',{'is_consuming', 'true'}}, State) ->
@@ -84,6 +86,7 @@ handle_cast(_Cast, State) ->
     lager:debug("unhandled cast: ~p", [_Cast]),
     {'noreply', State, ?CHECK_INTERVAL}.
 
+-spec handle_info(any(), state()) -> kz_types:handle_info_ret_state(state()).
 handle_info(timeout, #{active := 'true'} = State) ->
     {'noreply', handle_timeout(State), ?CHECK_INTERVAL};
 handle_info(timeout, State) ->
@@ -97,6 +100,7 @@ handle_info(_Info, State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec handle_event(kz_json:object(), state()) -> gen_listener:handle_event_return().
 handle_event(JObj, State) ->
     {'ignore', handle_hearbeat(JObj, State)}.
 
@@ -108,6 +112,7 @@ handle_event(JObj, State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec terminate(any(), state()) -> 'ok'.
 terminate(_Reason, _State) ->
     lager:debug("fs amqp monitor termination: ~p", [ _Reason]).
 
@@ -116,6 +121,7 @@ terminate(_Reason, _State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec code_change(any(), state(), any()) -> {'ok', state()}.
 code_change(_OldVsn, State, _Extra) ->
     {'ok', State}.
 
@@ -132,7 +138,7 @@ handle_hearbeat(JObj, #{nodes := Nodes} = Map) ->
     CoreUUID = core_uuid(JObj),
     Nodename = node_name(JObj),
     INU = ecallmgr_fs_nodes:is_node_up(Nodename),
-%    lager:info_unsafe("HEARTBEAT ~s", [kz_json:encode(JObj, ['pretty'])]),
+                                                %    lager:info_unsafe("HEARTBEAT ~s", [kz_json:encode(JObj, ['pretty'])]),
     case Map of
         #{nodes := #{CoreUUID := #{state := up}=Node}} when INU ->
             maybe_update_code(Nodes),
@@ -144,7 +150,7 @@ handle_hearbeat(JObj, #{nodes := Nodes} = Map) ->
         #{nodes := #{CoreUUID := #{state := down}}=Node} ->
             handle_nodeup(CoreUUID, Node, Map);
         Map ->
-%            lager:info_unsafe("HEARTBEAT ~s", [kz_json:encode(JObj, ['pretty'])]),
+                                                %            lager:info_unsafe("HEARTBEAT ~s", [kz_json:encode(JObj, ['pretty'])]),
             handle_nodeup(CoreUUID, #{name => Nodename}, Map)
     end.
 
@@ -181,7 +187,7 @@ handle_timeout(#{nodes := Nodes} = State) ->
     end.
 
 is_code_handled({CoreUUID, NodeName}) ->
-%    lager:info_unsafe("is_code_handled({~p, ~p})", [CoreUUID, NodeName]),
+                                                %    lager:info_unsafe("is_code_handled({~p, ~p})", [CoreUUID, NodeName]),
     freeswitch:mod(NodeName) =/= 'mod_com_kazoo'
         orelse mod_com_kazoo:core_uuid(NodeName) =/= CoreUUID.
 

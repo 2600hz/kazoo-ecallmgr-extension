@@ -20,7 +20,6 @@
         ]).
 
 -include("ecallmgr_extension.hrl").
--include("gen_server_spec.hrl").
 
 -define(RESPONDERS, [{?MODULE, [{<<"*">>, <<"*">>}]}]).
 
@@ -62,6 +61,7 @@ start_link(Queue) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec init(list()) -> {'ok', state()}.
 init([Queue]) ->
     {'ok', #{queue => Queue}}.
 
@@ -70,6 +70,7 @@ init([Queue]) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec handle_call(any(), kz_term:pid_ref(), state()) -> kz_types:handle_call_ret_state(state()).
 handle_call(_Request, _From, State) ->
     {'reply', {'error', 'not_implemented'}, State}.
 
@@ -78,6 +79,7 @@ handle_call(_Request, _From, State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec handle_cast(any(), state()) -> kz_types:handle_cast_ret_state(state()).
 handle_cast({'gen_listener', _}, State) ->
     {'noreply', State};
 handle_cast(_Msg, State) ->
@@ -89,6 +91,7 @@ handle_cast(_Msg, State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec handle_info(any(), state()) -> kz_types:handle_info_ret_state(state()).
 handle_info({'amqp_send', Payload, PublisherFun}, #{queue := Q} = State) ->
     PublisherFun([{<<"Server-ID">>, Q} | Payload]),
     {'noreply', State};
@@ -101,7 +104,7 @@ handle_info(_Other, State) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
--spec handle_event(kz_json:object(), state()) -> {'reply', kz_term:proplist()}.
+-spec handle_event(kz_json:object(), state()) -> gen_listener:handle_event_return().
 handle_event(_JObj, #{}) ->
     {'reply', []}.
 
@@ -113,6 +116,7 @@ handle_event(_JObj, #{}) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec terminate(any(), state()) -> 'ok'.
 terminate(_Reason, #{}) ->
     lager:info("api listener terminating: ~p", [_Reason]).
 
@@ -121,12 +125,13 @@ terminate(_Reason, #{}) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
+-spec code_change(any(), state(), any()) -> {'ok', state()}.
 code_change(_OldVsn, State, _Extra) ->
     {'ok', State}.
 
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
-%%    lager:debug_unsafe("REPLY : ~s", [kz_json:encode(JObj, ['pretty'])]),
+    %% lager:debug_unsafe("REPLY : ~s", [kz_json:encode(JObj, ['pretty'])]),
     Pid = kz_term:to_pid(kz_api:reply_to(JObj)),
     Event = kz_api:event_name(JObj),
     handle_req(Pid, Event, JObj, Props).

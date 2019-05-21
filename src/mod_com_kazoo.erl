@@ -130,7 +130,7 @@ api(Node, Cmd, Args, _Timeout)
     receive
         {switch_reply, Msg} -> Msg
     after ?API_TIMEOUT ->
-        {error, 'timeout'}
+            {error, 'timeout'}
     end.
 
 %% @doc Make a backgrounded API call to FreeSWITCH. The asynchronous reply is
@@ -189,7 +189,7 @@ json_api(Node, UUID, Cmd, Args, Timeout) when is_atom(Node) ->
     receive
         {switch_reply, Msg} -> Msg
     after Timeout ->
-        {error, 'timeout'}
+            {error, 'timeout'}
     end.
 
 -type event() :: kz_json:object().
@@ -372,5 +372,5 @@ payload(Node) ->
 payload(Node, Headers) ->
     Headers ++ [{<<"Core-UUID">>, kz_term:to_binary(core_uuid(Node))}
                ,{?KEY_REQUEST_FROM_PID, kz_term:to_binary(self())}
-                 | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
+                | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
                ].

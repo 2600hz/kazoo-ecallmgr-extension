@@ -62,16 +62,16 @@
 -define(EVENT_REQ_HEADERS, [<<"Core-UUID">>, <<"Fire-Event-Name">>]).
 -define(OPTIONAL_EVENT_REQ_HEADERS, [<<"Headers">>, <<"Call-ID">>, <<"Fire-Event-Subclass">>]).
 -define(EVENT_REQ_VALUES, [{<<"Event-Category">>, <<"freeswitch">>}
-                        ,{<<"Event-Name">>, <<"sendevent">>}
-                        ]).
+                          ,{<<"Event-Name">>, <<"sendevent">>}
+                          ]).
 -define(EVENT_REQ_TYPES, []).
 
 %% configuration Request
 -define(CONFIG_REQ_HEADERS, [<<"Core-UUID">>]).
 -define(OPTIONAL_CONFIG_REQ_HEADERS, [<<"Section">>]).
 -define(CONFIG_REQ_VALUES, [{<<"Event-Category">>, <<"freeswitch">>}
-                        ,{<<"Event-Name">>, <<"config">>}
-                        ]).
+                           ,{<<"Event-Name">>, <<"config">>}
+                           ]).
 -define(CONFIG_REQ_TYPES, []).
 
 %% api Request
