@@ -3,7 +3,7 @@
 %%% @doc
 %%% @end
 %%%-----------------------------------------------------------------------------
--module(ecallmgr_ext_sup).
+-module(mod_com_kazoo_sup).
 
 -behaviour(supervisor).
 
@@ -14,27 +14,26 @@
 -export([start_link/0]).
 -export([init/1]).
 
--define(CHILDREN, [?SUPER('mod_com_kazoo_sup')
-                  ,?SUPER('metaflow_listener')
-                  ,?SUPER('ecallmgr_amqp_sup')
+-define(CHILDREN, [?SUPER('mod_com_kazoo_listener_sup')
+                  ,?WORKER('mod_com_kazoo_monitor')
                   ]).
 
-%%==============================================================================
+%% ===================================================================
 %% API functions
-%%==============================================================================
+%% ===================================================================
 
 %%------------------------------------------------------------------------------
-%% @doc Starts the supervisor.
+%% @doc Starts the supervisor
 -spec start_link() -> kz_types:startlink_ret().
 start_link() ->
     supervisor:start_link({'local', ?SERVER}, ?MODULE, []).
 
-%%==============================================================================
+%% ===================================================================
 %% Supervisor callbacks
-%%==============================================================================
+%% ===================================================================
 
 %%------------------------------------------------------------------------------
-%% @doc Whenever a supervisor is started using `supervisor:start_link/[2,3]',
+%% @doc Whenever a supervisor is started using supervisor:start_link/[2,3],
 %% this function is called by the new process to find out about
 %% restart strategy, maximum restart frequency and child
 %% specifications.
