@@ -13,11 +13,16 @@
 -define(APP_VERSION, <<"4.0.0">>).
 
 -define(EXT_NODE_MODULES,
-        [<<"event_amqp_sup">>
-        ,<<"metaflow">>
+        [<<"node">>
+        ,<<"notify">>
+        ,<<"resource">>
         ]).
 
 -define(CONFIG_CAT, <<"ecallmgr">>).
+
+
+-define(FS_EXTENSION_EXCLUDE_EVENTS, [{'presence', ['PRESENCE_IN']}
+                                     ]).
 
 -define(ECALLMGR_EXTENSION_HRL, 'true').
 -endif.
