@@ -74,7 +74,7 @@ check_licenses() ->
 -spec check_license(kz_term:ne_binary()) -> 'no_return'.
 check_license(Feature) ->
     Expiration = pretty_print_expiration(Feature),
-    _ = case qubicle_util:authenticate(Feature) of
+    _ = case ecallmgr_extension_util:authenticate(Feature) of
             'true' ->
                 io:format("valid license for ~s until ~s~n"
                          ,[Feature, Expiration]
