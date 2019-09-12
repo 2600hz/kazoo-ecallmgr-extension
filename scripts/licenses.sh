@@ -20,8 +20,6 @@ cd $ROOT
 salt='7f1d655ebb494a2a8773554b551e2eb7'
 app_name='ecallmgr_extension'
 options=(application "" off)
-#options+=(feature_1 "" off)
-#options+=(feature_2 "" off)
 
 ###
 ### Internal variables that can come from
@@ -185,7 +183,7 @@ elif [ -z "$account_id" ] || [ ${#features[@]} -eq 0 ]; then
     ###
     ### All other choices are the selected features
     ###
-    features=("${choices[@]:2}")
+    features=(${choices[@]:2})
 else
     ###
     ### If we don't show the dialog screen
