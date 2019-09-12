@@ -24,7 +24,10 @@
 %% @doc Starts the supervisor.
 -spec start_link() -> kz_types:startlink_ret().
 start_link() ->
-    supervisor:start_link({'local', ?SERVER}, ?MODULE, []).
+    case ecallmgr_extension_util:authenticate(<<"application">>) of
+        'true' -> supervisor:start_link({'local', ?SERVER}, ?MODULE, []);
+        'false' -> {'error', {'shutdown', 'invalid_license'}}
+    end.
 
 %%==============================================================================
 %% Supervisor callbacks
