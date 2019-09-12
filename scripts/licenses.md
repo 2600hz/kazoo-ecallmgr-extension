@@ -26,7 +26,7 @@ The script is not part of any deployments and requires the directory structure o
 	* By default the tool will generate licenses for a one year period
 * Us the up and down arrow keys to highlight features, pressing spacebar will place or remove an asterisk next to the selected feature.  All features with asterisks will be licensed.  When all selections have been made hit tab until 'Generate' is highlighted, then the enter key
 
-The tool will provide a partial JSON payload that will need to be added to system_config on the cluster to be licensed.  Additionally, it will write the same payload to `/tmp/ecallmgr-extension-{ACCOUNT_ID}-{EXPIRATION}.licenses` for use by the install tool.
+The tool will provide a partial JSON payload that will need to be added to system_config on the cluster to be licensed.  Additionally, it will write the same payload to `/tmp/ecallmgr_extension-{ACCOUNT_ID}-{EXPIRATION}.licenses` for use by the install tool.
 
 #### Generation: Creating Licenses via Arguments
 Run the license generation script on your local linux host.  From within the directory you cloned the ecallmgr-extension repository to (above):
@@ -44,10 +44,10 @@ To get a list of available feature names use:
 Once you have created licenses you must install them in the database of the cluster to be licensed and renew them prior to expiration.
 
 #### Managing Licenses: Adding multiple Licenses via SUP
-When generating licenses a `.licenses` file is created in the `/tmp` directory of the server running the generation tool.  Use `scp` or other means to move this file to a server in the cluster to be licensed that is running ecallmgr-extension.  In our example we will place the file `ecallmgr-extension-2747f5c11e978a288c3aee0c789d5074-63739008000.licenses` in the `/root/` directory.
+When generating licenses a `.licenses` file is created in the `/tmp` directory of the server running the generation tool.  Use `scp` or other means to move this file to a server in the cluster to be licensed that is running ecallmgr-extension.  In our example we will place the file `ecallmgr_extension-2747f5c11e978a288c3aee0c789d5074-63739008000.licenses` in the `/root/` directory.
 
 Execute the following command:
-* `sup ecallmgr-extension_maintenance install_licenses /root/ecallmgr-extension-2747f5c11e978a288c3aee0c789d5074-63739008000.licenses`
+* `sup ecallmgr_extension_maintenance install_licenses /root/ecallmgr_extension-2747f5c11e978a288c3aee0c789d5074-63739008000.licenses`
 
 For each license in the file you should see an output similar to checking licenses via sup.
 
@@ -58,19 +58,19 @@ It is possible to use SUP to add a single license using copy and paste.  You mus
 * License
 
 Using this information run the following command:
-* `sup ecallmgr-extension_maintenance install_license {Feature Name} {Expiration} {License}`
+* `sup ecallmgr_extension_maintenance install_license {Feature Name} {Expiration} {License}`
 
 You should see an output similar to checking licenses via sup.
 
 #### Managing Licenses: Direct to Database
 Connect to the database UI and navigate to the `system_config` database.  Switch to the `licenses` document.  If there is no such document, click create new document and replace the generated document `_id` with the word `licenses`.
 
-If the document exists or you just created it in the `default` object ensure an object `ecallmgr-extension` exists and add the output from the license generation tool there.  For example:
+If the document exists or you just created it in the `default` object ensure an object `ecallmgr_extension` exists and add the output from the license generation tool there.  For example:
 
     {
       "_id": "licenses",
       "default": {
-        "ecallmgr-extension": {
+        "ecallmgr_extension": {
           "application": {
             "license": "2a19e60467b5e6785428ac6e9cec7649531e950bc3f87afda6c910f42bf78e52",
             "type": "prime",
@@ -85,7 +85,7 @@ This is a standard system_config document, so the same rules for node specific c
 #### Managing Licenses: Checking Licenses via SUP
 
 Running the following SUP command will verify all installed licenses:
-* `sup ecallmgr-extension_maintenance check_licenses`
+* `sup ecallmgr_extension_maintenance check_licenses`
 
 This will provide one of two outputs for each license.  If successful you will get:
 * `valid license for {FEATURE NAME} until {DATE}` 
