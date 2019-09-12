@@ -17,11 +17,17 @@
 %% @doc Implement the application start behaviour
 -spec start(application:start_type(), any()) -> kz_types:startapp_ret().
 start(_StartType, _StartArgs) ->
-    _ = declare_exchanges(),
-    _ = check_modules(),
-    _ = event_stream_bind(),
-    _ = fetch_handlers_bind(),
-    ecallmgr_ext_sup:start_link().
+    case ecallmgr_extension_util:authenticate(<<"application">>) of
+        'false' ->
+            lager:error("ecallmgr extension license is invalid or expired!"),
+            {'error', 'invalid_license'};
+        'true' ->
+            _ = declare_exchanges(),
+            _ = check_modules(),
+            _ = event_stream_bind(),
+            _ = fetch_handlers_bind(),
+            ecallmgr_ext_sup:start_link()
+    end.
 
 %% @doc Implement the application stop behaviour
 -spec stop(any()) -> any().
@@ -29,7 +35,6 @@ stop(_State) ->
     _ = fetch_handlers_unbind(),
     _ = event_stream_unbind(),
     'ok'.
-
 
 -spec declare_exchanges() -> 'ok'.
 declare_exchanges() ->
