@@ -237,7 +237,10 @@ sendevent_custom(Node, SubClassName, Headers) ->
 
 -spec sync_channel(atom(), kz_term:ne_binary()) -> 'ok'.
 sync_channel(Node, UUID) ->
-    Headers = [{<<"Event-PID">>, kz_term:to_binary(self())}],
+    Headers = [{<<"Call-ID">>, UUID}
+              ,{<<"Event-PID">>, kz_term:to_binary(self())}
+              ,{<<"Event-Node">>, kz_term:to_binary(node())}
+              ],
     Payload = [{<<"Call-ID">>, UUID}
               ,{<<"Fire-Event-Name">>, <<"CUSTOM">>}
               ,{<<"Fire-Event-Subclass">>, <<"CHANNEL_SYNC">>}

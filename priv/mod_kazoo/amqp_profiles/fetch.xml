@@ -1,0 +1,89 @@
+<profile name="fetch" profile-type="worker">
+
+    <connection-ref workers="3" channels="3">
+       <property name="is-local" value="true"/>
+    </connection-ref>
+
+	<connection-ref zone="local" include-federated="true" />
+	<connection-refs tag="blue" include-federated="true" />
+
+	<connection name="lx1" />
+
+	<logging>
+		<log name="trace" value="SWITCH_LOG_DEBUG1" />
+		<log name="info" value="SWITCH_LOG_DEBUG" />
+		<log name="success" value="SWITCH_LOG_DEBUG1" />
+		<log name="time" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
+	</logging>
+
+	<declare-exchanges>
+        <exchange>
+            <param name="name" value="freeswitch.channels" />
+            <param name="type" value="topic" />
+            <param name="durable" value="0" />
+        </exchange>
+		<exchange>
+			<param name="name" value="freeswitch.configuration" />
+			<param name="type" value="topic" />
+			<param name="auto-delete" value="true" />
+		</exchange>
+        <exchange>
+            <param name="name" value="freeswitch.dialplan" />
+            <param name="type" value="topic" />
+            <param name="durable" value="0" />
+        </exchange>
+        <exchange>
+            <param name="name" value="freeswitch.directory" />
+            <param name="type" value="topic" />
+            <param name="durable" value="0" />
+        </exchange>
+        <exchange>
+            <param name="name" value="freeswitch.languages" />
+            <param name="type" value="topic" />
+            <param name="durable" value="0" />
+        </exchange>
+		<exchange>
+			<param name="name" value="targeted" />
+			<param name="type" value="direct" />
+		</exchange>
+	</declare-exchanges>
+
+
+	<queue>
+		<param name="name"
+			value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+
+		<binding>
+			<param name="exchange" value="targeted" />
+			<param name="routing-key"
+				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+		</binding>
+
+		<param name="exclusive" value="true" />
+		<param name="consume-exclusive" value="true" />
+		<param name="consume-qos" value="10" />
+		<param name="consume-qos-global" value="false" />
+		<param name="consume-spawn" value="true" />
+	</queue>
+
+
+	<params>
+		<param name="workers" value="3" />
+		<param name="channels" value="3" />
+		<param name="query-timeout-ms" value="2500" />
+		<param name="cache-expires-ms" value="120000" />
+	</params>
+
+	<publisher>
+		<params>
+			<param name="delivery-mode" value="0" />
+		</params>
+		<fields>
+			<field name="Server-ID"
+				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+		</fields>
+	</publisher>
+
+</profile>

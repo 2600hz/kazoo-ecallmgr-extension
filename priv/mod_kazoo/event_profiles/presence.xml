@@ -1,0 +1,26 @@
+<profile name="presence" profile-type="event">
+
+	<params>
+       <param name="amqp-exchange" value="presence" />
+       <param name="amqp-profile" value="push-event"/>
+	</params>
+
+	<events>
+		<event name="KZ_PRESENCE_DIALOG" />
+	</events>
+
+	<routing-key>
+		<param name="hashing-header" value="Unique-ID" />
+		<field name="dialog" type="static" value="dialog" />
+
+		<!-- slot - hashed - distribute realm by server
+		<field name="slot" type="expand" value="${expr(land(${Presence-Dialog-Realm-Hash},6))}" />
+	    -->
+
+		<field name="Presence-Dialog-Realm" />
+		<field name="Unique-ID" />
+	</routing-key>
+
+
+
+</profile>

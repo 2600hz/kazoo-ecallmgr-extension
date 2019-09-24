@@ -1,0 +1,23 @@
+<profile name="fax" profile-type="event">
+
+	<params>
+       <param name="amqp-exchange" value="callevt" />
+       <param name="amqp-profile" value="push-event"/>
+	</params>
+
+	<events>
+		<event name="spandsp::txfaxnegociateresult" />
+		<event name="spandsp::txfaxpageresult" />
+		<event name="spandsp::txfaxresult" />
+		<event name="spandsp::rxfaxnegociateresult" />
+		<event name="spandsp::rxfaxpageresult" />
+		<event name="spandsp::rxfaxresult" />
+	</events>
+
+	<routing-key>
+		<field name="fax" type="static" value="call,CHANNEL_FAX_STATUS"
+			encode-part="false" />
+		<field name="Unique-ID" />
+	</routing-key>
+
+</profile>

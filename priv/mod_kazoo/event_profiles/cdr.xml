@@ -1,0 +1,20 @@
+<profile name="cdr" profile-type="event">
+
+	<params>
+       <param name="amqp-exchange" value="cdr" />
+       <param name="amqp-profile" value="push-event"/>
+       <param name="event-channel-mode" value="broadcast"/>
+	</params>
+
+	<events>
+		<event name="KZ_CDR" />
+	</events>
+
+	<routing-key>
+		<field name="freeswitch" type="static" value="cdr.report"
+			encode-part="false" />
+		<field name="variable_ecallmgr_Account-ID" />
+		<field name="Unique-ID" />
+	</routing-key>
+
+</profile>

@@ -1,0 +1,22 @@
+<profile name="dialplan" profile-type="fetch">
+
+	<fields verbose="false">
+		<field name="voice_dialplan" type="reference" />
+	</fields>
+
+	<connection name="primary" />
+
+	<params>
+		<param name="fetch-timeout" value="3500000" />
+		<param name="fetch-section" value="dialplan" />
+        <param name="amqp-exchange" value="freeswitch.dialplan" />
+        <param name="amqp-profile" value="fetch" />
+	</params>
+
+	<routing-key>
+		<field name="freeswitch" type="static" value="freeswitch.dialplan.fetch" encode-part="false" />
+		<field name="Core-UUID" />
+		<field name="Fetch-UUID" />
+	</routing-key>
+
+</profile>
