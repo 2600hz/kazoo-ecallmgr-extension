@@ -1,0 +1,33 @@
+<profile name="configuration" profile-type="fetch">
+
+	<fields verbose="true">
+		<field name="fetch-info" type="reference" />
+	</fields>
+
+	<connection name="primary" />
+
+	<cache expires_ms="120000">
+		<field name="Fetch-Section" />
+		<field name="Fetch-Tag" />
+		<field name="Fetch-Key-Name" />
+		<field name="Fetch-Key-Value" />
+		<field name="Conference-Name" type="first-of" value="Conf-Name|conference_name" />
+		<field name="Conference-Profile" type="first-of"
+			value="Conf-Profile|profile_name" />
+		<field name="Controls" />
+	</cache>
+
+	<params>
+		<param name="fetch-timeout" value="3500000" />
+		<param name="fetch-section" value="configuration" />
+        <param name="amqp-exchange" value="freeswitch.configuration" />
+        <param name="amqp-profile" value="fetch" />
+	</params>
+
+	<routing-key>
+		<field name="freeswitch" type="static" value="freeswitch.configuration.fetch" encode-part="false"/>
+		<field name="Core-UUID" />
+		<field name="Fetch-UUID" />
+	</routing-key>
+
+</profile>

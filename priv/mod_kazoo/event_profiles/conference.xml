@@ -1,0 +1,24 @@
+<profile name="conference" profile-type="event">
+
+	<params>
+       <param name="amqp-exchange" value="conference" />
+       <param name="amqp-profile" value="push-event"/>
+       <param name="event-channel-mode" value="worker"/>
+	</params>
+
+	<events>
+		<event name="conference::maintenance" />
+	</events>
+
+	<routing-key>
+		<field name="conference" type="static" value="conference.event"
+			encode-part="false" />
+		<field name="Action" />
+		<field name="Account-ID" />
+		<field name="Conference-Name" />
+		<field name="Conference-ID" type="first-of"
+			value="Unique-ID|Conference-Unique-ID" />
+
+	</routing-key>
+
+</profile>

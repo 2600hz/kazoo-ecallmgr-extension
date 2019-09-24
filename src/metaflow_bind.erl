@@ -20,10 +20,8 @@ init() ->
 
 -spec handle_bridge(map()) -> any().
 handle_bridge(#{payload := JObj}=Map) ->
-    %%    lager:debug_unsafe("METAFLOW BIND BRIDGE ~s", [kz_json:encode(JObj, [pretty])]),
     ThisNode = kz_term:to_binary(node()),
     ControlNode = kz_json:get_ne_binary_value([<<"Call-Control">>, <<"Node">>], JObj, ThisNode),
-                                                %    MetaflowNode = kz_json:get_ne_binary_value([<<"Metaflow-Control">>, <<"Node">>], JObj),
     maybe_request_metaflow(ThisNode, ControlNode, Map).
 
 maybe_request_metaflow(ThisNode, ThisNode, #{node := Node, payload := JObj}) ->
@@ -73,8 +71,6 @@ handle_metaflow(Map) ->
 
 -spec send_request(map()) -> any().
 send_request(#{fetch_id := FetchId, payload := Payload}=Map) ->
-    lager:debug_unsafe("METAFLOW EVT  ~s", [kz_json:encode(Payload, [pretty])]),
-                                                %    Node = kz_json:get_atom_value(<<"Node">>, JObj),
     CRProps = [{<<"Metaflow-Request-Type">>, <<"in-call">>}
               ,{<<"Other-Leg-Call-ID">>, kz_json:get_binary_value(<<"Other-Leg-Call-ID">>, Payload)}
               ,{<<"Metaflow-Request">>, kz_json:get_binary_value(<<"Metaflow-Collected-Digits">>, Payload)}

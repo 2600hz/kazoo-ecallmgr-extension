@@ -1,0 +1,19 @@
+<event name="KZ_CDR">
+	<fields verbose="false">
+		<field name="Event-Category" type="static" value="cdr" />
+		<field name="Event-Name" type="static" value="report" />
+		<field name="Event-Date-Timestamp" as="Msg-ID" />
+		<field name="Timestamp" type="expand"
+			value="${expr(ceil((${Event-Date-Timestamp} / 1000000) + $${UNIX_EPOCH_IN_GREGORIAN}))}"
+			serialize-as="number" />
+		<field name="variable_sip_origination_call_id" as="Origination-Call-ID" />
+		<field name="Unique-ID" as="Call-ID" />
+		<field name="Caller-Channel-Created-Time" as="Channel-Created-Time" />
+		<field name="Core-UUID" as="Node" />
+		<field name="variable_domain_name" as="Domain-Name" />
+		<field name="App-Name" type="static" value="freeswitch" />
+		<field name="App-Version" type="static" value="1.0" />
+		<field name="variable_ecallmgr_Account-ID" as="Account-ID" />
+		<field name="JSON-CDR" as="cdr" serialize-as="raw" />
+	</fields>
+</event>
