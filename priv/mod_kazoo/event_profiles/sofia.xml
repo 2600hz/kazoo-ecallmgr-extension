@@ -14,8 +14,7 @@
 
 	<routing-key>
 		<field name="call" type="static" value="call" />
-		<field name="event" type="first-of"
-			value="kazoo_event_name|Event-Subclass|Event-Name" />
+        <field name="event" type="expand" value="CHANNEL_${toupper(${Event-Subclass:7})}" />
 		<field name="Unique-ID" />
 	</routing-key>
 
