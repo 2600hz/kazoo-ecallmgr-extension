@@ -138,7 +138,6 @@ handle_hearbeat(JObj, #{nodes := Nodes} = Map) ->
     CoreUUID = core_uuid(JObj),
     Nodename = node_name(JObj),
     INU = ecallmgr_fs_nodes:is_node_up(Nodename),
-                                                %    lager:info_unsafe("HEARTBEAT ~s", [kz_json:encode(JObj, ['pretty'])]),
     case Map of
         #{nodes := #{CoreUUID := #{state := up}=Node}} when INU ->
             maybe_update_code(Nodes),
@@ -150,7 +149,6 @@ handle_hearbeat(JObj, #{nodes := Nodes} = Map) ->
         #{nodes := #{CoreUUID := #{state := down}}=Node} ->
             handle_nodeup(CoreUUID, Node, Map);
         Map ->
-                                                %            lager:info_unsafe("HEARTBEAT ~s", [kz_json:encode(JObj, ['pretty'])]),
             handle_nodeup(CoreUUID, #{name => Nodename}, Map)
     end.
 
@@ -187,7 +185,6 @@ handle_timeout(#{nodes := Nodes} = State) ->
     end.
 
 is_code_handled({CoreUUID, NodeName}) ->
-                                                %    lager:info_unsafe("is_code_handled({~p, ~p})", [CoreUUID, NodeName]),
     freeswitch:mod(NodeName) =/= 'mod_com_kazoo'
         orelse mod_com_kazoo:core_uuid(NodeName) =/= CoreUUID.
 
