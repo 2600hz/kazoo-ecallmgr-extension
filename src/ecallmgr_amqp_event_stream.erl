@@ -174,11 +174,11 @@ log_event(#{category := Category
     Created = kz_json:get_integer_value(<<"Event-Timestamp">>, JObj, 0),
     Published = Basic#'P_basic'.timestamp,
     lager:debug("received fs ~s : ~s (~B,~B,~B) (~B,~B,~B)", [Category, Event
-                                                            ,Published - Created
-                                                            ,NowUs - Published
-                                                            ,NowUs - Created
-                                                            ,NowUs, Created, Published
-                                                            ]).
+                                                             ,Published - Created
+                                                             ,NowUs - Published
+                                                             ,NowUs - Created
+                                                             ,NowUs, Created, Published
+                                                             ]).
 
 run_bindings(Ctx) ->
     Stages = [fun run_event/1
