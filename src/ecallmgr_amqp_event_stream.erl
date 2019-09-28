@@ -173,7 +173,7 @@ log_event(#{category := Category
     NowUs = erlang:system_time('micro_seconds'),
     Created = kz_json:get_integer_value(<<"Event-Timestamp">>, JObj, 0),
     Published = Basic#'P_basic'.timestamp,
-    lager:info("received fs ~s : ~s (~B,~B,~B) (~B,~B,~B)", [Category, Event
+    lager:debug("received fs ~s : ~s (~B,~B,~B) (~B,~B,~B)", [Category, Event
                                                             ,Published - Created
                                                             ,NowUs - Published
                                                             ,NowUs - Created
