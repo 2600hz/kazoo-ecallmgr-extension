@@ -156,6 +156,7 @@ handle_stream(Node, CoreUUID, JObj, Props) ->
            ,event => Event
            ,payload => JObj
            ,basic => props:get_value('basic', Props)
+           ,deliver => props:get_value('deliver', Props)
            },
     log_event(Ctx),
     run_bindings(Ctx).
@@ -166,8 +167,18 @@ log_event(#{event := 'undefined'
     lager:debug_unsafe("received unknown fs event : ~s", [kz_json:encode(JObj, ['pretty'])]);
 log_event(#{category := Category
            ,event := Event
+           ,payload := JObj
+           ,basic := Basic
            }) ->
-    lager:debug_unsafe("received fs ~s : ~s", [Category, Event]).
+    NowUs = erlang:system_time('micro_seconds'),
+    Created = kz_json:get_integer_value(<<"Event-Timestamp">>, JObj, 0),
+    Published = Basic#'P_basic'.timestamp,
+    lager:info("received fs ~s : ~s (~B,~B,~B) (~B,~B,~B)", [Category, Event
+                                                            ,Published - Created
+                                                            ,NowUs - Published
+                                                            ,NowUs - Created
+                                                            ,NowUs, Created, Published
+                                                            ]).
 
 run_bindings(Ctx) ->
     Stages = [fun run_event/1
