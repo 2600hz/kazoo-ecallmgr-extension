@@ -5,10 +5,10 @@
 	</fields>
 
 	<params>
-	    <param name="fetch-section" value="directory" />
+		<param name="fetch-section" value="directory" />
 		<param name="fetch-timeout" value="1500000" />
-        <param name="amqp-exchange" value="freeswitch.directory" />
-        <param name="amqp-profile" value="fetch" />
+		<param name="amqp-exchange" value="freeswitch.directory" />
+		<param name="amqp-profile" value="fetch" />
 	</params>
 
 	<routing-key>
@@ -16,5 +16,14 @@
 		<field name="Core-UUID" />
 		<field name="Fetch-UUID" />
 	</routing-key>
+
+	<cache expires_ms="120000">
+		<field name="Fetch-Section" />
+        <field name="user" />
+        <field name="domain" />
+		<field name="X-AUTH-Token" />
+		<field name="X-AUTH-URI-Realm" />
+		<field name="X-AUTH-URI-User" />
+	</cache>
 
 </profile>
