@@ -22,6 +22,7 @@
 
 
 -define(FS_EXTENSION_EXCLUDE_EVENTS, [{'presence', ['PRESENCE_IN']}
+                                     ,{'kazoo', ['kazoo::noop', 'kazoo::masquerade']}
                                      ]).
 
 -define(ECALLMGR_EXTENSION_HRL, 'true').
