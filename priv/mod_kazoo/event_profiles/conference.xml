@@ -18,6 +18,8 @@
 		<field name="Conference-Name" />
 		<field name="Conference-ID" type="first-of"
 			value="Unique-ID|Conference-Unique-ID" />
+        <param name="hash-event-field" value="Unique-ID" />
+        <param name="hash-amqp-header" value="call-id" />
 
 	</routing-key>
 

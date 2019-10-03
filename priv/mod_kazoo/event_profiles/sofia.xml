@@ -16,6 +16,8 @@
 		<field name="call" type="static" value="call" />
         <field name="event" type="expand" value="CHANNEL_${toupper(${Event-Subclass:7})}" />
 		<field name="Unique-ID" />
+        <param name="hash-event-field" value="Unique-ID" />
+        <param name="hash-amqp-header" value="call-id" />       
 	</routing-key>
 
 </profile>
