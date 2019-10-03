@@ -10,7 +10,7 @@
 	</events>
 
 	<routing-key>
-		<param name="hashing-header" value="Unique-ID" />
+		<param name="hash-event-field" value="Unique-ID" />
 		<field name="dialog" type="static" value="dialog" />
 
 		<!-- slot - hashed - distribute realm by server
