@@ -1,0 +1,21 @@
+---
+name: kazoo-application-ecallmgr-extension
+base_branch: origin/4.3
+metapackage:
+  - name: meta-kazoo-applications
+    type: related
+    branch: "4.3"
+    package: kazoo-application-ecallmgr-extension
+base_core: kazoo
+template: kazoo-application.spec.tmpl
+package:
+  centos7:
+    name: kazoo-application-ecallmgr-extension
+    summary: Kazoo paid application ecallmgr-extension.
+    description: |
+        A proprietary Kazoo application from 2600Hz.
+    app_name: ecallmgr-extension
+    license: proprietary
+    group: Productivity/Telephony
+    url: http://www.2600hz.com/
+    vendor: 2600Hz
