@@ -441,15 +441,23 @@ jobs:
       - run:
           name: Building release
           command: |
+            cd $BUILD_ROOT
+            EXPOSURE=$(./exposure)
             cd $CORE_ROOT
-            make all KZ_VERSION=$VERSION.$RELEASE
+            if [[ $EXPOSURE == 'private' ]]; then
+                make compile-lean KZ_VERSION=$VERSION.$RELEASE
+            else
+                make all KZ_VERSION=$VERSION.$RELEASE
+            fi
             make build-release KZ_VERSION=$VERSION.$RELEASE
+      - run:
+          name: Building CHANGELOG and VERSION files
+          command: |
+            cd $BUILD_ROOT
+            ./package_docs
       - run:
           name: Preparing source for packaging
           command: |
-            cd $BUILD_ROOT
-            echo " - generate build version and changelog"
-            ./package_docs
             cd $BUILD_SOURCES
             echo " - copy build into artifacts"
             cp -R $KAZOO_ROOT/_rel/kazoo/lib/$KAZOO_APP* $BUILD_SOURCES/
