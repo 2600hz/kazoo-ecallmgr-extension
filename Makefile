@@ -1,6 +1,6 @@
 ROOT = ../..
 PROJECT = ecallmgr_extension
 
-all: compile
+all: compile-lean
 
 include $(ROOT)/make/kz.mk
