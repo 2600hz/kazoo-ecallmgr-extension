@@ -420,7 +420,7 @@ jobs:
             ls -al $KAZOO_ROOT/make || true
             make -C ${KAZOO_ROOT} deps
       - save_cache:
-          key: deps-centos7-21-v3.2-{{ checksum "~/2600hz/kazoo/make/deps.mk" }}
+          key: deps-centos-21-v3.2-{{ checksum "~/2600hz/kazoo/make/deps.mk" }}
           paths:
             - ~/2600hz/kazoo/deps/
             - ~/2600hz/kazoo/.git/.kz_deps_hash
