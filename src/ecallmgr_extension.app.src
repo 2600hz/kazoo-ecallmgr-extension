@@ -1,6 +1,6 @@
 {application,ecallmgr_extension,
     [{applications,
-         [amqp_client,ecallmgr,gproc,kazoo,kazoo_amqp,kazoo_apps,
+         [amqp_client,crypto,ecallmgr,gproc,kazoo,kazoo_amqp,kazoo_apps,
           kazoo_bindings,kazoo_stdlib,lager,stdlib]},
      {description,"Extension to ecallmgr"},
      {vsn,"4.0.0"},
