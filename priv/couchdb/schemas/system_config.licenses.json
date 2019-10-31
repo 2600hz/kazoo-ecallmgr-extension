@@ -1,0 +1,1 @@
+{"type":"object","properties":{"ecallmgr_extension":{"type":"object","description":"licenses ecallmgr_extension"}},"description":"Schema for licenses system_config","_id":"system_config.licenses","$schema":"http://json-schema.org/draft-04/schema#"}
