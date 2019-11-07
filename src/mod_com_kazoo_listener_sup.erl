@@ -26,7 +26,7 @@ start_link() ->
     {'ok', Pid} = supervisor:start_link({'local', ?MODULE}, ?MODULE, []),
     Workers = kapps_config:get_integer(?CONFIG_CAT, <<"com_kazoo_api_listeners">>, 5),
     QueueId = kz_binary:rand_hex(16),
-    kz_util:spawn(fun() -> [begin
+    kz_process:spawn(fun() -> [begin
                                 _ = supervisor:start_child(Pid, [QueueId]),
                                 timer:sleep(1000)
                             end || _N <- lists:seq(1, Workers)

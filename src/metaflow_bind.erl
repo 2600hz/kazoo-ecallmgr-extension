@@ -29,9 +29,9 @@ maybe_request_metaflow(ThisNode, ThisNode, #{node := Node, payload := JObj}) ->
     ALeg = kz_json:get_value(<<"Bridge-A-Unique-ID">>, JObj),
     BLeg = kz_json:get_value(<<"Bridge-B-Unique-ID">>, JObj),
     AChannel = ecallmgr_fs_channel:fetch(ALeg, 'record'),
-    kz_util:spawn(fun request_metaflow/3, [Node, ALeg, AChannel]),
+    kz_process:spawn(fun request_metaflow/3, [Node, ALeg, AChannel]),
     BChannel = ecallmgr_fs_channel:fetch(BLeg, 'record'),
-    kz_util:spawn(fun request_metaflow/3, [Node, BLeg, BChannel]);
+    kz_process:spawn(fun request_metaflow/3, [Node, BLeg, BChannel]);
 maybe_request_metaflow(ThisNode, OtherNode, _Map) ->
     lager:debug("not handling request metaflow ~s / ~s", [ThisNode, OtherNode]).
 
@@ -45,7 +45,7 @@ request_metaflow(Node, _UUID, {'ok', #channel{handling_locally='true'
                                              ,callflow_id=CallFlowId
                                              ,node=Node
                                              }}) ->
-    kz_util:put_callid(UUID),
+    kz_log:put_callid(UUID),
     API = [{<<"Account-ID">>, AccountId}
           ,{<<"Call-ID">>, UUID}
           ,{<<"Authorizing-ID">>, AuthorizingId}
@@ -111,7 +111,7 @@ maybe_send_route_win(#{metaflow := #{payload := Reply}}=Map) ->
 -spec send_metaflow_win(map()) -> map().
 send_metaflow_win(#{fetch_id := FetchId, call_id := CallId, payload := _Payload, controller_q := ControllerQ}=Map) ->
     ControlQ = gen_listener:queue_name('metaflow_listener'),
-    Pid = kz_util:spawn(fun metaflow_receiver/1, [Map]),
+    Pid = kz_process:spawn(fun metaflow_receiver/1, [Map]),
     Win = [{<<"Msg-ID">>, FetchId}
           ,{<<"Call-ID">>, CallId}
           ,{<<"Control-Queue">>, list_to_binary(["pid://", kz_term:to_binary(Pid), "/", ControlQ])}

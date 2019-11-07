@@ -136,7 +136,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
-    kz_util:put_callid(JObj),
+    kz_log:put_callid(JObj),
     Node = kz_term:to_atom(kz_api:node(JObj), 'true'),
     handle_stream(Node, mod_com_kazoo:core_uuid(Node), JObj, Props).
 
@@ -145,7 +145,7 @@ handle_stream(_Node, 'undefined', _JObj, _Props) -> 'ok';
 handle_stream('undefined', _CoreUUID, _JObj, _Props) -> 'ok';
 handle_stream(Node, Node, _JObj, _Props) -> 'ok';
 handle_stream(Node, CoreUUID, JObj, Props) ->
-    kz_util:put_callid(JObj),
+    kz_log:put_callid(JObj),
     UUID = kz_api:call_id(JObj),
     Category = kz_api:event_category(JObj),
     Event = kz_api:event_name(JObj),
