@@ -26,7 +26,7 @@
 start_link() ->
     {'ok', Pid} = supervisor:start_link({local, ?SERVER} ,?MODULE, []),
     Workers = kapps_config:get_integer(?CONFIG_CAT, <<"amqp_fetch_listeners">>, 5),
-    kz_util:spawn(fun() -> [begin
+    kz_process:spawn(fun() -> [begin
                                 timer:sleep(500),
                                 supervisor:start_child(Pid, [])
                             end
