@@ -128,7 +128,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
-    kz_util:put_callid(JObj),
+    kz_log:put_callid(JObj),
     Node = kzd_fetch:node(JObj),
     FetchId = kzd_fetch:fetch_uuid(JObj),
     CoreUUID = kzd_fetch:core_uuid(JObj),

@@ -67,7 +67,7 @@ start_link() ->
 %%------------------------------------------------------------------------------
 -spec init(list()) -> {'ok', state()}.
 init([]) ->
-    kz_util:put_callid(?MODULE),
+    kz_log:put_callid(?MODULE),
     lager:info("starting new fs amqp monitor"),
     {'ok', #{nodes => #{}}, ?CHECK_INTERVAL}.
 

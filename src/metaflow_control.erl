@@ -54,7 +54,7 @@ handle_queue_commands([Command|Commands], DefJObj, Node, DP) ->
 
 -spec control_process(atom(), kz_json:object(), atom()) -> 'ok' | fs_apps().
 control_process(Fun, Cmd, Node) ->
-    kz_util:put_callid(Cmd),
+    kz_log:put_callid(Cmd),
     Category = kz_api:event_category(Cmd),
     Event = kz_api:event_name(Cmd),
 
@@ -74,14 +74,14 @@ control_process(Fun, Cmd, Node) ->
             lager:debug("unable to execute command, no session");
         'error':{'badmatch', {'error', ErrMsg}}:ST ->
             lager:debug("invalid command ~s: ~p", [kz_json:get_value(<<"Application-Name">>, Cmd), ErrMsg]),
-            kz_util:log_stacktrace(ST);
+            kz_log:log_stacktrace(ST);
         'throw':{'msg', ErrMsg}:_ ->
             lager:debug("error while executing command ~s: ~s", [kz_json:get_value(<<"Application-Name">>, Cmd), ErrMsg]);
         'throw':Msg:_ ->
             lager:debug("failed to execute ~s: ~s", [kz_json:get_value(<<"Application-Name">>, Cmd), Msg]);
         _A:_B:ST ->
             lager:debug("exception (~s) while executing ~s: ~p", [_A, kz_json:get_value(<<"Application-Name">>, Cmd), _B]),
-            kz_util:log_stacktrace(ST)
+            kz_log:log_stacktrace(ST)
     end.
 
 exec_dialplan(Node, UUID, DP) ->
