@@ -2,6 +2,10 @@
 %%% @copyright (C) 2012-2019, 2600Hz
 %%% @doc Send config commands to FS
 %%%
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(mod_com_kazoo_configuration).
@@ -20,7 +24,6 @@
 
 -include("ecallmgr_extension.hrl").
 
-
 %%%=============================================================================
 %%% API
 %%%=============================================================================
@@ -32,7 +35,7 @@
 %%------------------------------------------------------------------------------
 -spec init() -> 'ok'.
 init() ->
-    kazoo_bindings:bind(<<"fetch.configuration.commercial.*.kazoo.conf">>, ?MODULE, 'kazoo'),
+    _ = kazoo_bindings:bind(<<"fetch.configuration.commercial.*.kazoo.conf">>, ?MODULE, 'kazoo'),
     'ok'.
 
 -spec kazoo(map()) -> fs_sendmsg_ret().
@@ -40,7 +43,6 @@ kazoo(#{core_uuid := Node, fetch_id := Id, payload := JObj} = Ctx) ->
     kz_log:put_callid(Id),
     lager:debug("received configuration request for kazoo configuration ~p , ~p : ~s", [Node, Id, kz_json:encode(JObj, ['pretty'])]),
     fetch_mod_kazoo_config(kz_api:event_name(JObj), Ctx).
-
 
 -spec fetch_mod_kazoo_config(kz_term:ne_binary(), map()) -> fs_sendmsg_ret().
 fetch_mod_kazoo_config(<<"COMMAND">>, #{payload := _JObj} = Ctx) ->
@@ -80,7 +82,7 @@ kazoo_req_not_handled(#{node := Node, fetch_id := Id} = Ctx) ->
     lager:debug("ignoring kazoo conf ~s: ~s", [Node, Id]),
     freeswitch:fetch_reply(Ctx#{reply => iolist_to_binary(NotHandled)}).
 
--spec kazoo_config() -> 'no_return'.
+-spec kazoo_config() -> 'ok'.
 kazoo_config() ->
     {'ok', Xml} = config(),
     io:format("~n~n~s~n~n", [iolist_to_binary(Xml)]).
@@ -126,7 +128,7 @@ fs_profile_events(XmlEl, DefFiles0) ->
           end,
     {DefFiles, XmlEl#xmlElement{content=lists:map(Fun, Xmls)}}.
 
--spec fs_handler(kz_types:xml_el(), kz_types:xml_els()) -> kz_types:xml_els().
+-spec fs_handler(file:filename_all(), {kz_types:xml_els(), kz_types:xml_els()}) -> {kz_types:xml_els(), kz_types:xml_els()}.
 fs_handler(EventFile, {DefFiles, EventXmls}) ->
     EventXml = fs_xml(EventFile),
     {fs_defs(EventXml, DefFiles), [EventXml | EventXmls]}.
@@ -157,8 +159,8 @@ fs_filename(Path, Name0) ->
     Name = kz_term:to_list(iolist_to_binary(re:replace(Name0, "::", "-", ['global']))),
     AppFile = code:priv_dir(?APP) ++ Path ++ Name ++ ".xml",
     case filelib:is_regular(AppFile) of
-        true -> AppFile;
-        false -> code:priv_dir('ecallmgr') ++ Path ++ Name ++ ".xml"
+        'true' -> AppFile;
+        'false' -> code:priv_dir('ecallmgr') ++ Path ++ Name ++ ".xml"
     end.
 
 -spec one_def(file:filename_all(), [file:filename_all()]) -> [file:filename_all()].

@@ -1,6 +1,10 @@
 %%%-----------------------------------------------------------------------------
 %%% @copyright (C) 2012-2019, 2600Hz
 %%% @doc
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(ecallmgr_ext_app).
@@ -76,16 +80,16 @@ check_modules() ->
     case kapps_config:get_ne_binaries(?CONFIG_CAT, Key, []) of
         ?EXT_NODE_MODULES -> 'ok';
         [] -> lager:notice("commercial modules not configured, updating"),
-              kapps_config:set_default(?CONFIG_CAT, Key, ?EXT_NODE_MODULES),
+              _ = kapps_config:set_default(?CONFIG_CAT, Key, ?EXT_NODE_MODULES),
               lager:notice("commercial modules updated");
         List when is_list(List) ->
             case List -- ?EXT_NODE_MODULES of
                 [] -> 'ok';
                 _Diff -> lager:notice("commercial modules configured : ~p", [_Diff]),
-                         kapps_config:set_default(?CONFIG_CAT, Key, ?EXT_NODE_MODULES),
+                         _ = kapps_config:set_default(?CONFIG_CAT, Key, ?EXT_NODE_MODULES),
                          lager:notice("commercial modules updated")
             end;
         _Other -> lager:notice("commercial modules configured : ~p", [_Other]),
-                  kapps_config:set_default(?CONFIG_CAT, Key, ?EXT_NODE_MODULES),
+                  _ = kapps_config:set_default(?CONFIG_CAT, Key, ?EXT_NODE_MODULES),
                   lager:notice("commercial modules updated")
     end.

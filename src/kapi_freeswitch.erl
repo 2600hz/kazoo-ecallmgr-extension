@@ -1,6 +1,10 @@
 %%%-----------------------------------------------------------------------------
 %%% @copyright (C) 2015-2019, 2600Hz
 %%% @doc
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(kapi_freeswitch).
@@ -355,41 +359,42 @@ unbind_q(Queue, Props) ->
 
 -spec unbind_q(kz_term:ne_binary(), kz_term:api_binary(), kz_term:proplist()) -> 'ok'.
 unbind_q(Queue, 'undefined', _) ->
-    kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_DIALPLAN),
-    kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_DIRECTORY),
-    kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_EVENTS),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_DIALPLAN),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_DIRECTORY),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_EVENTS),
     kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_CHANNELS);
 unbind_q(Queue, ['events'|Restrict], Props) ->
     lists:foreach(fun(RK) ->
                           kz_amqp_util:unbind_q_from_exchange(Queue, RK, ?EXCHANGE_FREESWITCH_EVENTS)
-                  end, event_routing_keys(Props)),
+                  end
+                 ,event_routing_keys(Props)
+                 ),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['configuration'|Restrict], Props) ->
-    kz_amqp_util:unbind_q_from_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH_CONFIGURATION),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH_CONFIGURATION),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['dialplan'|Restrict], Props) ->
-    kz_amqp_util:unbind_q_from_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH_DIALPLAN),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH_DIALPLAN),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['directory'|Restrict], Props) ->
-    kz_amqp_util:unbind_q_from_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH_DIRECTORY),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH_DIRECTORY),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['channels'|Restrict], Props) ->
-    kz_amqp_util:unbind_q_from_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH_CHANNELS),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH_CHANNELS),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['languages'|Restrict], Props) ->
-    kz_amqp_util:unbind_q_from_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH_LANGUAGES),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH_LANGUAGES),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['fetch'|Restrict], Props) ->
-    kz_amqp_util:unbind_q_from_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH_DIALPLAN),
-    kz_amqp_util:unbind_q_from_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH_DIRECTORY),
-    kz_amqp_util:unbind_q_from_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH_CONFIGURATION),
-    kz_amqp_util:unbind_q_from_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH_CHANNELS),
-    kz_amqp_util:unbind_q_from_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH_LANGUAGES),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH_DIALPLAN),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH_DIRECTORY),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH_CONFIGURATION),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH_CHANNELS),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH_LANGUAGES),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, [_|Restrict], Props) ->
     unbind_q(Queue, Restrict, Props);
 unbind_q(_, [], _) -> 'ok'.
-
 
 %% -spec routing_key_format() -> binary().
 %% routing_key_format() -> <<"#FreeSWITCH,FreeSWITCH-Hostname,Event-Subclass|Event-Name,Unique-ID">>.
