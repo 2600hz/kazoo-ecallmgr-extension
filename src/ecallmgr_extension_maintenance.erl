@@ -41,15 +41,15 @@ install_license(JObj, [Feature|Features]) ->
 %% @doc
 %% @end
 %%------------------------------------------------------------------------------
--spec install_license(kz_term:ne_binary(), kz_term:ne_binary(), kz_term:ne_binary()) -> 'no_return'.
+-spec install_license(kz_term:ne_binary(), integer(), kz_term:ne_binary()) -> 'no_return'.
 install_license(Feature, Expiration, License) ->
     install_license(Feature, Expiration, <<"prime">>, License).
 
--spec install_license(kz_term:ne_binary(), kz_term:ne_binary(), kz_term:ne_binary(), kz_term:ne_binary()) -> 'no_return'.
+-spec install_license(kz_term:ne_binary(), integer(), kz_term:ne_binary(), kz_term:ne_binary()) -> 'no_return'.
 install_license(Feature, Expiration, Type, License) ->
-    kapps_config:set_string(?LICENSES_CAT, [?APP_NAME, Feature, <<"license">>], License),
-    kapps_config:set_string(?LICENSES_CAT, [?APP_NAME, Feature, <<"type">>], Type),
-    kapps_config:set_integer(?LICENSES_CAT, [?APP_NAME, Feature, <<"expiration">>], Expiration),
+    _ = kapps_config:set_string(?LICENSES_CAT, [?APP_NAME, Feature, <<"license">>], License),
+    _ = kapps_config:set_string(?LICENSES_CAT, [?APP_NAME, Feature, <<"type">>], Type),
+    _ = kapps_config:set_integer(?LICENSES_CAT, [?APP_NAME, Feature, <<"expiration">>], Expiration),
     check_license(Feature).
 
 %%------------------------------------------------------------------------------

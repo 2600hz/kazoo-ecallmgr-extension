@@ -180,6 +180,9 @@ handle_req(_Pid, _Event, _JObj, _Props) ->
 bgapi_result(Pid, Result, Bin, JobId, Data) ->
     Pid ! {'switch_reply', bgapi_result(Result, Bin, JobId, Data)}.
 
+-spec bgapi_result('bgerror' | 'bgok', kz_term:api_ne_binary(), JobId, Data) ->
+          {'bgok' | 'bgerror', JobId, boolean() | kz_term:ne_binary(), Data} |
+          {'bgok', JobId, Data}.
 bgapi_result(Result, 'undefined', JobId, Data) -> {Result, JobId, Data};
 bgapi_result(Result, <<"-ERR", Error/binary>>, JobId, Data) ->
     bgapi_result(Result, Error, JobId, Data);
@@ -187,7 +190,6 @@ bgapi_result(Result, <<"+OK", Msg/binary>>, JobId, Data) ->
     bgapi_result(Result, Msg, JobId, Data);
 bgapi_result(Result, Bin, JobId, Data) ->
     case kz_binary:strip_left(kz_binary:strip_right(Bin, <<"\n">>), $\s) of
-        <<>> when Result =:= 'error' -> {'error', JobId, 'failed', Data};
         <<>> -> {'bgok', JobId, Data};
         <<"true">> -> {Result, JobId, 'true', Data};
         <<"false">> -> {Result, JobId, 'false', Data};
