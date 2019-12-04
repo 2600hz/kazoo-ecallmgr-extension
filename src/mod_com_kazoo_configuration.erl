@@ -2,6 +2,10 @@
 %%% @copyright (C) 2012-2019, 2600Hz
 %%% @doc Send config commands to FS
 %%%
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(mod_com_kazoo_configuration).
@@ -20,7 +24,6 @@
 
 -include("ecallmgr_extension.hrl").
 
-
 %%%=============================================================================
 %%% API
 %%%=============================================================================
@@ -32,7 +35,7 @@
 %%------------------------------------------------------------------------------
 -spec init() -> 'ok'.
 init() ->
-    kazoo_bindings:bind(<<"fetch.configuration.commercial.*.kazoo.conf">>, ?MODULE, 'kazoo'),
+    _ = kazoo_bindings:bind(<<"fetch.configuration.commercial.*.kazoo.conf">>, ?MODULE, 'kazoo'),
     'ok'.
 
 -spec kazoo(map()) -> fs_sendmsg_ret().
@@ -40,7 +43,6 @@ kazoo(#{core_uuid := Node, fetch_id := Id, payload := JObj} = Ctx) ->
     kz_log:put_callid(Id),
     lager:debug("received configuration request for kazoo configuration ~p , ~p : ~s", [Node, Id, kz_json:encode(JObj, ['pretty'])]),
     fetch_mod_kazoo_config(kz_api:event_name(JObj), Ctx).
-
 
 -spec fetch_mod_kazoo_config(kz_term:ne_binary(), map()) -> fs_sendmsg_ret().
 fetch_mod_kazoo_config(<<"COMMAND">>, #{payload := _JObj} = Ctx) ->

@@ -1,6 +1,10 @@
 %%%-----------------------------------------------------------------------------
 %%% @copyright (C) 2011-2019, 2600Hz
 %%% @doc Handle BRIDGE events and request metaflow bind
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(metaflow_bind).
@@ -14,8 +18,8 @@
 
 -spec init() -> 'ok'.
 init() ->
-    kazoo_bindings:bind(<<"event_stream.process.call_event.CHANNEL_BRIDGE">>, ?MODULE, 'handle_bridge'),
-    kazoo_bindings:bind(<<"event_stream.process.call_event.CHANNEL_METAFLOW">>, ?MODULE, 'handle_metaflow'),
+    _ = kazoo_bindings:bind(<<"event_stream.process.call_event.CHANNEL_BRIDGE">>, ?MODULE, 'handle_bridge'),
+    _ = kazoo_bindings:bind(<<"event_stream.process.call_event.CHANNEL_METAFLOW">>, ?MODULE, 'handle_metaflow'),
     'ok'.
 
 -spec handle_bridge(map()) -> any().
@@ -53,8 +57,7 @@ request_metaflow(Node, _UUID, {'ok', #channel{handling_locally='true'
           ,{<<"CallFlow-ID">>, CallFlowId}
            | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
           ],
-    case kz_amqp_worker:call(API, fun kapi_metaflow:publish_bind_req/1, fun kapi_metaflow:binding_v/1)
-    of
+    case kz_amqp_worker:call(API, fun kapi_metaflow:publish_bind_req/1, fun kapi_metaflow:binding_v/1) of
         {'ok', JObj} -> freeswitch:json_api(Node, UUID, <<"kz.meta.bind">>, JObj);
         {'error', 'timeout'} -> lager:debug("no metaflow available");
         _Else -> lager:debug("error requesting metaflow binding : ~p", [_Else])
@@ -120,7 +123,7 @@ send_metaflow_win(#{fetch_id := FetchId, call_id := CallId, payload := _Payload,
           ],
     lager:debug("sending metaflow route_win to ~s", [ControllerQ]),
     Publisher = fun(API) -> kapi_route:publish_win(ControllerQ, API) end,
-    kz_amqp_worker:cast(Win, Publisher),
+    _ = kz_amqp_worker:cast(Win, Publisher),
     Map#{receiver => Pid}.
 
 metaflow_receiver(#{node := Node} = Map) ->
@@ -131,4 +134,3 @@ metaflow_receiver(#{node := Node} = Map) ->
     after
         15000 -> lager:debug("metaflow receiver exit")
     end.
-
