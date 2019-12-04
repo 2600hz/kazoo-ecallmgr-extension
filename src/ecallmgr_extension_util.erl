@@ -26,12 +26,12 @@ authenticate(Feature) ->
     Type = kapps_config:get_ne_binary(?LICENSES_CAT, [?APP_NAME, Feature, <<"type">>]),
     {'ok', MasterAccountId} = kapps_util:get_master_account_id(),
     License = <<(kz_term:to_binary(Type))/binary
-                ,":", Salt/binary
-                ,":", MasterAccountId/binary
-                ,":", Salt/binary
-                ,":", (kz_term:to_binary(Feature))/binary
-                ,":", Salt/binary
-                ,":", (kz_term:to_binary(Expiration))/binary
+               ,":", Salt/binary
+               ,":", MasterAccountId/binary
+               ,":", Salt/binary
+               ,":", (kz_term:to_binary(Feature))/binary
+               ,":", Salt/binary
+               ,":", (kz_term:to_binary(Expiration))/binary
               >>,
     Hash = kz_binary:hexencode(
              crypto:hash('sha256', License)

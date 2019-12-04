@@ -41,12 +41,12 @@ start_link({Name, _}=Profile) ->
     lager:debug("started amqp event stream supervisor ~s : ~p", [Name, Pid]),
     Workers = kapps_config:get_integer(?CONFIG_CAT, [<<"amqp_event_stream">>, kz_term:to_binary(Name)], 1),
     kz_process:spawn(fun() -> [begin
-                                timer:sleep(500),
-                                supervisor:start_child(Pid, [Profile])
-                            end
-                            || _N <- lists:seq(1, Workers)
-                           ]
-                  end),
+                                   timer:sleep(500),
+                                   supervisor:start_child(Pid, [Profile])
+                               end
+                               || _N <- lists:seq(1, Workers)
+                              ]
+                     end),
     {'ok', Pid}.
 
 %% ===================================================================
