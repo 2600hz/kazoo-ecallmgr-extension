@@ -1,6 +1,10 @@
 %%%-----------------------------------------------------------------------------
 %%% @copyright (C) 2012-2019, 2600Hz
 %%% @doc
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(mod_com_kazoo_monitor).
@@ -65,7 +69,7 @@ start_link() ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
--spec init(list()) -> {'ok', state()}.
+-spec init(list()) -> {'ok', state(), ?CHECK_INTERVAL}.
 init([]) ->
     kz_log:put_callid(?MODULE),
     lager:info("starting new fs amqp monitor"),
@@ -87,9 +91,9 @@ handle_cast(_Cast, State) ->
     {'noreply', State, ?CHECK_INTERVAL}.
 
 -spec handle_info(any(), state()) -> kz_types:handle_info_ret_state(state()).
-handle_info(timeout, #{active := 'true'} = State) ->
+handle_info('timeout', #{active := 'true'} = State) ->
     {'noreply', handle_timeout(State), ?CHECK_INTERVAL};
-handle_info(timeout, State) ->
+handle_info('timeout', State) ->
     {'noreply', State, ?CHECK_INTERVAL};
 handle_info(_Info, State) ->
     lager:debug("unhandled message: ~p", [_Info]),
@@ -139,14 +143,14 @@ handle_hearbeat(JObj, #{nodes := Nodes} = Map) ->
     Nodename = node_name(JObj),
     INU = ecallmgr_fs_nodes:is_node_up(Nodename),
     case Map of
-        #{nodes := #{CoreUUID := #{state := up}=Node}} when INU ->
+        #{nodes := #{CoreUUID := #{state := 'up'}=Node}} when INU ->
             maybe_update_code(Nodes),
             Map#{nodes => Nodes#{CoreUUID => Node#{time => kz_time:now_ms()}}};
-        #{nodes := #{CoreUUID := #{state := up}=Node}} ->
+        #{nodes := #{CoreUUID := #{state := 'up'}=Node}} ->
             handle_nodeup(CoreUUID, Node, Map);
-        #{nodes := #{CoreUUID := #{state := expired}}=Node} ->
+        #{nodes := #{CoreUUID := #{state := 'expired'}}=Node} ->
             handle_nodeup(CoreUUID, Node, Map);
-        #{nodes := #{CoreUUID := #{state := down}}=Node} ->
+        #{nodes := #{CoreUUID := #{state := 'down'}}=Node} ->
             handle_nodeup(CoreUUID, Node, Map);
         Map ->
             handle_nodeup(CoreUUID, #{name => Nodename}, Map)
@@ -154,11 +158,11 @@ handle_hearbeat(JObj, #{nodes := Nodes} = Map) ->
 
 -spec handle_nodeup(atom(), map(), state()) -> state().
 handle_nodeup(CoreUUID, #{name := Name} = Node, #{nodes := Nodes}=State) ->
-    NewNodes = Nodes#{CoreUUID => Node#{state => up, time => kz_time:now_ms()}},
+    NewNodes = Nodes#{CoreUUID => Node#{state => 'up', time => kz_time:now_ms()}},
     _ = update_code(NewNodes),
     _ = case ecallmgr_fs_nodes:is_node(Name) of
             'true' -> ecallmgr_fs_nodes:nodeup(Name, 'heartbeat');
-            'false' -> ecallmgr_fs_nodes:add(Name, no_cookie, [{connect_strategy, 'heartbeat'}])
+            'false' -> ecallmgr_fs_nodes:add(Name, 'no_cookie', [{'connect_strategy', 'heartbeat'}])
         end,
     State#{nodes => NewNodes}.
 
@@ -171,7 +175,7 @@ handle_nodedown(CoreUUID, #{name := Name}) ->
 check_node_expiration(_Key, #{time := Time}) ->
     kz_time:elapsed_ms(Time) > ?NODE_EXPIRATION;
 check_node_expiration(_Key, _Val) ->
-    false.
+    'false'.
 
 -spec handle_timeout(state()) -> state().
 handle_timeout(#{nodes := Nodes} = State) ->
@@ -189,7 +193,7 @@ is_code_handled({CoreUUID, NodeName}) ->
         orelse mod_com_kazoo:core_uuid(NodeName) =/= CoreUUID.
 
 maybe_update_code(Nodes) ->
-    Props = [{K, maps:get(name, V)} || {K,V} <- maps:to_list(Nodes)],
+    Props = [{K, maps:get('name', V)} || {K,V} <- maps:to_list(Nodes)],
     case lists:any(fun is_code_handled/1, Props) of
         'true' -> lager:info("mod_com_kazoo code out of sync, updating."),
                   update_code(Nodes);
@@ -197,20 +201,20 @@ maybe_update_code(Nodes) ->
     end.
 
 update_code(Nodes) ->
-    Props = [{K, maps:get(name, V)} || {K,V} <- maps:to_list(Nodes)],
+    Props = [{K, maps:get('name', V)} || {K,V} <- maps:to_list(Nodes)],
     FSCode = freeswitch_code(Props),
-    meta:replace_function(mod, 1, FSCode, freeswitch),
-    meta:replace_function(core_uuid, 1, mod_com_kazoo_code(Props), mod_com_kazoo).
+    meta:replace_function('mod', 1, FSCode, 'freeswitch'),
+    meta:replace_function('core_uuid', 1, mod_com_kazoo_code(Props), 'mod_com_kazoo').
 
 freeswitch_code(Props) ->
-    {function,1,mod,1,
-     [{clause,1, [{atom,1, V}], [], [{atom,1,mod_com_kazoo}]} || {_K, V} <- Props]
-     ++ [{clause,1, [{var,1,'_'}], [], [{atom,1,mod_kazoo}]}]
+    {'function',1,'mod',1,
+     [{'clause',1, [{'atom',1, V}], [], [{'atom',1,'mod_com_kazoo'}]} || {_K, V} <- Props]
+     ++ [{'clause',1, [{'var',1,'_'}], [], [{'atom',1,'mod_kazoo'}]}]
     }.
 
 mod_com_kazoo_code(Props) ->
-    {function,1,core_uuid,1,
-     [{clause,1,[{atom,1,V}], [], [{atom,1,K}]} || {K,V} <- Props]
-     ++ [{clause,1, [{var,1,'X'}], [[{call,1,{atom,1,is_atom},[{var,1,'X'}]}]], [{var,1,'X'}]}]
-     ++ [{clause,1, [{var,1,'_'}], [], [{atom,1,'error_not_found'}]}]
+    {'function',1,'core_uuid',1,
+     [{'clause',1,[{'atom',1,V}], [], [{'atom',1,K}]} || {K,V} <- Props]
+     ++ [{'clause',1, [{'var',1,'X'}], [[{'call',1,{'atom',1,'is_atom'},[{'var',1,'X'}]}]], [{'var',1,'X'}]}]
+     ++ [{'clause',1, [{'var',1,'_'}], [], [{'atom',1,'error_not_found'}]}]
     }.

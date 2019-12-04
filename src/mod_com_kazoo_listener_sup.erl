@@ -1,6 +1,10 @@
 %%%-----------------------------------------------------------------------------
 %%% @copyright (C) 2012-2019, 2600Hz
 %%% @doc
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(mod_com_kazoo_listener_sup).
@@ -27,11 +31,11 @@ start_link() ->
     Workers = kapps_config:get_integer(?CONFIG_CAT, <<"com_kazoo_api_listeners">>, 5),
     QueueId = kz_binary:rand_hex(16),
     kz_process:spawn(fun() -> [begin
-                                _ = supervisor:start_child(Pid, [QueueId]),
-                                timer:sleep(1000)
-                            end || _N <- lists:seq(1, Workers)
-                           ]
-                  end),
+                                   _ = supervisor:start_child(Pid, [QueueId]),
+                                   timer:sleep(1000)
+                               end || _N <- lists:seq(1, Workers)
+                              ]
+                     end),
     {'ok', Pid}.
 
 %% ===================================================================

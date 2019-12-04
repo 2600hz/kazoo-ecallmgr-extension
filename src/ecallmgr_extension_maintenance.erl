@@ -1,6 +1,10 @@
 %%%-----------------------------------------------------------------------------
 %%% @copyright (C) 2012-2019, 2600Hz
 %%% @doc
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(ecallmgr_extension_maintenance).
@@ -41,15 +45,15 @@ install_license(JObj, [Feature|Features]) ->
 %% @doc
 %% @end
 %%------------------------------------------------------------------------------
--spec install_license(kz_term:ne_binary(), kz_term:ne_binary(), kz_term:ne_binary()) -> 'no_return'.
+-spec install_license(kz_term:ne_binary(), integer(), kz_term:ne_binary()) -> 'no_return'.
 install_license(Feature, Expiration, License) ->
     install_license(Feature, Expiration, <<"prime">>, License).
 
--spec install_license(kz_term:ne_binary(), kz_term:ne_binary(), kz_term:ne_binary(), kz_term:ne_binary()) -> 'no_return'.
+-spec install_license(kz_term:ne_binary(), integer(), kz_term:ne_binary(), kz_term:ne_binary()) -> 'no_return'.
 install_license(Feature, Expiration, Type, License) ->
-    kapps_config:set_string(?LICENSES_CAT, [?APP_NAME, Feature, <<"license">>], License),
-    kapps_config:set_string(?LICENSES_CAT, [?APP_NAME, Feature, <<"type">>], Type),
-    kapps_config:set_integer(?LICENSES_CAT, [?APP_NAME, Feature, <<"expiration">>], Expiration),
+    _ = kapps_config:set_string(?LICENSES_CAT, [?APP_NAME, Feature, <<"license">>], License),
+    _ = kapps_config:set_string(?LICENSES_CAT, [?APP_NAME, Feature, <<"type">>], Type),
+    _ = kapps_config:set_integer(?LICENSES_CAT, [?APP_NAME, Feature, <<"expiration">>], Expiration),
     check_license(Feature).
 
 %%------------------------------------------------------------------------------

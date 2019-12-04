@@ -1,6 +1,10 @@
 %%%-----------------------------------------------------------------------------
 %%% @copyright (C) 2011-2019, 2600Hz
 %%% @doc Receive route(dialplan) requests from FS, request routes and respond
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(metaflow_action).
@@ -28,22 +32,22 @@ handle_req(JObj, Props) ->
         {'ok', #channel{handling_locally='true'}} ->
             lager:debug("getting channel data for ~s", [UUID]),
             case ecallmgr_fs_channel:channel_data(Node, UUID) of
-                {'ok', ChannelProps} ->
-                    lager:debug("got channel data for ~s : ~s", [UUID, kz_json:encode(ChannelProps, ['pretty'])]),
-                    handle_metaflow_action(UUID, JObj, ControlQ, ChannelProps, Node);
+                {'ok', ChannelJObj} ->
+                    lager:debug("got channel data for ~s : ~s", [UUID, kz_json:encode(ChannelJObj, ['pretty'])]),
+                    handle_metaflow_action(UUID, JObj, ControlQ, ChannelJObj, Node);
                 {'error', Error} -> lager:debug("error ~p getting channel data for ~s, exiting", [Error, UUID])
             end;
         {'ok', #channel{}} -> lager:debug("channel ~s not handled on this node, exiting", [UUID])
     end.
 
--spec handle_metaflow_action(kz_term:ne_binary(), kz_json:object(), kz_term:ne_binary(), kz_term:proplist(), atom()) -> 'ok'.
-handle_metaflow_action(UUID, JObj, ControlQ, FSProps, Node) ->
+-spec handle_metaflow_action(kz_term:ne_binary(), kz_json:object(), kz_term:ne_binary(), kz_evt_freeswitch:data(), atom()) -> 'ok'.
+handle_metaflow_action(UUID, JObj, ControlQ, ChannelJObj, Node) ->
     Metaflow = [{<<"module">>, kz_json:get_value(<<"Action">>, JObj)}
                ,{<<"data">>, kz_json:get_value(<<"Data">>, JObj)}
                ],
     CRHs = [{<<"Metaflow-Request-Type">>, <<"metaflow">>}
            ,{<<"Metaflow">>, kz_json:from_list(Metaflow)}
-           ,{<<"Other-Leg-Call-ID">>, kz_evt_freeswitch:other_leg_call_id(FSProps)}
+           ,{<<"Other-Leg-Call-ID">>, kz_evt_freeswitch:other_leg_call_id(ChannelJObj)}
            ],
 
     ReqProps = [{<<"Resource-Type">>,<<"metaflow">>}
@@ -51,20 +55,18 @@ handle_metaflow_action(UUID, JObj, ControlQ, FSProps, Node) ->
                ,{<<"Application-Logical-Direction">>, <<"inbound">>}
                ,{<<"Control-Queue">>, ControlQ}
                ],
-    %%    Props = props:set_values(ReqProps, FSProps),
-    Props = kz_json:set_values(ReqProps, FSProps),
-    route_metaflow_action(UUID, Props, Node).
 
--spec route_metaflow_action(kz_term:ne_binary(), kz_term:proplist(), atom()) -> 'ok'.
-route_metaflow_action(UUID, Props, Node) ->
+    ChannelJObj1 = kz_json:set_values(ReqProps, ChannelJObj),
+    route_metaflow_action(UUID, ChannelJObj1, Node).
+
+-spec route_metaflow_action(kz_term:ne_binary(), kz_evt_freeswitch:data(), atom()) -> 'ok'.
+route_metaflow_action(UUID, ChannelJObj, Node) ->
     FetchId = kz_binary:rand_hex(16),
-    %%    Request = ecallmgr_fs_router_util:route_req(UUID, FetchId, Props, Node),
-    %%    lager:debug("METAFLOW ACVTION ~p", [Request]),
     MoreProps = [{<<"Call-ID">>, UUID}
                 ,{[<<"Custom-Channel-Vars">>, <<"Fetch-ID">>], FetchId}
                  | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
                 ],
-    Request = kz_json:set_values(MoreProps, kz_api:remove_defaults(Props)),
+    Request = kz_json:set_values(MoreProps, kz_api:remove_defaults(ChannelJObj)),
     ReqResp = kz_amqp_worker:call(Request
                                  ,fun kapi_route:publish_req/1
                                  ,fun kapi_route:is_actionable_resp/1
@@ -75,12 +77,12 @@ route_metaflow_action(UUID, Props, Node) ->
             lager:info("did not receive route response for request ~s: ~p", [FetchId, _R]);
         {'ok', JObj} ->
             'true' = kapi_route:resp_v(JObj),
-            start_metaflow_handling(Node, FetchId, UUID, JObj, Props)
+            start_metaflow_handling(Node, FetchId, UUID, JObj, ChannelJObj)
     end.
 
--spec start_metaflow_handling(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), kz_term:proplist()) -> 'ok'.
-start_metaflow_handling(_Node, FetchId, CallId, JObj, Props) ->
-    ControlQ = kz_json:get_value(<<"Control-Queue">>, Props),
+-spec start_metaflow_handling(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), kz_evt_freeswitch:data()) -> 'ok'.
+start_metaflow_handling(_Node, FetchId, CallId, JObj, ChannelJObj) ->
+    ControlQ = kz_json:get_value(<<"Control-Queue">>, ChannelJObj),
     CCVs = [{[<<"Custom-Channel-Vars">>, <<"Application-Name">>], kz_json:get_value(<<"App-Name">>, JObj)}
            ,{[<<"Custom-Channel-Vars">>, <<"Application-Node">>], kz_json:get_value(<<"Node">>, JObj)}
            ],

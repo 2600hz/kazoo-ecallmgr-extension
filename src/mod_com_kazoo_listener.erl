@@ -2,6 +2,10 @@
 %%% @copyright (C) 2011-2019, 2600Hz
 %%% @doc handle communication with freeswitch thru amqp
 %%%
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(mod_com_kazoo_listener).
@@ -143,11 +147,11 @@ handle_req(Pid, <<"API">>, JObj, _Props) ->
     case kz_json:get_atom_value(<<"Result">>, JObj) of
         'ok' ->
             case kz_json:get_ne_binary_value(<<"Return">>, JObj) of
-                <<"-ERR", Error/binary>> -> api_result(Pid, error, Error);
-                <<"+OK", Msg/binary>> -> api_result(Pid, ok, Msg);
-                Msg -> api_result(Pid, ok, Msg)
+                <<"-ERR", Error/binary>> -> api_result(Pid, 'error', Error);
+                <<"+OK", Msg/binary>> -> api_result(Pid, 'ok', Msg);
+                Msg -> api_result(Pid, 'ok', Msg)
             end;
-        'error' -> api_result(Pid, error, kz_json:get_ne_binary_value(<<"Return">>, JObj))
+        'error' -> api_result(Pid, 'error', kz_json:get_ne_binary_value(<<"Return">>, JObj))
     end;
 
 handle_req(Pid, <<"BACKGROUND_JOB">>, JObj, _Props) ->
@@ -157,25 +161,28 @@ handle_req(Pid, <<"BACKGROUND_JOB">>, JObj, _Props) ->
     case kz_json:get_atom_value(<<"Job-Result">>, JObj) of
         'bgok' ->
             case Reply of
-                <<"-ERR", Error/binary>> -> bgapi_result(Pid, bgerror, Error, JobId, Data);
-                <<"+OK", Msg/binary>> -> bgapi_result(Pid, bgok, Msg, JobId, Data);
-                _ -> bgapi_result(Pid, bgok, Reply, JobId, Data)
+                <<"-ERR", Error/binary>> -> bgapi_result(Pid, 'bgerror', Error, JobId, Data);
+                <<"+OK", Msg/binary>> -> bgapi_result(Pid, 'bgok', Msg, JobId, Data);
+                _ -> bgapi_result(Pid, 'bgok', Reply, JobId, Data)
             end;
-        'bgerror' -> bgapi_result(Pid, bgerror, Reply, JobId, Data)
+        'bgerror' -> bgapi_result(Pid, 'bgerror', Reply, JobId, Data)
     end;
 
 handle_req(Pid, <<"json_api.reply">>, JObj, _Props) ->
     case kz_json:get_atom_value(<<"status">>, JObj) of
-        'success' -> Pid ! {switch_reply, {'ok', kz_json:get_json_value(<<"response">>, JObj)}};
-        'error' -> Pid ! {switch_reply, {'error', kz_json:get_first_defined([<<"error">>, <<"message">>], JObj)}}
+        'success' -> Pid ! {'switch_reply', {'ok', kz_json:get_json_value(<<"response">>, JObj)}};
+        'error' -> Pid ! {'switch_reply', {'error', kz_json:get_first_defined([<<"error">>, <<"message">>], JObj)}}
     end;
 
 handle_req(_Pid, _Event, _JObj, _Props) ->
     lager:warning("REPLY-TO-PID ~p ,  ~s : ~p", [_Pid, _Event, _JObj]).
 
 bgapi_result(Pid, Result, Bin, JobId, Data) ->
-    Pid ! {switch_reply, bgapi_result(Result, Bin, JobId, Data)}.
+    Pid ! {'switch_reply', bgapi_result(Result, Bin, JobId, Data)}.
 
+-spec bgapi_result('bgerror' | 'bgok', kz_term:api_ne_binary(), JobId, Data) ->
+          {'bgok' | 'bgerror', JobId, boolean() | kz_term:ne_binary(), Data} |
+          {'bgok', JobId, Data}.
 bgapi_result(Result, 'undefined', JobId, Data) -> {Result, JobId, Data};
 bgapi_result(Result, <<"-ERR", Error/binary>>, JobId, Data) ->
     bgapi_result(Result, Error, JobId, Data);
@@ -183,15 +190,14 @@ bgapi_result(Result, <<"+OK", Msg/binary>>, JobId, Data) ->
     bgapi_result(Result, Msg, JobId, Data);
 bgapi_result(Result, Bin, JobId, Data) ->
     case kz_binary:strip_left(kz_binary:strip_right(Bin, <<"\n">>), $\s) of
-        <<>> when Result =:= 'error' -> {error, JobId, 'failed', Data};
-        <<>> -> {bgok, JobId, Data};
-        <<"true">> -> {Result, JobId, true, Data};
-        <<"false">> -> {Result, JobId, false, Data};
+        <<>> -> {'bgok', JobId, Data};
+        <<"true">> -> {Result, JobId, 'true', Data};
+        <<"false">> -> {Result, JobId, 'false', Data};
         Msg -> {Result, JobId, Msg, Data}
     end.
 
 api_result(Pid, Result, Bin) ->
-    Pid ! {switch_reply, api_result(Result, Bin)}.
+    Pid ! {'switch_reply', api_result(Result, Bin)}.
 
 api_result(Result, 'undefined') -> Result;
 api_result(Result, <<"-ERR", Error/binary>>) ->
@@ -200,9 +206,9 @@ api_result(Result, <<"+OK", Msg/binary>>) ->
     api_result(Result, Msg);
 api_result(Result, Bin) ->
     case kz_binary:strip_left(kz_binary:strip_right(Bin, <<"\n">>), $\s) of
-        <<>> when Result =:= 'error' -> {error, 'failed'};
-        <<>> -> ok;
-        <<"true">> -> {Result, true};
-        <<"false">> -> {Result, false};
+        <<>> when Result =:= 'error' -> {'error', 'failed'};
+        <<>> -> 'ok';
+        <<"true">> -> {Result, 'true'};
+        <<"false">> -> {Result, 'false'};
         Msg -> {Result, Msg}
     end.

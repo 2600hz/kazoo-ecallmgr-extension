@@ -1,6 +1,10 @@
 %%%-----------------------------------------------------------------------------
 %%% @copyright (C) 2012-2019, 2600Hz
 %%% @doc
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(ecallmgr_extension_util).
@@ -22,12 +26,12 @@ authenticate(Feature) ->
     Type = kapps_config:get_ne_binary(?LICENSES_CAT, [?APP_NAME, Feature, <<"type">>]),
     {'ok', MasterAccountId} = kapps_util:get_master_account_id(),
     License = <<(kz_term:to_binary(Type))/binary
-                ,":", Salt/binary
-                ,":", MasterAccountId/binary
-                ,":", Salt/binary
-                ,":", (kz_term:to_binary(Feature))/binary
-                ,":", Salt/binary
-                ,":", (kz_term:to_binary(Expiration))/binary
+               ,":", Salt/binary
+               ,":", MasterAccountId/binary
+               ,":", Salt/binary
+               ,":", (kz_term:to_binary(Feature))/binary
+               ,":", Salt/binary
+               ,":", (kz_term:to_binary(Expiration))/binary
               >>,
     Hash = kz_binary:hexencode(
              crypto:hash('sha256', License)

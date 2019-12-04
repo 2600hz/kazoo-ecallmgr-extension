@@ -1,6 +1,10 @@
 %%%-----------------------------------------------------------------------------
 %%% @copyright (C) 2019-, 2600Hz
 %%% @doc
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(mod_com_kazoo).
@@ -157,26 +161,24 @@ bgapi(Node, UUID, CallBackParams, Cmd, Args, Fun) when is_function(Fun, 6) ->
     bgapi4(Node, Cmd, Args, Fun4, CallBackParams).
 
 
--spec json_api(atom(), kz_term:text()) -> freeswitch:fs_json_api_return().
-json_api(Node, {Cmd , Args}) ->
+-spec json_api(atom(), kz_term:ne_binary() | {kz_term:ne_binary(), kz_json:object()}) -> freeswitch:fs_json_api_return().
+json_api(Node, {Cmd, Args}) ->
     json_api(Node, 'undefined', Cmd, Args, ?TIMEOUT);
 json_api(Node, Cmd) ->
     json_api(Node, 'undefined', Cmd, 'undefined', ?TIMEOUT).
 
--spec json_api(atom(), kz_term:text(), kz_term:api_object()) -> freeswitch:fs_json_api_return().
+-spec json_api(atom(), kz_term:api_ne_binary(), kz_term:ne_binary()) -> freeswitch:fs_json_api_return().
 json_api(Node, UUID, Cmd) ->
     json_api(Node, UUID, Cmd, 'undefined', ?TIMEOUT).
 
--spec json_api(atom(), kz_term:text(), kz_term:api_object(), timeout()) -> freeswitch:fs_json_api_return().
+-spec json_api(atom(), kz_term:api_ne_binary(), kz_term:ne_binary(), kz_term:api_object()) -> freeswitch:fs_json_api_return().
 json_api(Node, UUID, Cmd, Args) ->
     json_api(Node, UUID, Cmd, Args, ?TIMEOUT).
 
--spec json_api(atom(), kz_term:api_ne_binary(), kz_term:text(), kz_term:api_object(), timeout()) -> freeswitch:fs_json_api_return().
-json_api(Node, UUID, Cmd, Args, Timeout) when is_atom(Node) ->
-    Data = case Args of
-               'undefined' -> <<"">>;
-               Args -> Args
-           end,
+-spec json_api(atom(), kz_term:api_ne_binary(), kz_term:ne_binary(), kz_term:api_object() | <<>>, timeout()) -> freeswitch:fs_json_api_return().
+json_api(Node, UUID, Cmd, 'undefined', Timeout) ->
+    json_api(Node, UUID, Cmd, <<>>, Timeout);
+json_api(Node, UUID, Cmd, Data, Timeout) when is_atom(Node) ->
     Params = [{<<"command">>, Cmd}
              ,{<<"data">>, Data}
              ],
@@ -187,9 +189,9 @@ json_api(Node, UUID, Cmd, Args, Timeout) when is_atom(Node) ->
                 ]),
     send(Node, Payload, fun kapi_freeswitch:publish_json_api/1),
     receive
-        {switch_reply, Msg} -> Msg
+        {'switch_reply', Msg} -> Msg
     after Timeout ->
-            {error, 'timeout'}
+            {'error', 'timeout'}
     end.
 
 -type event() :: kz_json:object().
@@ -315,8 +317,8 @@ config(Node) ->
 
 
 -spec bgapi4(atom(), atom(), string() | binary(), fun() | 'undefined', list()) ->
-                    {'ok', binary()} |
-                    {'error', 'timeout' | 'exception' | binary()}.
+          {'ok', binary()} |
+          {'error', 'timeout' | 'exception' | binary()}.
 bgapi4(Node, Cmd, Args, Fun, CallBackParams) ->
     Self = self(),
     _ = kz_process:spawn(fun bgapi4/6, [Node, Cmd, Args, Fun, CallBackParams, Self]),
