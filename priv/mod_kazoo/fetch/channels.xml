@@ -11,7 +11,7 @@
             <params>
                 <param name="fetch-section" value="channels" />
                 <param name="fetch-timeout" value="1500000" />
-                <param name="amqp-exchange" value="freeswitch.channels" />
+                <param name="amqp-exchange" value="freeswitch" />
                 <param name="amqp-profile" value="fetch" />
             </params>
 

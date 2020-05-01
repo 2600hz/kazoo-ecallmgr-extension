@@ -20,27 +20,7 @@
 
 	<declare-exchanges>
         <exchange>
-            <param name="name" value="freeswitch.channels" />
-            <param name="type" value="topic" />
-            <param name="durable" value="0" />
-        </exchange>
-		<exchange>
-			<param name="name" value="freeswitch.configuration" />
-			<param name="type" value="topic" />
-			<param name="auto-delete" value="true" />
-		</exchange>
-        <exchange>
-            <param name="name" value="freeswitch.dialplan" />
-            <param name="type" value="topic" />
-            <param name="durable" value="0" />
-        </exchange>
-        <exchange>
-            <param name="name" value="freeswitch.directory" />
-            <param name="type" value="topic" />
-            <param name="durable" value="0" />
-        </exchange>
-        <exchange>
-            <param name="name" value="freeswitch.languages" />
+            <param name="name" value="freeswitch" />
             <param name="type" value="topic" />
             <param name="durable" value="0" />
         </exchange>

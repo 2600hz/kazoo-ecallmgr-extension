@@ -56,6 +56,8 @@
 -export([core_uuid/1]).
 -export([no_legacy/1]).
 
+-export([async_api/3]).
+
 -include("ecallmgr_extension.hrl").
 
 -define(TIMEOUT, 5 * ?MILLISECONDS_IN_SECOND).
@@ -124,7 +126,7 @@ api(Node, Cmd, Args, Timeout)
 api(Node, Cmd, Args, Timeout)
   when is_list(Args) ->
     api(Node, Cmd, kz_term:to_binary(Args), Timeout);
-api(Node, Cmd, Args, _Timeout)
+api(Node, Cmd, Args, Timeout)
   when is_atom(Node) ->
     Payload = props:filter_undefined(
                 [{<<"API-Arguments">>, Args}
@@ -133,7 +135,7 @@ api(Node, Cmd, Args, _Timeout)
     send(Node, Payload, fun kapi_freeswitch:publish_api/1),
     receive
         {switch_reply, Msg} -> Msg
-    after ?API_TIMEOUT ->
+    after Timeout ->
             {error, 'timeout'}
     end.
 
@@ -379,3 +381,20 @@ payload(Node, Headers) ->
                ,{?KEY_REQUEST_FROM_PID, kz_term:to_binary(self())}
                 | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
                ].
+
+%%------------------------------------------------------------------------------
+%% @doc Make a background API call to FreeSWITCH and wait for reply.
+%% @end
+%%------------------------------------------------------------------------------
+-spec async_api(atom(), atom(), string() | binary()) -> freeswitch:fs_api_return().
+async_api(Node, Cmd, Args) ->
+    case bgapi(Node, Cmd, Args) of
+        {'error', _} = Error -> Error;
+        {'ok', JobId} ->
+            receive
+                {'bgok', JobId, Result} -> {'ok', Result};
+                {'bgok', JobId} -> 'ok';
+                {'bgerror', JobId, Error} -> {'error', Error};
+                {'bgerror', JobId} -> {'error', <<"unspecified reason">>}
+            end
+    end.

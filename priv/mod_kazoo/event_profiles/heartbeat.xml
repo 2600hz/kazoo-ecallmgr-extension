@@ -10,7 +10,7 @@
 
 	<params>
        <param name="amqp-profile" value="push-event"/>
-       <param name="amqp-exchange" value="freeswitch.events" />
+       <param name="amqp-exchange" value="freeswitch" />
 	</params>
 
 	<routing-key>

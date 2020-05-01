@@ -15,7 +15,7 @@
 
 	<declare-exchanges>
 		<exchange>
-			<param name="name" value="freeswitch.commands" />
+			<param name="name" value="freeswitch" />
 			<param name="type" value="topic" />
 		</exchange>
 		<exchange>
@@ -30,10 +30,10 @@
 		<param name="consume-exclusive" value="false" />
 		<param name="consume-qos" value="10" />
 		<param name="consume-qos-global" value="false" />
-		<param name="consume-spawn" value="false" />
+		<param name="consume-spawn" value="true" />
 
 		<binding>
-			<param name="exchange" value="freeswitch.commands" />
+			<param name="exchange" value="freeswitch" />
 			<param name="routing-key" value="freeswitch.commands.${Core-UUID}" />
 			<param name="federated" value="true" />
 		</binding>

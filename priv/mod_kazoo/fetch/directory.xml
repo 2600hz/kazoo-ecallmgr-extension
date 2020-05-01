@@ -7,7 +7,7 @@
 	<params>
 		<param name="fetch-section" value="directory" />
 		<param name="fetch-timeout" value="1500000" />
-		<param name="amqp-exchange" value="freeswitch.directory" />
+		<param name="amqp-exchange" value="freeswitch" />
 		<param name="amqp-profile" value="fetch" />
 	</params>
 
@@ -17,7 +17,7 @@
 		<field name="Fetch-UUID" />
 	</routing-key>
 
-	<cache expires_ms="120000">
+	<cache expires_ms="300000">
 		<field name="Fetch-Section" />
         <field name="user" />
         <field name="domain" />
@@ -25,5 +25,5 @@
 		<field name="X-AUTH-URI-Realm" />
 		<field name="X-AUTH-URI-User" />
 	</cache>
-
+ 
 </profile>

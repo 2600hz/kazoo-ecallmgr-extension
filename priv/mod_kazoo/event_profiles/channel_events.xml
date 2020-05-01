@@ -20,8 +20,6 @@
         <event name="CHANNEL_SYNC"/>
         <event name="CHANNEL_DATA"/>
         <event name="CALL_UPDATE"/>
-		<event name="loopback::bowout"/>
-		<event name="loopback::direct"/>
 		<event name="CHANNEL_METAFLOW" />
         <event name="CHANNEL_HANGUP"/>
         <event name="CHANNEL_HANGUP_COMPLETE"/>

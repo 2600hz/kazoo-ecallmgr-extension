@@ -6,6 +6,7 @@
 		<log name="time" value="SWITCH_LOG_DEBUG1" />
 		<log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
 		<log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
+		<log name="trace" value="SWITCH_LOG_DEBUG1" />
 	</logging>
 
 </profile>
