@@ -49,14 +49,6 @@
 -include_lib("kazoo_amqp/include/kz_api.hrl").
 
 -define(EXCHANGE_FREESWITCH, <<"freeswitch">>).
--define(EXCHANGE_FREESWITCH_DIRECTORY, <<"freeswitch.directory">>).
--define(EXCHANGE_FREESWITCH_DIALPLAN, <<"freeswitch.dialplan">>).
--define(EXCHANGE_FREESWITCH_EVENTS, <<"freeswitch.events">>).
--define(EXCHANGE_FREESWITCH_COMMANDS, <<"freeswitch.commands">>).
--define(EXCHANGE_FREESWITCH_CONFIGURATION, <<"freeswitch.configuration">>).
--define(EXCHANGE_FREESWITCH_API, <<"freeswitch.api">>).
--define(EXCHANGE_FREESWITCH_CHANNELS, <<"freeswitch.channels">>).
--define(EXCHANGE_FREESWITCH_LANGUAGES, <<"freeswitch.languages">>).
 -define(TYPE_FREESWITCH, <<"topic">>).
 
 -define(FETH_REPLY_CONTENT_TYPE, <<"text/xml">>).
@@ -316,37 +308,37 @@ bind_q(Queue, Props) ->
 
 -spec bind_q(kz_term:ne_binary(), kz_term:api_binaries(), kz_term:proplist()) -> 'ok'.
 bind_q(Queue, 'undefined', _) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_EVENTS),
-    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_DIALPLAN),
-    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_DIRECTORY),
-    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_CHANNELS),
-    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_LANGUAGES);
+    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
+    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
+    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
+    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
+    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
 bind_q(Queue, ['events'|Restrict], Props) ->
     lists:foreach(fun(RK) ->
-                          kz_amqp_util:bind_q_to_exchange(Queue, RK, ?EXCHANGE_FREESWITCH_EVENTS)
+                          kz_amqp_util:bind_q_to_exchange(Queue, RK, ?EXCHANGE_FREESWITCH)
                   end, event_routing_keys(Props)),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['configuration'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH_CONFIGURATION),
+    kz_amqp_util:bind_q_to_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['dialplan'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH_DIALPLAN),
+    kz_amqp_util:bind_q_to_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['directory'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH_DIRECTORY),
+    kz_amqp_util:bind_q_to_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['channels'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH_CHANNELS),
+    kz_amqp_util:bind_q_to_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['languages'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH_LANGUAGES),
+    kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['fetch'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH_DIALPLAN),
-    kz_amqp_util:bind_q_to_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH_DIRECTORY),
-    kz_amqp_util:bind_q_to_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH_CONFIGURATION),
-    kz_amqp_util:bind_q_to_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH_CHANNELS),
-    kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH_LANGUAGES),
+    kz_amqp_util:bind_q_to_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    kz_amqp_util:bind_q_to_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    kz_amqp_util:bind_q_to_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    kz_amqp_util:bind_q_to_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, [_|Restrict], Props) ->
     bind_q(Queue, Restrict, Props);
@@ -359,38 +351,38 @@ unbind_q(Queue, Props) ->
 
 -spec unbind_q(kz_term:ne_binary(), kz_term:api_binary(), kz_term:proplist()) -> 'ok'.
 unbind_q(Queue, 'undefined', _) ->
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_DIALPLAN),
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_DIRECTORY),
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_EVENTS),
-    kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH_CHANNELS);
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
+    kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
 unbind_q(Queue, ['events'|Restrict], Props) ->
     lists:foreach(fun(RK) ->
-                          kz_amqp_util:unbind_q_from_exchange(Queue, RK, ?EXCHANGE_FREESWITCH_EVENTS)
+                          kz_amqp_util:unbind_q_from_exchange(Queue, RK, ?EXCHANGE_FREESWITCH)
                   end
                  ,event_routing_keys(Props)
                  ),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['configuration'|Restrict], Props) ->
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH_CONFIGURATION),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['dialplan'|Restrict], Props) ->
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH_DIALPLAN),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['directory'|Restrict], Props) ->
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH_DIRECTORY),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['channels'|Restrict], Props) ->
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH_CHANNELS),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['languages'|Restrict], Props) ->
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH_LANGUAGES),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['fetch'|Restrict], Props) ->
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH_DIALPLAN),
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH_DIRECTORY),
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH_CONFIGURATION),
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH_CHANNELS),
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH_LANGUAGES),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, [_|Restrict], Props) ->
     unbind_q(Queue, Restrict, Props);
@@ -509,15 +501,7 @@ routing_key(Parts) ->
 %%------------------------------------------------------------------------------
 -spec declare_exchanges() -> 'ok'.
 declare_exchanges() ->
-    kz_amqp_util:new_exchange(?EXCHANGE_FREESWITCH, ?TYPE_FREESWITCH),
-    kz_amqp_util:new_exchange(?EXCHANGE_FREESWITCH_CONFIGURATION, ?TYPE_FREESWITCH),
-    kz_amqp_util:new_exchange(?EXCHANGE_FREESWITCH_COMMANDS, ?TYPE_FREESWITCH),
-    kz_amqp_util:new_exchange(?EXCHANGE_FREESWITCH_API, ?TYPE_FREESWITCH),
-    kz_amqp_util:new_exchange(?EXCHANGE_FREESWITCH_DIALPLAN, ?TYPE_FREESWITCH),
-    kz_amqp_util:new_exchange(?EXCHANGE_FREESWITCH_DIRECTORY, ?TYPE_FREESWITCH),
-    kz_amqp_util:new_exchange(?EXCHANGE_FREESWITCH_CHANNELS, ?TYPE_FREESWITCH),
-    kz_amqp_util:new_exchange(?EXCHANGE_FREESWITCH_LANGUAGES, ?TYPE_FREESWITCH),
-    kz_amqp_util:new_exchange(?EXCHANGE_FREESWITCH_EVENTS, ?TYPE_FREESWITCH).
+    kz_amqp_util:new_exchange(?EXCHANGE_FREESWITCH, ?TYPE_FREESWITCH).
 
 
 -spec publish_directory_reply(kz_term:ne_binary() | atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_term:api_ne_binary()) -> 'ok'.
@@ -528,7 +512,7 @@ publish_directory_reply(_CoreUUID, FetchID, Xml, ServerId)
 publish_directory_reply(CoreUUID, FetchID, Xml, _) ->
     Prop = [{'message_id', FetchID}],
     RK = directory_reply_key(CoreUUID, FetchID),
-    Exchange = ?EXCHANGE_FREESWITCH_DIRECTORY,
+    Exchange = ?EXCHANGE_FREESWITCH,
     kz_amqp_util:basic_publish(Exchange, RK, Xml, ?FETH_REPLY_CONTENT_TYPE, Prop).
 
 -spec publish_dialplan_reply(kz_term:ne_binary() | atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_term:api_ne_binary()) -> 'ok'.
@@ -539,7 +523,7 @@ publish_dialplan_reply(_CoreUUID, FetchID, Xml, ServerId)
 publish_dialplan_reply(CoreUUID, FetchID, Xml, _) ->
     Prop = [{'message_id', FetchID}],
     RK = dialplan_reply_key(CoreUUID, FetchID),
-    Exchange = ?EXCHANGE_FREESWITCH_DIALPLAN,
+    Exchange = ?EXCHANGE_FREESWITCH,
     kz_amqp_util:basic_publish(Exchange, RK, Xml, ?FETH_REPLY_CONTENT_TYPE, Prop).
 
 -spec publish_configuration_reply(kz_term:ne_binary() | atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_term:api_ne_binary()) -> 'ok'.
@@ -550,7 +534,7 @@ publish_configuration_reply(_CoreUUID, FetchID, Xml, ServerId)
 publish_configuration_reply(CoreUUID, FetchID, Xml, _) ->
     Prop = [{'message_id', FetchID}],
     RK = configuration_reply_key(CoreUUID, FetchID),
-    Exchange = ?EXCHANGE_FREESWITCH_CONFIGURATION,
+    Exchange = ?EXCHANGE_FREESWITCH,
     kz_amqp_util:basic_publish(Exchange, RK, Xml, ?FETH_REPLY_CONTENT_TYPE, Prop).
 
 -spec publish_channels_reply(kz_term:ne_binary() | atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_term:api_ne_binary()) -> 'ok'.
@@ -561,7 +545,7 @@ publish_channels_reply(_CoreUUID, FetchID, Xml, ServerId)
 publish_channels_reply(CoreUUID, FetchID, Xml, _) ->
     Prop = [{'message_id', FetchID}],
     RK = channels_reply_key(CoreUUID, FetchID),
-    Exchange = ?EXCHANGE_FREESWITCH_CHANNELS,
+    Exchange = ?EXCHANGE_FREESWITCH,
     kz_amqp_util:basic_publish(Exchange, RK, Xml, ?FETH_REPLY_CONTENT_TYPE, Prop).
 
 -spec publish_languages_reply(kz_term:ne_binary() | atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_term:api_ne_binary()) -> 'ok'.
@@ -572,7 +556,7 @@ publish_languages_reply(_CoreUUID, FetchID, Xml, ServerId)
 publish_languages_reply(CoreUUID, FetchID, Xml, _) ->
     Prop = [{'message_id', FetchID}],
     RK = languages_reply_key(CoreUUID, FetchID),
-    Exchange = ?EXCHANGE_FREESWITCH_LANGUAGES,
+    Exchange = ?EXCHANGE_FREESWITCH,
     kz_amqp_util:basic_publish(Exchange, RK, Xml, ?FETH_REPLY_CONTENT_TYPE, Prop).
 
 -spec publish_reply(kz_term:ne_binary() | atom(), kz_term:ne_binary(), atom(), kz_term:ne_binary(), kz_term:api_ne_binary()) -> 'ok'.
@@ -597,7 +581,7 @@ publish_config(JObj) ->
 publish_config(Req, ContentType) ->
     {'ok', Payload} = kz_api:prepare_api_payload(Req, ?CONFIG_REQ_VALUES, fun config/1),
     RK = routing_key([<<"commands">>, core_uuid(Req)]),
-    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH_COMMANDS, RK, Payload, ContentType).
+    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH, RK, Payload, ContentType).
 
 -spec publish_command(kz_term:api_terms()) -> 'ok'.
 publish_command(JObj) ->
@@ -607,7 +591,7 @@ publish_command(JObj) ->
 publish_command(Req, ContentType) ->
     {'ok', Payload} = kz_api:prepare_api_payload(Req, ?COMMAND_REQ_VALUES, fun command/1),
     RK = routing_key([<<"commands">>, core_uuid(Req)]),
-    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH_COMMANDS, RK, Payload, ContentType).
+    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH, RK, Payload, ContentType).
 
 -spec publish_commands(kz_term:api_terms()) -> 'ok'.
 publish_commands(JObj) ->
@@ -617,7 +601,7 @@ publish_commands(JObj) ->
 publish_commands(Req, ContentType) ->
     {'ok', Payload} = kz_api:prepare_api_payload(Req, ?COMMANDS_REQ_VALUES, fun commands/1),
     RK = routing_key([<<"commands">>, core_uuid(Req)]),
-    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH_COMMANDS, RK, Payload, ContentType).
+    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH, RK, Payload, ContentType).
 
 -spec publish_api(kz_term:api_terms()) -> 'ok'.
 publish_api(JObj) ->
@@ -627,7 +611,7 @@ publish_api(JObj) ->
 publish_api(Req, ContentType) ->
     {'ok', Payload} = kz_api:prepare_api_payload(Req, ?API_REQ_VALUES, fun api/1),
     RK = routing_key([<<"commands">>, core_uuid(Req)]),
-    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH_COMMANDS, RK, Payload, ContentType).
+    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH, RK, Payload, ContentType).
 
 -spec publish_json_api(kz_term:api_terms()) -> 'ok'.
 publish_json_api(JObj) ->
@@ -637,7 +621,7 @@ publish_json_api(JObj) ->
 publish_json_api(Req, ContentType) ->
     {'ok', Payload} = kz_api:prepare_api_payload(Req, ?JSON_API_REQ_VALUES, fun json_api/1),
     RK = routing_key([<<"commands">>, core_uuid(Req)]),
-    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH_COMMANDS, RK, Payload, ContentType).
+    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH, RK, Payload, ContentType).
 
 -spec publish_event(kz_term:api_terms()) -> 'ok'.
 publish_event(JObj) ->
@@ -647,7 +631,7 @@ publish_event(JObj) ->
 publish_event(Req, ContentType) ->
     {'ok', Payload} = kz_api:prepare_api_payload(Req, ?EVENT_REQ_VALUES, fun event/1),
     RK = routing_key([<<"commands">>, core_uuid(Req)]),
-    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH_COMMANDS, RK, Payload, ContentType).
+    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH, RK, Payload, ContentType).
 
 -spec publish_bgapi(kz_term:api_terms()) -> 'ok'.
 publish_bgapi(JObj) ->
@@ -657,7 +641,7 @@ publish_bgapi(JObj) ->
 publish_bgapi(Req, ContentType) ->
     {'ok', Payload} = kz_api:prepare_api_payload(Req, ?BGAPI_REQ_VALUES, fun bgapi/1),
     RK = routing_key([<<"commands">>, core_uuid(Req)]),
-    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH_COMMANDS, RK, Payload, ContentType).
+    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH, RK, Payload, ContentType).
 
 -spec publish_version(kz_term:api_terms()) -> 'ok'.
 publish_version(JObj) ->
@@ -667,7 +651,7 @@ publish_version(JObj) ->
 publish_version(Req, ContentType) ->
     {'ok', Payload} = kz_api:prepare_api_payload(Req, ?VERSION_REQ_VALUES, fun version/1),
     RK = routing_key([<<"commands">>, core_uuid(Req)]),
-    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH_COMMANDS, RK, Payload, ContentType).
+    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH, RK, Payload, ContentType).
 
 -spec publish_message(kz_term:api_terms()) -> 'ok'.
 publish_message(JObj) ->
@@ -677,4 +661,4 @@ publish_message(JObj) ->
 publish_message(Req, ContentType) ->
     {'ok', Payload} = kz_api:prepare_api_payload(Req, ?MESSAGE_REQ_VALUES, fun message/1),
     RK = routing_key([<<"commands">>, core_uuid(Req)]),
-    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH_COMMANDS, RK, Payload, ContentType).
+    kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH, RK, Payload, ContentType).

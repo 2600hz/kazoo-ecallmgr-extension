@@ -16,7 +16,7 @@
 	<params>
         <param name="fetch-section" value="languages" />
 		<param name="fetch-timeout" value="3500000" />
-        <param name="amqp-exchange" value="freeswitch.languages" />
+        <param name="amqp-exchange" value="freeswitch" />
         <param name="amqp-profile" value="fetch" />
 	</params>
 
