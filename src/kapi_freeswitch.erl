@@ -308,10 +308,6 @@ bind_q(Queue, Props) ->
 
 -spec bind_q(kz_term:ne_binary(), kz_term:api_binaries(), kz_term:proplist()) -> 'ok'.
 bind_q(Queue, 'undefined', _) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
-    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
-    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
-    kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
     kz_amqp_util:bind_q_to_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
 bind_q(Queue, ['events'|Restrict], Props) ->
     lists:foreach(fun(RK) ->
@@ -351,9 +347,6 @@ unbind_q(Queue, Props) ->
 
 -spec unbind_q(kz_term:ne_binary(), kz_term:api_binary(), kz_term:proplist()) -> 'ok'.
 unbind_q(Queue, 'undefined', _) ->
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
-    _ = kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH),
     kz_amqp_util:unbind_q_from_exchange(Queue, <<"#">>, ?EXCHANGE_FREESWITCH);
 unbind_q(Queue, ['events'|Restrict], Props) ->
     lists:foreach(fun(RK) ->
