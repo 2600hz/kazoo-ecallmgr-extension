@@ -53,7 +53,7 @@ fetch_mod_kazoo_config(<<"REQUEST_PARAMS">>, #{payload := JObj} = Ctx) ->
 fetch_mod_kazoo_config(<<"GENERAL">>, #{payload := _JObj} = Ctx) ->
     try config() of
         {'ok', Xml} ->
-            freeswitch:fetch_reply(Ctx#{reply => iolist_to_binary(Xml)})
+            mod_com_kazoo:fetch_reply(Ctx#{reply => iolist_to_binary(Xml)})
     catch
         _Ex:_Er:ST ->
             kz_log:log_stacktrace(ST),
@@ -66,7 +66,7 @@ fetch_mod_kazoo_config(Event, #{core_uuid := Node} = Ctx) ->
 -spec config_req_not_handled(map()) -> fs_sendmsg_ret().
 config_req_not_handled(Ctx) ->
     {'ok', NotHandled} = ecallmgr_fs_xml:not_found(),
-    freeswitch:fetch_reply(Ctx#{reply => iolist_to_binary(NotHandled)}).
+    mod_com_kazoo:fetch_reply(Ctx#{reply => iolist_to_binary(NotHandled)}).
 
 -spec fetch_mod_kazoo_config_action(kz_term:api_ne_binary(), map()) -> fs_sendmsg_ret().
 fetch_mod_kazoo_config_action('undefined', Ctx) ->
