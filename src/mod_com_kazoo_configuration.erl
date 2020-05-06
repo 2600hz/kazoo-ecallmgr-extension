@@ -35,7 +35,7 @@
 %%------------------------------------------------------------------------------
 -spec init() -> 'ok'.
 init() ->
-    _ = kazoo_bindings:bind(<<"fetch.configuration.commercial.*.kazoo.conf">>, ?MODULE, 'kazoo'),
+    _ = kazoo_bindings:bind(<<"fetch.configuration.commercial.*.com.kazoo.conf">>, ?MODULE, 'kazoo'),
     'ok'.
 
 -spec kazoo(map()) -> fs_sendmsg_ret().
@@ -97,7 +97,7 @@ config() ->
     Defs0 = lists:foldl(fun one_def/2, [], DefFiles),
     Defs = lists:map(fun fs_xml/1, Defs0),
 
-    ConfigurationEl = config_el(<<"kazoo.conf">>, <<"Built by Kazoo">>
+    ConfigurationEl = config_el(<<"com.kazoo.conf">>, <<"Built by Kazoo">>
                                ,[definitions_el(Defs)
                                 ,event_handlers_el(Profiles)
                                 ,fetch_handlers_el(FetchProfiles)
