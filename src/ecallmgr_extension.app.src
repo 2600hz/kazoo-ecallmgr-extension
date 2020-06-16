@@ -2,7 +2,7 @@
     [{applications,
          [crypto,ecallmgr,kazoo,kazoo_amqp,kazoo_apps,kazoo_bindings,
           kazoo_documents,kazoo_stdlib,lager,meta,stdlib,xmerl]},
-     {description,"Extension to ecallmgr"},
+     {description,"Ecallmgr Extension"},
      {vsn,"4.0.0"},
      {modules,[]},
      {registered,[]},
