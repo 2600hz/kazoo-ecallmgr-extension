@@ -34,12 +34,9 @@ start_link({Name, _}=Profile) ->
     lager:debug("starting amqp event stream supervisor ~s", [Name]),
     Server = ?SERVER(Name),
     lager:debug("starting amqp event stream supervisor ~s : ~p", [Name, Server]),
-    {'ok', Pid} = supervisor:start_link({'local', Server}
-                                       ,?MODULE
-                                       ,[Profile]
-                                       ),
+    {'ok', Pid} = supervisor:start_link({'local', Server}, ?MODULE, [Profile]),
     lager:debug("started amqp event stream supervisor ~s : ~p", [Name, Pid]),
-    Workers = kapps_config:get_integer(?CONFIG_CAT, [<<"amqp_event_stream">>, kz_term:to_binary(Name)], 1),
+    Workers = kz_app_config:get_integer(?APP, [<<"amqp_event_stream">>, kz_term:to_binary(Name)], 1),
     kz_process:spawn(fun() -> [begin
                                    timer:sleep(500),
                                    supervisor:start_child(Pid, [Profile])
