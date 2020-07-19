@@ -113,13 +113,22 @@ fs_profile_handler(ProfileFile, {DefFiles0, ProfileXmls}) ->
     {DefFiles, [ProfileXml | ProfileXmls]}.
 
 fs_profile_events(XmlEl, DefFiles0) ->
-    RefFileList = lists:map(fun fs_evt_filename/1, xmerl_xpath:string("/profile/events/event/@name", XmlEl)),
-    {DefFiles, EventXmls} = lists:foldl(fun fs_handler/2, {DefFiles0, []}, RefFileList),
+    RefFileList = xmerl_xpath:string("/profile/events/event", XmlEl),
+    {DefFiles, EventXmls} = lists:foldl(fun fs_profile_event/2, {DefFiles0, []}, RefFileList),
     #xmlElement{name='profile', content=Xmls} = XmlEl,
     Fun = fun(#xmlElement{name='events'}) -> #xmlElement{name='events', content=EventXmls};
              (Xml) -> Xml
           end,
     {DefFiles, XmlEl#xmlElement{content=lists:map(Fun, Xmls)}}.
+
+-spec fs_profile_event(kz_types:xml_el(), {kz_types:xml_els(), kz_types:xml_els()}) -> {kz_types:xml_els(), kz_types:xml_els()}.
+fs_profile_event(ProfileEventXml, {DefFiles, EventXmls}) ->
+    [NameAttr] = xmerl_xpath:string("@name", ProfileEventXml), 
+    RoutingKey = xmerl_xpath:string("routing-key", ProfileEventXml), 
+    EventFile = fs_evt_filename(NameAttr),
+    Tmp = #xmlElement{content = Content} = fs_xml(EventFile),
+    EventXml = Tmp#xmlElement{content = Content ++ RoutingKey},
+    {fs_defs(EventXml, DefFiles), [EventXml | EventXmls]}.
 
 -spec fs_handler(file:filename_all(), {kz_types:xml_els(), kz_types:xml_els()}) -> {kz_types:xml_els(), kz_types:xml_els()}.
 fs_handler(EventFile, {DefFiles, EventXmls}) ->
