@@ -11,16 +11,13 @@
 	</events>
 
 	<routing-key>
-		<field name="conference" type="static" value="conference.event"
-			encode-part="false" />
+		<field name="conference" type="static" value="conference.event"	encode-part="false" />
 		<field name="Action" />
-		<field name="Account-ID" />
+		<field name="Account-ID" type="first-of" value="Account-ID|Conference-Account-ID|variable_ecallmgr_Account-ID" />
 		<field name="Conference-Name" />
-		<field name="Conference-ID" type="first-of"
-			value="Unique-ID|Conference-Unique-ID" />
+		<field name="Conference-ID" type="first-of" value="Unique-ID|Conference-Unique-ID" />
         <param name="hash-event-field" value="Unique-ID" />
         <param name="hash-amqp-header" value="call-id" />
-
 	</routing-key>
 
 </profile>

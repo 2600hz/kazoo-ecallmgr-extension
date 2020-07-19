@@ -1,0 +1,40 @@
+<profile name="live-event" profile-type="worker">
+
+	<connection-ref workers="3" channels="5">
+	   <property name="is-local" value="true"/>
+	</connection-ref>
+
+	<logging>
+		<log name="trace" value="SWITCH_LOG_DEBUG1" />
+		<log name="info" value="SWITCH_LOG_DEBUG1" />
+		<log name="success" value="SWITCH_LOG_DEBUG1" />
+		<log name="time" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
+	</logging>
+
+	<declare-exchanges>
+		<exchange>
+			<param name="name" value="live" />
+			<param name="type" value="topic" />
+			<param name="auto-delete" value="true" />
+		</exchange>
+	</declare-exchanges>
+
+	<params>
+		<param name="workers" value="4" />
+		<param name="channels" value="5" />
+		<param name="reconnect_interval_ms" value="10000"/>
+	</params>
+
+	<publisher>
+		<params>
+			<param name="delivery-mode" value="0" />
+		</params>
+		<fields>
+			<field name="Server-ID"
+				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+		</fields>
+	</publisher>
+
+</profile>

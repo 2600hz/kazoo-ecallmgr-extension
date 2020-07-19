@@ -1,0 +1,32 @@
+<profile name="conference-channel" profile-type="event">
+
+	<params>
+       <param name="amqp-exchange" value="live" />
+       <param name="amqp-profile" value="live-event"/>
+       <param name="event-channel-mode" value="worker"/>
+	</params>
+
+	<events>
+        <event name="CONFERENCE_EVENT_CHANNEL">
+		    <routing-key>
+		        <field name="live" type="static" value="live" />
+		        <field name="conference" type="static" value="conference" />
+		        <field name="Action" />
+		        <field name="Account-ID" type="first-of" value="Account-ID|Conference-Account-ID|variable_ecallmgr_Account-ID" />
+		        <field name="Conference-Name" />
+		        <field name="Conference-ID" type="first-of" value="Unique-ID|Conference-Unique-ID" />
+		    </routing-key>
+        </event>
+	</events>
+
+
+    <logging>
+        <log name="trace" value="SWITCH_LOG_DEBUG" />
+        <log name="info" value="SWITCH_LOG_DEBUG" />
+        <log name="success" value="SWITCH_LOG_DEBUG" />
+        <log name="time" value="SWITCH_LOG_DEBUG1" />
+        <log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
+        <log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
+    </logging>
+
+</profile>
