@@ -17,7 +17,6 @@
 		<exchange>
 			<param name="name" value="live" />
 			<param name="type" value="topic" />
-			<param name="auto-delete" value="true" />
 		</exchange>
 	</declare-exchanges>
 
