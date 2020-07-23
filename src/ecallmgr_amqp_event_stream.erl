@@ -173,20 +173,22 @@ log_event(#{category := Category
            ,event := Event
            ,payload := JObj
            ,basic := Basic
+           ,deliver := Deliver
            }) ->
     NowUs = erlang:system_time('micro_seconds'),
     Created = kz_json:get_integer_value(<<"Event-Timestamp">>, JObj, 0),
     Published = Basic#'P_basic'.timestamp,
-    lager:debug("received fs ~s : ~s (~B,~B,~B) => ~s", [Category, Event
+    lager:debug("received fs ~s : ~s (~B,~B,~B) => ~s => ~s", [Category, Event
                                                              ,Published - Created
                                                              ,NowUs - Published
                                                              ,NowUs - Created
+                                                             ,gen_listener:routing_key_used(Deliver)
                                                              ,log_basic_headers(Basic)
                                                              ]).
 
 log_basic_headers(#'P_basic'{headers=undefined}) -> <<"no-headers">>;
 log_basic_headers(#'P_basic'{headers=Headers}) ->
-    kz_binary:join([io_lib:format("~s=~s", [K, kz_term:to_binary(V)]) || {K, _, V} <- Headers]).
+    kz_binary:join([io_lib:format("~s = ~s", [K, kz_term:to_binary(V)]) || {K, _, V} <- Headers]).
 
 run_bindings(Ctx) ->
     Stages = [fun run_event/1
@@ -242,5 +244,4 @@ true_event(<<"spandsp::", _/binary>>) -> {call, 'CHANNEL_FAX_STATUS'};
 true_event(<<"conference::maintenance">>) -> {conference, 'event'};
 true_event(<<"loopback::bowout">>) -> {call, 'CHANNEL_BOWOUT'};
 true_event(<<"loopback::direct">>) -> {call, 'CHANNEL_DIRECT'};
-true_event(<<"KZ_CDR">>) -> {cdr, report};
 true_event(Event) -> {call, kz_term:to_atom(Event, 'true')}.

@@ -12,8 +12,7 @@
 		<field name="Fetch-Key-Name" />
 		<field name="Fetch-Key-Value" />
 		<field name="Conference-Name" type="first-of" value="Conf-Name|conference_name" />
-		<field name="Conference-Profile" type="first-of"
-			value="Conf-Profile|profile_name" />
+		<field name="Conference-Profile" type="first-of" value="Conf-Profile|profile_name" />
 		<field name="Controls" />
 	</cache>
 

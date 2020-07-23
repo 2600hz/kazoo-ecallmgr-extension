@@ -23,6 +23,7 @@
 		<event name="CHANNEL_METAFLOW" />
         <event name="CHANNEL_HANGUP"/>
         <event name="CHANNEL_HANGUP_COMPLETE"/>
+        <event name="DETECTED_SPEECH"/>
 	</events>
 
 	<routing-key>
