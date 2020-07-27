@@ -54,19 +54,21 @@ init([]) ->
     _ = kz_nodes:notify_new(),
     _ = kz_nodes:notify_expire(),
     _ = kz_nodes:notify_heartbeat(),
-    {'ok', #{nodes => #{}}}.
+    {'ok', #{zone => kz_nodes:local_zone(), nodes => #{}}}.
 
 -spec handle_call(any(), kz_term:pid_ref(), state()) -> kz_types:handle_call_ret_state(state()).
 handle_call(_Request, _From, State) ->
     {'reply', {'error', 'not_implemented'}, State}.
 
 -spec handle_cast(any(), state()) -> kz_types:handle_cast_ret_state(state()).
-handle_cast({'kz_nodes',{'new', Node}}, State) ->
+handle_cast({'kz_nodes', {'new', #kz_node{zone = Zone} = Node}}, #{zone := Zone} = State) ->
     {'noreply', handle_heartbeat(Node, State)};
-handle_cast({'kz_nodes',{'heartbeat', Node}}, State) ->
+handle_cast({'kz_nodes',{'heartbeat', #kz_node{zone = Zone} = Node}}, #{zone := Zone} = State) ->
     {'noreply', handle_heartbeat(Node, State)};
-handle_cast({'kz_nodes',{'expire', Node}}, State) ->    
+handle_cast({'kz_nodes',{'expire', #kz_node{zone = Zone} = Node}}, #{zone := Zone} = State) ->
     {'noreply', handle_expired(Node, State)};
+handle_cast({'kz_nodes', _Node}, State) ->
+    {'noreply', State};
 handle_cast(_Cast, State) ->
     lager:debug("unhandled cast: ~p", [_Cast]),
     {'noreply', State}.
