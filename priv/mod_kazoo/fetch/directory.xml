@@ -6,7 +6,7 @@
 
 	<params>
 		<param name="fetch-section" value="directory" />
-		<param name="fetch-timeout" value="1500000" />
+		<param name="fetch-timeout" value="3500000" />
 		<param name="amqp-exchange" value="freeswitch" />
 		<param name="amqp-profile" value="fetch" />
 	</params>
