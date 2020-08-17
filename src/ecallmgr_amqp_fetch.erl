@@ -138,15 +138,16 @@ handle_req(JObj, Props) ->
     CoreUUID = kzd_fetch:core_uuid(JObj),
     Key = kzd_fetch:fetch_key_value(JObj),
     Section = kzd_fetch:fetch_section(JObj),
+    Tag = kzd_fetch:fetch_tag(JObj),
     Version = kzd_fetch:fetch_version(JObj),
     Event = kz_term:to_lower_binary(kz_api:event_name(JObj)),
-    RKs = lists:filter(fun kz_term:is_not_empty/1, [<<"fetch">>, Section, Version, Event, Key]),
-    %%    RKs = [kz_amqp_util:encode(Bin) || Bin <- lists:filter(fun kz_term:is_not_empty/1, [<<"fetch">>, Section, Version, Event, Key])],
+    RKs = lists:filter(fun kz_term:is_not_empty/1, [<<"fetch">>, Section, Tag, Version, Event, Key]),
 
     Routing = kz_binary:join(RKs, <<".">>),
     lager:debug("requesting binding for ~s", [Routing]),
     Map = #{node => Node
            ,section => kz_term:to_atom(Section, 'true')
+           ,tag => kz_term:to_atom(Tag, 'true')
            ,fetch_id => FetchId
            ,payload => JObj
            ,version => kz_term:to_atom(Version, 'true')
