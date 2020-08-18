@@ -24,10 +24,15 @@
             <param name="type" value="topic" />
             <param name="durable" value="0" />
         </exchange>
-		<exchange>
-			<param name="name" value="targeted" />
-			<param name="type" value="direct" />
-		</exchange>
+        <exchange>
+            <param name="name" value="directory" />
+            <param name="type" value="topic" />
+            <param name="durable" value="0" />
+        </exchange>
+        <exchange>
+            <param name="name" value="targeted" />
+            <param name="type" value="direct" />
+        </exchange>
 	</declare-exchanges>
 
 
