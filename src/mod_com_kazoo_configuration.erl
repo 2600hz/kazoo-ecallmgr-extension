@@ -15,6 +15,7 @@
 
 -export([kazoo/1]).
 
+-export([build_kazoo_config/0]).
 -export([kazoo_config/0]).
 
 -import(ecallmgr_fs_xml
@@ -51,9 +52,9 @@ fetch_mod_kazoo_config(<<"REQUEST_PARAMS">>, #{payload := JObj} = Ctx) ->
     Action = kz_json:get_ne_binary_value(<<"Action">>, JObj),
     fetch_mod_kazoo_config_action(Action, Ctx);
 fetch_mod_kazoo_config(<<"GENERAL">>, #{payload := _JObj} = Ctx) ->
-    try config() of
+    try kazoo_config() of
         {'ok', Xml} ->
-            mod_com_kazoo:fetch_reply(Ctx#{reply => iolist_to_binary(Xml)})
+            mod_com_kazoo:fetch_reply(Ctx#{reply => Xml})
     catch
         _Ex:_Er:ST ->
             kz_log:log_stacktrace(ST),
@@ -75,13 +76,12 @@ fetch_mod_kazoo_config_action(Action, #{core_uuid := Node} = Ctx) ->
     lager:debug("unhandled mod kazoo config action : ~p : ~p", [Node, Action]),
     config_req_not_handled(Ctx).
 
--spec kazoo_config() -> 'ok'.
+-spec kazoo_config() -> {'ok', binary()}.
 kazoo_config() ->
-    {'ok', Xml} = config(),
-    io:format("~n~n~s~n~n", [iolist_to_binary(Xml)]).
+    {ok, persistent_term:get(mod_com_kazoo_xml_config, <<>>)}.
 
--spec config() -> {'ok', iolist()}.
-config() ->
+-spec build_kazoo_config() -> {'ok', binary()}.
+build_kazoo_config() ->
     ProfileFiles = filelib:wildcard(code:priv_dir(?APP) ++ "/mod_kazoo/event_profiles/*.xml"),
     {DefFiles0, Profiles} = lists:foldr(fun fs_profile_handler/2, {[], []}, ProfileFiles),
 
@@ -106,7 +106,10 @@ config() ->
                                 ]
                                ),
     SectionEl = section_el(<<"configuration">>, ConfigurationEl),
-    {'ok', xmerl:export([SectionEl], 'fs_xml')}.
+    Xml = xmerl:export([SectionEl], 'fs_xml'),
+    Config = iolist_to_binary(Xml),
+    persistent_term:put(mod_com_kazoo_xml_config, Config),
+    {ok, Config}.
 
 fs_profile_handler(ProfileFile, {DefFiles0, ProfileXmls}) ->
     {DefFiles, ProfileXml} = fs_profile_events(fs_xml(ProfileFile), DefFiles0),
