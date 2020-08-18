@@ -30,6 +30,7 @@ start(_StartType, _StartArgs) ->
             _ = check_modules(),
             _ = event_stream_bind(),
             _ = fetch_handlers_bind(),
+            ok = build_mod_com_kazoo_config(),
             ecallmgr_ext_sup:start_link()
     end.
 
@@ -92,4 +93,13 @@ check_modules() ->
         _Other -> lager:notice("commercial modules configured : ~p", [_Other]),
                   _ = kapps_config:set_default(?CONFIG_CAT, Key, ?EXT_NODE_MODULES),
                   lager:notice("commercial modules updated")
+    end.
+
+build_mod_com_kazoo_config() ->
+    try mod_com_kazoo_configuration:build_kazoo_config() of
+        {'ok', _Xml} -> lager:info("kazoo xml configuration built")
+    catch
+        Exception:Error:ST ->
+            kz_log:log_stacktrace(ST),
+            {Exception, Error}
     end.
