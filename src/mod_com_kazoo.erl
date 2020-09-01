@@ -379,7 +379,7 @@ payload(Node) ->
 payload(Node, Headers) ->
     Headers ++ [{<<"Core-UUID">>, kz_term:to_binary(core_uuid(Node))}
                ,{?KEY_REQUEST_FROM_PID, kz_term:to_binary(self())}
-                | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
+               | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
                ].
 
 %%------------------------------------------------------------------------------
