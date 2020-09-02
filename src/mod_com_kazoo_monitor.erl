@@ -162,7 +162,7 @@ handle_heartbeat(true, CoreUUID, Nodename, #{nodes := Nodes} = State) ->
             State
     end.
 
--type node_map_result() :: {undefined | map()}.
+-type node_map_result() :: undefined | map().
 -type heartbeat_match_result() :: {node_map_result(), node_map_result()}.
 
 -spec heartbeat_match(atom(), atom(), map()) -> heartbeat_match_result().
