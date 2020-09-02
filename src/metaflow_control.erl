@@ -1,12 +1,17 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2018, 2600Hz
+%%% @copyright (C) 2011-2020, 2600Hz
 %%% @doc Receive call command and executes
+%%% This Source Code Form is subject to the terms of the Mozilla Public
+%%% License, v. 2.0. If a copy of the MPL was not distributed with this
+%%% file, You can obtain one at https://mozilla.org/MPL/2.0/.
+%%%
 %%% @end
 %%%-----------------------------------------------------------------------------
 -module(metaflow_control).
 
 
 -export([handle_req/2]).
+-export([exec_payload/2]).
 
 -include("metaflow.hrl").
 
@@ -20,7 +25,12 @@
 %%------------------------------------------------------------------------------
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
+    lager:debug_unsafe("~s", [kz_json:encode(JObj, ['pretty'])]),
     Node = props:get_value('FSNode', Props),
+    exec_payload(Node, JObj).
+
+-spec exec_payload(atom(), kz_json:object()) -> 'ok'.
+exec_payload(Node, JObj) ->
     case kz_json:get_value(<<"Application-Name">>, JObj) of
         <<"queue">> ->
             'true' = kapi_dialplan:queue_v(JObj),
@@ -31,6 +41,7 @@ handle_req(JObj, Props) ->
             exec_dialplan(Node, UUID, DP);
         _AName -> control_process('exec_cmd', JObj, Node)
     end.
+
 
 handle_queue_commands([], _, _Node, DP) -> DP;
 handle_queue_commands([Command|Commands], DefJObj, Node, DP) ->
@@ -47,7 +58,7 @@ handle_queue_commands([Command|Commands], DefJObj, Node, DP) ->
 
 -spec control_process(atom(), kz_json:object(), atom()) -> 'ok' | fs_apps().
 control_process(Fun, Cmd, Node) ->
-    kz_util:put_callid(Cmd),
+    kz_log:put_callid(Cmd),
     Category = kz_api:event_category(Cmd),
     Event = kz_api:event_name(Cmd),
 
@@ -65,20 +76,18 @@ control_process(Fun, Cmd, Node) ->
 
     try apply(M, Fun, [Node, CallId, Cmd, self()])
     catch
-        _:{'error', 'nosession'} ->
+        _:{'error', 'nosession'}:_ ->
             lager:debug("unable to execute command, no session");
-        'error':{'badmatch', {'error', 'nosession'}} ->
+        'error':{'badmatch', {'error', 'nosession'}}:_ ->
             lager:debug("unable to execute command, no session");
-        'error':{'badmatch', {'error', ErrMsg}} ->
-            ST = erlang:get_stacktrace(),
+        'error':{'badmatch', {'error', ErrMsg}}:ST ->
             lager:debug("invalid command ~s: ~p", [DialplanApp, ErrMsg]),
             kz_util:log_stacktrace(ST);
         'throw':{'msg', ErrMsg} ->
             lager:debug("error while executing command ~s: ~s", [DialplanApp, ErrMsg]);
         'throw':Msg ->
             lager:debug("failed to execute ~s: ~s", [DialplanApp, Msg]);
-        _A:_B ->
-            ST = erlang:get_stacktrace(),
+        _A:_B:ST ->
             lager:debug("exception (~s) while executing ~s: ~p", [_A, DialplanApp, _B]),
             kz_util:log_stacktrace(ST)
     end.
@@ -89,7 +98,6 @@ exec_dialplan(Node, UUID, DP) ->
 -spec get_mfa(kz_term:ne_binary(), kz_term:ne_binary(), atom()) -> module().
 get_mfa(Category, Name, Fun) ->
     ModuleName = <<"ecallmgr_", Category/binary, "_", Name/binary>>,
-
     case kz_module:is_exported(ModuleName, Fun, 4) of
         'true' ->
             kz_term:to_atom(ModuleName);

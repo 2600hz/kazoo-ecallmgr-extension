@@ -1,0 +1,22 @@
+<profile name="loopback" profile-type="event">
+
+	<params>
+	   <param name="amqp-exchange" value="callevt" />
+	   <param name="amqp-profile" value="push-event"/>
+	   <param name="event-channel-mode" value="worker"/>
+	</params>
+
+	<events>
+		<event name="loopback::bowout"/>
+		<event name="loopback::direct"/>
+	</events>
+
+	<routing-key>
+		<field name="call" type="static" value="call" />
+		<field name="event" type="expand" value="CHANNEL_${toupper(${Event-Subclass:10})}" />
+		<field name="Unique-ID" />
+		<param name="hash-event-field" value="Unique-ID" />
+		<param name="hash-amqp-header" value="call-id" />		
+	</routing-key>
+
+</profile>

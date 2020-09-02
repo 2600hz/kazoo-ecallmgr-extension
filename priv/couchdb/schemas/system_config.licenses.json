@@ -1,0 +1,12 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "_id": "system_config.licenses",
+    "description": "Schema for licenses system_config",
+    "properties": {
+        "ecallmgr_extension": {
+            "description": "licenses ecallmgr_extension",
+            "type": "object"
+        }
+    },
+    "type": "object"
+}

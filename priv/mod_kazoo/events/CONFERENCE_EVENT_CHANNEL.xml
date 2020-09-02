@@ -1,0 +1,13 @@
+<event name="CONFERENCE_EVENT_CHANNEL">
+	<fields verbose="false">
+	    <field name="Event-Category" type="static" value="live" />
+	    <field name="Event-Name" type="static" value="conference" />
+	    <field name="App-Name" type="static" value="freeswitch" />
+	    <field name="App-Version" type="static" value="1.0" />
+	    <field name="Action" as="Event" />
+	    <field name="Conference-Name" as="Conference-ID" />
+	    <field name="Conference-Unique-ID" as="Instance-ID" />
+	    <field name="Account-ID" type="first-of" value="Account-ID|Conference-Account-ID|variable_ecallmgr_Account-ID" />
+	    <field name="_json_event_channel_data" as="Event-Data" serialize-as="raw"/>
+	</fields>
+</event>

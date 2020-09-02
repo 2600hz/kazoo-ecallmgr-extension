@@ -1,0 +1,49 @@
+<profile name="cache" profile-type="worker">
+
+    <connection-ref workers="1" channels="1">
+       <property name="is-local" value="true"/>
+    </connection-ref>
+    <connection-ref workers="1" channels="1">
+       <property name="is-federated" value="true"/>
+    </connection-ref>
+
+	<logging>
+		<log name="trace" value="SWITCH_LOG_DEBUG" />
+		<log name="info" value="SWITCH_LOG_DEBUG" />
+		<log name="success" value="SWITCH_LOG_DEBUG" />
+		<log name="time" value="SWITCH_LOG_DEBUG" />
+		<log name="filtered-event" value="SWITCH_LOG_DEBUG" />
+		<log name="filtered-field" value="SWITCH_LOG_DEBUG" />
+	</logging>
+
+	<declare-exchanges>
+		<exchange>
+			<param name="name" value="directory" />
+			<param name="type" value="topic" />
+		</exchange>
+	</declare-exchanges>
+
+	<queue>
+		<param name="name" value="freeswitch.cache.${Core-UUID}" />
+
+		<binding>
+			<param name="exchange" value="directory" />
+			<param name="routing-key" value="cache.*" />
+		</binding>
+
+		<param name="exclusive" value="false" />
+		<param name="consume-exclusive" value="false" />
+		<param name="consume-qos" value="10" />
+		<param name="consume-qos-global" value="false" />
+		<param name="consume-spawn" value="false" />
+
+	</queue>
+
+	<params>
+		<param name="workers" value="3" />
+		<param name="channels" value="5" />
+		<param name="query-timeout-ms" value="2500" />
+		<param name="cache-expires-ms" value="120000" />
+	</params>
+
+</profile>

@@ -1,0 +1,39 @@
+<profile name="directory" profile-type="fetch">
+
+	<fields verbose="true">
+		<field name="fetch-info" type="reference" />
+	</fields>
+
+	<params>
+		<param name="fetch-section" value="directory" />
+		<param name="fetch-timeout" value="3500000" />
+		<param name="amqp-exchange" value="freeswitch" />
+		<param name="amqp-profile" value="fetch" />
+	</params>
+
+	<routing-key>
+		<field name="freeswitch" type="static" value="freeswitch.directory.fetch" encode-part="false" />
+		<field name="Core-UUID" />
+		<field name="Fetch-UUID" />
+	</routing-key>
+
+	<!--
+	<routing-key>
+		<field name="directory" type="static" value="directory.fetch" encode-part="false" />
+		<field name="Fetch-Tag" />
+	</routing-key>
+	-->
+
+	<cache expires_ms="300000">
+		<field name="Fetch-Section" />
+		<field name="Fetch-Tag" />
+		<field name="Fetch-Key-Name" />
+		<field name="Fetch-Key-Value" />
+		<field name="user" />
+		<field name="domain" />
+		<field name="X-AUTH-Token" />
+		<field name="X-AUTH-URI-Realm" />
+		<field name="X-AUTH-URI-User" />
+	</cache>
+ 
+</profile>

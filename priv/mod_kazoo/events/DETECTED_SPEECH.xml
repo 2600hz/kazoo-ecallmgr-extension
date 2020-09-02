@@ -1,0 +1,15 @@
+<event name="DETECTED_SPEECH">
+	<fields verbose="false">
+		<field name="call_event_headers" type="reference" />
+		<field name="Custom-Channel-Vars" type="reference" />
+		<field name="Custom-Application-Vars" type="reference" />
+		<field name="Custom-Application-Vars" type="reference" />
+		<field name="conference-vars" type="reference" />
+		<field name="_body" as="Speech" serialize-as="raw"/>
+		<field name="debug-call" type="reference" />
+	</fields>
+    <filters>
+        <filter name="variable_ecallmgr_Is-Conference" type="exclude" compare="exists" />
+    </filters>
+	
+</event>

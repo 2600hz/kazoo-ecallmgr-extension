@@ -1,0 +1,59 @@
+<profile name="push-event" profile-type="worker">
+
+	<connection-ref workers="7" channels="21">
+	   <property name="is-local" value="true"/>
+	</connection-ref>
+
+	<logging>
+		<log name="trace" value="SWITCH_LOG_DEBUG1" />
+		<log name="info" value="SWITCH_LOG_DEBUG1" />
+		<log name="success" value="SWITCH_LOG_DEBUG1" />
+		<log name="time" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
+	</logging>
+
+	<declare-exchanges>
+		<exchange>
+			<param name="name" value="freeswitch" />
+			<param name="type" value="topic" />
+		</exchange>
+		<exchange>
+			<param name="name" value="callevt" />
+			<param name="type" value="topic" />
+		</exchange>
+		<exchange>
+			<param name="name" value="conference" />
+			<param name="type" value="topic" />
+		</exchange>
+		<exchange>
+			<param name="name" value="presence" />
+			<param name="type" value="topic" />
+		</exchange>
+		<exchange>
+			<param name="name" value="cdr" />
+			<param name="type" value="topic" />
+		</exchange>
+		<exchange>
+			<param name="name" value="targeted" />
+			<param name="type" value="direct" />
+		</exchange>
+	</declare-exchanges>
+
+	<params>
+		<param name="workers" value="4" />
+		<param name="channels" value="5" />
+		<param name="reconnect_interval_ms" value="10000"/>
+	</params>
+
+	<publisher>
+		<params>
+			<param name="delivery-mode" value="0" />
+		</params>
+		<fields>
+			<field name="Server-ID"
+				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+		</fields>
+	</publisher>
+
+</profile>

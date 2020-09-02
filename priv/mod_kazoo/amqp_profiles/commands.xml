@@ -1,0 +1,61 @@
+<profile name="commands" profile-type="worker">
+
+    <connection-ref workers="5" channels="5">
+       <property name="is-local" value="true"/>
+    </connection-ref>
+
+	<logging>
+		<log name="trace" value="SWITCH_LOG_DEBUG1" />
+		<log name="info" value="SWITCH_LOG_DEBUG" />
+		<log name="success" value="SWITCH_LOG_DEBUG1" />
+		<log name="time" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
+	</logging>
+
+	<declare-exchanges>
+		<exchange>
+			<param name="name" value="freeswitch" />
+			<param name="type" value="topic" />
+		</exchange>
+		<exchange>
+			<param name="name" value="targeted" />
+			<param name="type" value="direct" />
+		</exchange>
+	</declare-exchanges>
+
+	<queue>
+		<param name="name" value="freeswitch.cmds.${Core-UUID}" />
+		<param name="exclusive" value="false" />
+		<param name="consume-exclusive" value="false" />
+		<param name="consume-qos" value="10" />
+		<param name="consume-qos-global" value="false" />
+		<param name="consume-spawn" value="true" />
+
+		<binding>
+			<param name="exchange" value="freeswitch" />
+			<param name="routing-key" value="freeswitch.commands.${Core-UUID}" />
+			<param name="federated" value="true" />
+		</binding>
+
+	</queue>
+
+
+	<params>
+		<param name="workers" value="2" />
+		<param name="channels" value="7" />
+		<param name="query-timeout-ms" value="2500" />
+		<param name="cache-expires-ms" value="120000" />
+	</params>
+
+	<publisher>
+		<params>
+			<param name="delivery-mode" value="0" />
+		</params>
+		<fields>
+			<field name="Server-ID"
+				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+		</fields>
+	</publisher>
+
+</profile>

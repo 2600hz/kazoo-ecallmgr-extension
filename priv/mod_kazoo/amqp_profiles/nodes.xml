@@ -1,0 +1,67 @@
+<profile name="nodes" profile-type="worker">
+
+    <connection-ref workers="1" channels="1">
+       <property name="is-local" value="true"/>
+    </connection-ref>
+    <connection-ref workers="1" channels="1">
+       <property name="is-federated" value="true"/>
+    </connection-ref>
+
+	<logging>
+		<log name="trace" value="SWITCH_LOG_DEBUG1" />
+		<log name="info" value="SWITCH_LOG_DEBUG1" />
+		<log name="success" value="SWITCH_LOG_DEBUG1" />
+		<log name="time" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
+	</logging>
+
+	<declare-exchanges>
+		<exchange>
+			<param name="name" value="nodes" />
+			<param name="type" value="fanout" />
+		</exchange>
+		<exchange>
+			<param name="name" value="targeted" />
+			<param name="type" value="direct" />
+		</exchange>
+	</declare-exchanges>
+
+	<queue>
+		<param name="name" value="freeswitch.nodes.${Core-UUID}" />
+
+		<binding>
+			<param name="exchange" value="nodes" />
+			<param name="federated" value="true" />
+		</binding>
+		<binding>
+			<param name="exchange" value="targeted" />
+			<param name="routing-key" value="freeswitch.nodes.${Core-UUID}" />
+		</binding>
+
+		<param name="exclusive" value="false" />
+		<param name="consume-exclusive" value="false" />
+		<param name="consume-qos" value="10" />
+		<param name="consume-qos-global" value="false" />
+		<param name="consume-spawn" value="true" />
+
+	</queue>
+
+	<params>
+		<param name="workers" value="1" />
+		<param name="channels" value="1" />
+		<param name="query-timeout-ms" value="2500" />
+		<param name="cache-expires-ms" value="120000" />
+	</params>
+
+	<publisher>
+		<params>
+			<param name="delivery-mode" value="0" />
+		</params>
+		<fields>
+			<field name="Server-ID"
+				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+		</fields>
+	</publisher>
+
+</profile>

@@ -1,0 +1,23 @@
+<profile name="sofia_transfer" profile-type="event">
+
+	<params>
+       <param name="amqp-exchange" value="callevt" />
+       <param name="amqp-profile" value="push-event"/>
+	</params>
+
+	<events>
+		<event name="sofia::intercepted" />
+		<event name="sofia::replaced" />
+		<event name="sofia::transferor" />
+		<event name="sofia::transferee" />
+	</events>
+
+	<routing-key>
+		<field name="call" type="static" value="call" />
+        <field name="event" type="expand" value="CHANNEL_${toupper(${Event-Subclass:7})}" />
+		<field name="Unique-ID" />
+        <param name="hash-event-field" value="Unique-ID" />
+        <param name="hash-amqp-header" value="call-id" />       
+	</routing-key>
+
+</profile>

@@ -1,0 +1,29 @@
+<event name="KZ_PRESENCE_DIALOG">
+	<fields verbose="false">
+		<field name="Event-Category" type="static" value="presence" />
+		<field name="Event-Name" type="static" value="dialog_update" />
+		<field name="Presence-Dialog-Presence-ID" as="Presence-ID" />
+
+		<field name="Presence-Dialog-From" as="From" />
+		<field name="Presence-Dialog-From-User" as="From-User" />
+		<field name="Presence-Dialog-Realm" as="From-Realm" />
+		<field name="variable_sip_from_tag" as="From-Tag" />
+
+		<field name="Presence-Dialog-To" as="To" />
+		<field name="Presence-Dialog-To-User" as="To-User" />
+		<field name="Presence-Dialog-Realm" as="To-Realm" />
+		<field name="variable_sip_to_tag" as="To-Tag" />
+		<field name="Presence-Dialog-From" as="To-URI" />
+
+		<field name="Presence-Dialog-Realm-Hash" />
+
+		<field name="Presence-Dialog-Direction" as="Direction" />
+		<field name="Presence-Dialog-Expires" as="Expires" />
+		<field name="Presence-Dialog-State" as="State" />
+		<field name="Unique-ID" as="Call-ID" />
+		<field name="Event-Package" type="static" value="dialog" />
+		<field name="Switch-URI" type="reference" />
+		<field name="App-Name" type="static" value="mod_presence" />
+		<field name="App-Version" type="static" value="1.0" />
+	</fields>
+</event>

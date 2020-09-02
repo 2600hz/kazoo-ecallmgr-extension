@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "_id": "kapi.freeswitch.bgapi",
+    "description": "AMQP API for freeswitch.bgapi",
+    "properties": {
+        "API-Arguments": {
+            "type": "string"
+        },
+        "API-Command": {
+            "type": "string"
+        },
+        "Core-UUID": {
+            "type": "string"
+        },
+        "Event-Category": {
+            "enum": [
+                "freeswitch"
+            ],
+            "type": "string"
+        },
+        "Event-Name": {
+            "enum": [
+                "bgapi"
+            ],
+            "type": "string"
+        }
+    },
+    "required": [
+        "API-Command",
+        "Core-UUID"
+    ],
+    "type": "object"
+}
