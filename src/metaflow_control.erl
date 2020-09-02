@@ -82,14 +82,14 @@ control_process(Fun, Cmd, Node) ->
             lager:debug("unable to execute command, no session");
         'error':{'badmatch', {'error', ErrMsg}}:ST ->
             lager:debug("invalid command ~s: ~p", [DialplanApp, ErrMsg]),
-            kz_util:log_stacktrace(ST);
+            kz_log:log_stacktrace(ST);
         'throw':{'msg', ErrMsg} ->
             lager:debug("error while executing command ~s: ~s", [DialplanApp, ErrMsg]);
         'throw':Msg ->
             lager:debug("failed to execute ~s: ~s", [DialplanApp, Msg]);
         _A:_B:ST ->
             lager:debug("exception (~s) while executing ~s: ~p", [_A, DialplanApp, _B]),
-            kz_util:log_stacktrace(ST)
+            kz_log:log_stacktrace(ST)
     end.
 
 exec_dialplan(Node, UUID, DP) ->
