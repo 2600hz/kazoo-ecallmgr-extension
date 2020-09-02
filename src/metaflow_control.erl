@@ -62,40 +62,46 @@ control_process(Fun, Cmd, Node) ->
     Category = kz_api:event_category(Cmd),
     Event = kz_api:event_name(Cmd),
 
+    DialplanApp = kapi_dialplan:application_name(Cmd),
     lager:debug("executing ~s ~s '~s' ~s"
                ,[Category
                 ,Event
-                ,kz_json:get_value(<<"Application-Name">>, Cmd)
-                ,kz_json:get_value(<<"Msg-ID">>, Cmd, <<>>)
+                ,DialplanApp
+                ,kz_api:msg_id(Cmd, <<>>)
                 ]),
-    CallId = kz_json:get_value(<<"Call-ID">>, Cmd),
-    Mod = get_module(Category, Event),
-    try Mod:Fun(Node, CallId, Cmd, self())
+
+    CallId = kz_api:call_id(Cmd),
+
+    M = get_mfa(Category, Event, Fun),
+
+    try apply(M, Fun, [Node, CallId, Cmd, self()])
     catch
         _:{'error', 'nosession'}:_ ->
             lager:debug("unable to execute command, no session");
         'error':{'badmatch', {'error', 'nosession'}}:_ ->
             lager:debug("unable to execute command, no session");
         'error':{'badmatch', {'error', ErrMsg}}:ST ->
-            lager:debug("invalid command ~s: ~p", [kz_json:get_value(<<"Application-Name">>, Cmd), ErrMsg]),
+            lager:debug("invalid command ~s: ~p", [DialplanApp, ErrMsg]),
             kz_log:log_stacktrace(ST);
-        'throw':{'msg', ErrMsg}:_ ->
-            lager:debug("error while executing command ~s: ~s", [kz_json:get_value(<<"Application-Name">>, Cmd), ErrMsg]);
-        'throw':Msg:_ ->
-            lager:debug("failed to execute ~s: ~s", [kz_json:get_value(<<"Application-Name">>, Cmd), Msg]);
+        'throw':{'msg', ErrMsg} ->
+            lager:debug("error while executing command ~s: ~s", [DialplanApp, ErrMsg]);
+        'throw':Msg ->
+            lager:debug("failed to execute ~s: ~s", [DialplanApp, Msg]);
         _A:_B:ST ->
-            lager:debug("exception (~s) while executing ~s: ~p", [_A, kz_json:get_value(<<"Application-Name">>, Cmd), _B]),
+            lager:debug("exception (~s) while executing ~s: ~p", [_A, DialplanApp, _B]),
             kz_log:log_stacktrace(ST)
     end.
 
 exec_dialplan(Node, UUID, DP) ->
     [ecallmgr_util:send_cmd(Node, UUID, AppName, AppData) || {AppName, AppData} <- DP].
 
--spec get_module(kz_term:ne_binary(), kz_term:ne_binary()) -> atom().
-get_module(Category, Name) ->
+-spec get_mfa(kz_term:ne_binary(), kz_term:ne_binary(), atom()) -> module().
+get_mfa(Category, Name, Fun) ->
     ModuleName = <<"ecallmgr_", Category/binary, "_", Name/binary>>,
-    try kz_term:to_atom(ModuleName)
-    catch
-        'error':'badarg':_ ->
-            kz_term:to_atom(ModuleName, 'true')
+    case kz_module:is_exported(ModuleName, Fun, 4) of
+        'true' ->
+            kz_term:to_atom(ModuleName);
+        'false' ->
+            lager:error("module ~s does not export ~s/4", [ModuleName, Fun]),
+            throw({'error', 'no_function'})
     end.
