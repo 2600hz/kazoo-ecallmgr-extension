@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2019, 2600Hz
+%%% @copyright (C) 2012-2020, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -162,7 +162,7 @@ handle_heartbeat(true, CoreUUID, Nodename, #{nodes := Nodes} = State) ->
             State
     end.
 
--type node_map_result() :: {undefined | map()}.
+-type node_map_result() :: undefined | map().
 -type heartbeat_match_result() :: {node_map_result(), node_map_result()}.
 
 -spec heartbeat_match(atom(), atom(), map()) -> heartbeat_match_result().

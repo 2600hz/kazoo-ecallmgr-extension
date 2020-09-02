@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2019, 2600Hz
+%%% @copyright (C) 2011-2020, 2600Hz
 %%% @doc handle communication with freeswitch thru amqp
 %%%
 %%% This Source Code Form is subject to the terms of the Mozilla Public
