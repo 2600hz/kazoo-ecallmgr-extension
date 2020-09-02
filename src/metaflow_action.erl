@@ -64,7 +64,7 @@ route_metaflow_action(UUID, ChannelJObj, Node) ->
     FetchId = kz_binary:rand_hex(16),
     MoreProps = [{<<"Call-ID">>, UUID}
                 ,{[<<"Custom-Channel-Vars">>, <<"Fetch-ID">>], FetchId}
-                 | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
+                | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
                 ],
     Request = kz_json:set_values(MoreProps, kz_api:remove_defaults(ChannelJObj)),
     ReqResp = kz_amqp_worker:call(Request
@@ -97,7 +97,7 @@ send_metaflow_win(ControlQ, FetchId, CallId, JObj) ->
           ,{<<"Call-ID">>, CallId}
           ,{<<"Control-Queue">>, ControlQ}
           ,{<<"Custom-Channel-Vars">>, CCVs}
-           | kz_api:default_headers(ControlQ, <<"dialplan">>, <<"route_win">>, ?APP_NAME, ?APP_VERSION)
+          | kz_api:default_headers(ControlQ, <<"dialplan">>, <<"route_win">>, ?APP_NAME, ?APP_VERSION)
           ],
     lager:debug("sending metaflow route_win to ~s", [ControllerQ]),
     Publisher = fun(API) -> kapi_route:publish_win(ControllerQ, API) end,

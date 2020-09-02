@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2020, 2600Hz
+%%% @copyright (C) 2012-2019, 2600Hz
 %%% @doc Send config commands to FS
 %%%
 %%% This Source Code Form is subject to the terms of the Mozilla Public
@@ -126,8 +126,8 @@ fs_profile_events(XmlEl, DefFiles0) ->
 
 -spec fs_profile_event(kz_types:xml_el(), {kz_types:xml_els(), kz_types:xml_els()}) -> {kz_types:xml_els(), kz_types:xml_els()}.
 fs_profile_event(ProfileEventXml, {DefFiles, EventXmls}) ->
-    [NameAttr] = xmerl_xpath:string("@name", ProfileEventXml), 
-    RoutingKey = xmerl_xpath:string("routing-key", ProfileEventXml), 
+    [NameAttr] = xmerl_xpath:string("@name", ProfileEventXml),
+    RoutingKey = xmerl_xpath:string("routing-key", ProfileEventXml),
     EventFile = fs_evt_filename(NameAttr),
     Tmp = #xmlElement{content = Content} = fs_xml(EventFile),
     EventXml = Tmp#xmlElement{content = Content ++ RoutingKey},
