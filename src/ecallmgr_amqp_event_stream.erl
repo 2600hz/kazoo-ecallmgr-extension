@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2019, 2600Hz
+%%% @copyright (C) 2012-2020, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -179,12 +179,12 @@ log_event(#{category := Category
     Created = kz_json:get_integer_value(<<"Event-Timestamp">>, JObj, 0),
     Published = Basic#'P_basic'.timestamp,
     lager:debug("received fs ~s : ~s (~B,~B,~B) => ~s => ~s", [Category, Event
-                                                             ,Published - Created
-                                                             ,NowUs - Published
-                                                             ,NowUs - Created
-                                                             ,gen_listener:routing_key_used(Deliver)
-                                                             ,log_basic_headers(Basic)
-                                                             ]).
+                                                              ,Published - Created
+                                                              ,NowUs - Published
+                                                              ,NowUs - Created
+                                                              ,gen_listener:routing_key_used(Deliver)
+                                                              ,log_basic_headers(Basic)
+                                                              ]).
 
 log_basic_headers(#'P_basic'{headers=undefined}) -> <<"no-headers">>;
 log_basic_headers(#'P_basic'{headers=Headers}) ->

@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2019, 2600Hz
+%%% @copyright (C) 2011-2020, 2600Hz
 %%% @doc Handle BRIDGE events and request metaflow bind
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -55,7 +55,7 @@ request_metaflow(Node, _UUID, {'ok', #channel{handling_locally='true'
           ,{<<"Authorizing-ID">>, AuthorizingId}
           ,{<<"Resource-ID">>, ResourceId}
           ,{<<"CallFlow-ID">>, CallFlowId}
-           | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
+          | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
           ],
     case kz_amqp_worker:call(API, fun kapi_metaflow:publish_bind_req/1, fun kapi_metaflow:binding_v/1) of
         {'ok', JObj} -> freeswitch:json_api(Node, UUID, <<"kz.meta.bind">>, JObj);
@@ -85,7 +85,7 @@ send_request(#{fetch_id := FetchId, payload := Payload}=Map) ->
             ,{<<"Custom-Routing-Headers">>, kz_json:from_list(CRProps)}
             ,{<<"Msg-ID">>, FetchId}
             ,{[<<"Custom-Channel-Vars">>, <<"Fetch-ID">>], FetchId}
-             | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
+            | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
             ],
     Request = kz_json:set_values(Props, Payload),
     ReqResp = kz_amqp_worker:call(Request
@@ -119,7 +119,7 @@ send_metaflow_win(#{fetch_id := FetchId, call_id := CallId, payload := _Payload,
           ,{<<"Call-ID">>, CallId}
           ,{<<"Control-Queue">>, list_to_binary(["pid://", kz_term:to_binary(Pid), "/", ControlQ])}
                                                 %          ,{<<"Control-PID">>, ControlP}
-           | kz_api:default_headers(ControlQ, <<"dialplan">>, <<"route_win">>, ?APP_NAME, ?APP_VERSION)
+          | kz_api:default_headers(ControlQ, <<"dialplan">>, <<"route_win">>, ?APP_NAME, ?APP_VERSION)
           ],
     lager:debug("sending metaflow route_win to ~s", [ControllerQ]),
     Publisher = fun(API) -> kapi_route:publish_win(ControllerQ, API) end,

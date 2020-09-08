@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2019-, 2600Hz
+%%% @copyright (C) 2020-, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -379,7 +379,7 @@ payload(Node) ->
 payload(Node, Headers) ->
     Headers ++ [{<<"Core-UUID">>, kz_term:to_binary(core_uuid(Node))}
                ,{?KEY_REQUEST_FROM_PID, kz_term:to_binary(self())}
-                | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
+               | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
                ].
 
 %%------------------------------------------------------------------------------
