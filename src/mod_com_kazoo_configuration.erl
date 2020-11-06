@@ -175,31 +175,31 @@ one_def(File, Acc) ->
         'false' -> Acc ++ [File]
     end.
 
--spec definitions_el(kz_types:xml_els()) -> kz_type:xml_el().
+-spec definitions_el(kz_types:xml_els()) -> kz_types:xml_el().
 definitions_el(Content) ->
     #xmlElement{name='definitions'
                ,content=Content
                }.
 
--spec event_handlers_el(kz_types:xml_els()) -> kz_type:xml_el().
+-spec event_handlers_el(kz_types:xml_els()) -> kz_types:xml_el().
 event_handlers_el(Content) ->
     #xmlElement{name='event-handlers'
                ,content=Content
                }.
 
--spec fetch_handlers_el(kz_types:xml_els()) -> kz_type:xml_el().
+-spec fetch_handlers_el(kz_types:xml_els()) -> kz_types:xml_el().
 fetch_handlers_el(Content) ->
     #xmlElement{name='fetch-handlers'
                ,content=Content
                }.
 
--spec command_handlers_el(kz_types:xml_els()) -> kz_type:xml_el().
+-spec command_handlers_el(kz_types:xml_els()) -> kz_types:xml_el().
 command_handlers_el(Content) ->
     #xmlElement{name='command-handlers'
                ,content=Content
                }.
 
--spec amqp_profiles_el(kz_types:xml_els()) -> kz_type:xml_el().
+-spec amqp_profiles_el(kz_types:xml_els()) -> kz_types:xml_el().
 amqp_profiles_el(Content) ->
     #xmlElement{name='amqp-profiles'
                ,content=Content
