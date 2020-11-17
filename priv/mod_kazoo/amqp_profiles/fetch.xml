@@ -30,8 +30,14 @@
             <param name="durable" value="0" />
         </exchange>
         <exchange>
+            <param name="name" value="kapps" />
+            <param name="type" value="topic" />
+            <param name="durable" value="0" />
+        </exchange>
+        <exchange>
             <param name="name" value="targeted" />
             <param name="type" value="direct" />
+            <param name="durable" value="0" />
         </exchange>
 	</declare-exchanges>
 

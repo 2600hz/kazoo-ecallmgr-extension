@@ -34,6 +34,7 @@
 		<field name="X-AUTH-Token" />
 		<field name="X-AUTH-URI-Realm" />
 		<field name="X-AUTH-URI-User" />
+		<field name="X-AUTH-From-User" />
 	</cache>
  
 </profile>
