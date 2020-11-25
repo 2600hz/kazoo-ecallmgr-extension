@@ -32,14 +32,19 @@
 		<field name="variable_Media-Recordings" as="Media-Recordings" as-array="true"/>
 		
 		<field name="transfer-history" type="reference"/>
-		<field name="originated-legs" type="reference" />		
+		<field name="originated-legs" type="reference" />
+		<field name="fax_info" type="reference" />
 		<field name="variable_originating_leg_uuid" as="Originating-Leg-UUID" />
 		
 		<field name="Extended-Data" type="static" serialize-as="object">
 			<fields verbose="false">
 				<field name="_json_callflow" as="Channel-CallFlow" serialize-as="raw"/>
 				<field name="_json_channel_stats" as="Channel-Stats" serialize-as="raw"/>
-				<field name="_json_channel_media_errors" as="Channel-Media-Errors" serialize-as="raw"/>
+				<field name="_json_channel_media_errors" as="Channel-Media-Errors" serialize-as="raw">
+					<filters>
+						<filter name="variable_cdr_include_media_errors" type="include" compare="value" value="true" />
+					</filters>
+				</field>
 				<field name="_json_application_log" as="Channel-Application-Log" serialize-as="raw"/>
 			</fields>
 		</field>
