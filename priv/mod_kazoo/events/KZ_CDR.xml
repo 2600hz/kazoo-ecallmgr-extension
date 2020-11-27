@@ -34,29 +34,10 @@
 		
 		<field name="transfer-history" type="reference"/>
 		<field name="originated-legs" type="reference" />
+		<field name="originate-causes" type="reference" />
 		<field name="fax_info" type="reference" />
 		<field name="variable_originating_leg_uuid" as="Originating-Leg-UUID" />
-		
-		<field name="Extended-Data" type="static" serialize-as="object">
-			<fields verbose="false">
-				<field name="_json_channel_stats" as="Channel-Stats" serialize-as="raw"/>
-				<field name="_json_callflow" as="Channel-CallFlow" serialize-as="raw">
-					<filters>
-						<filter name="variable_kz_cdr_include_callflow" type="include" compare="value" value="true" />
-					</filters>
-				</field>
-				<field name="_json_channel_media_errors" as="Channel-Media-Errors" serialize-as="raw">
-					<filters>
-						<filter name="variable_kz_cdr_include_media_errors" type="include" compare="value" value="true" />
-					</filters>
-				</field>
-				<field name="_json_application_log" as="Channel-Application-Log" serialize-as="raw">
-					<filters>
-						<filter name="variable_kz_cdr_include_application_log" type="include" compare="value" value="true" />
-					</filters>
-				</field>
-			</fields>
-		</field>
+		<field name="cdr-extended-data" type="reference" />
 		<field name="debug-call" type="reference" />
 	</fields>
 	<filters>
