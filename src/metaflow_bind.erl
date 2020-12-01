@@ -58,12 +58,26 @@ request_metaflow(Node, _UUID, {'ok', #channel{handling_locally='true'
           | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
           ],
     case kz_amqp_worker:call(API, fun kapi_metaflow:publish_bind_req/1, fun kapi_metaflow:binding_v/1) of
-        {'ok', JObj} -> freeswitch:json_api(Node, UUID, <<"kz.meta.bind">>, JObj);
+        {'ok', JObj} -> maybe_send_meta_bind(Node, UUID, JObj);
         {'error', 'timeout'} -> lager:debug("no metaflow available");
         _Else -> lager:debug("error requesting metaflow binding : ~p", [_Else])
     end;
 request_metaflow(_Node, _UUID, _Channel) -> lager:debug("channel not found : ~s", [_UUID]).
 
+is_metaflows_bind_empty(JObj) ->
+    case kzd_metaflows:numbers(JObj, []) ++ kzd_metaflows:patterns(JObj, []) of
+        [] -> true;
+        _Else -> false
+    end.
+
+maybe_send_meta_bind(Node, UUID, JObj) ->
+    case is_metaflows_bind_empty(JObj) of
+        true ->
+            lager:debug_unsafe("metaflow bind reply is empty => ~s", [kz_json:encode(JObj)]);
+        false ->
+            lager:error_unsafe("sending metaflow bind reply => ~s", [kz_json:encode(JObj)]),
+            freeswitch:json_api(Node, UUID, <<"kz.meta.bind">>, JObj)
+    end.
 
 -spec handle_metaflow(map()) -> any().
 handle_metaflow(Map) ->
