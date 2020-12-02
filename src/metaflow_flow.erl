@@ -24,16 +24,18 @@
 %%------------------------------------------------------------------------------
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
-    Node = props:get_value('FSNode', Props),
+    %% Node = props:get_value('FSNode', Props),
     ControlQ = props:get_value('Control-Q', Props),
     UUID = kz_api:call_id(JObj),
     case ecallmgr_fs_channel:fetch(UUID, 'record') of
         {'error', 'not_found'} -> lager:debug("channel ~s not found locally, exiting", [UUID]);
-        {'ok', #channel{handling_locally='true'}} ->
+        {'ok', #channel{handling_locally='true', node=N}} ->
             lager:debug("getting channel data for ~s", [UUID]),
-            case ecallmgr_fs_channel:channel_data(Node, UUID) of
-                {'ok', ChannelData} -> handle_metaflow_flow(UUID, JObj, ControlQ, ChannelData, Node);
-                {'error', Error} -> lager:debug("error ~p getting channel data for ~s, exiting", [Error, UUID])
+            case ecallmgr_fs_channel:channel_data(N, UUID) of
+                {'ok', ChannelData} ->
+                    handle_metaflow_flow(UUID, JObj, ControlQ, ChannelData, N);
+                {'error', Error} ->
+                    lager:debug("error ~p getting channel data for ~s, exiting", [Error, UUID])
             end;
         {'ok', #channel{}} -> lager:debug("channel ~s not handled on this node, exiting", [UUID])
     end.
@@ -52,6 +54,23 @@ handle_metaflow_flow(UUID, JObj, ControlQ, ChannelJObj, Node) ->
                ,{<<"Control-Queue">>, ControlQ}
                ,{<<"Call-ID">>, UUID}
                ,{<<"Msg-ID">>, FetchId}
+               ,{<<"From">>, kz_json:get_first_defined([<<"variable_sip_from_uri">>, <<"variable_presence_id">>
+                                                       ,<<"variable_sip_invite_from_uri">>, <<"variable_sip_loopback_from_uri">>
+                                                       ], ChannelJObj
+                                                      )
+                }
+               ,{<<"Request">>, kz_json:get_first_defined([<<"variable_sip_req_uri">>, <<"variable_sip_invite_req_uri">>
+                                                          ,<<"variable_sip_loopback_req_uri">>, <<"variable_sip_to_uri">>
+                                                          ,<<"variable_sip_invite_to_uri">>
+                                                          ], ChannelJObj
+                                                         )
+                }
+               ,{<<"To">>, kz_json:get_first_defined([<<"variable_sip_to_uri">>, <<"variable_sip_invite_to_uri">>
+                                                     ,<<"variable_sip_req_uri">>, <<"variable_sip_invite_req_uri">>
+                                                     ,<<"variable_sip_loopback_req_uri">>
+                                                     ], ChannelJObj
+                                                    )
+                }
                ,{[<<"Custom-Channel-Vars">>, <<"Fetch-ID">>], null}
                | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
                ],
