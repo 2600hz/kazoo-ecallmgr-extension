@@ -24,10 +24,15 @@
 %% @end
 %%------------------------------------------------------------------------------
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
-handle_req(JObj, Props) ->
+handle_req(JObj, _Props) ->
     lager:debug_unsafe("~s", [kz_json:encode(JObj, ['pretty'])]),
-    Node = props:get_value('FSNode', Props),
-    exec_payload(Node, JObj).
+    UUID = kz_api:call_id(JObj),
+    case ecallmgr_fs_channel:fetch(UUID, 'record') of
+        {'error', 'not_found'} -> lager:debug("channel ~s not found locally, exiting", [UUID]);
+        {'ok', #channel{handling_locally='true', node=Node}} ->
+            exec_payload(Node, JObj);
+        {'ok', #channel{}} -> lager:debug("channel ~s not handled on this node, exiting", [UUID])
+    end.
 
 -spec exec_payload(atom(), kz_json:object()) -> 'ok'.
 exec_payload(Node, JObj) ->
