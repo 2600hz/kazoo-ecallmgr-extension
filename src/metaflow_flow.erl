@@ -24,16 +24,17 @@
 %%------------------------------------------------------------------------------
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
-    Node = props:get_value('FSNode', Props),
     ControlQ = props:get_value('Control-Q', Props),
     UUID = kz_api:call_id(JObj),
     case ecallmgr_fs_channel:fetch(UUID, 'record') of
         {'error', 'not_found'} -> lager:debug("channel ~s not found locally, exiting", [UUID]);
-        {'ok', #channel{handling_locally='true'}} ->
+        {'ok', #channel{handling_locally='true', node=Node}} ->
             lager:debug("getting channel data for ~s", [UUID]),
             case ecallmgr_fs_channel:channel_data(Node, UUID) of
-                {'ok', ChannelData} -> handle_metaflow_flow(UUID, JObj, ControlQ, ChannelData, Node);
-                {'error', Error} -> lager:debug("error ~p getting channel data for ~s, exiting", [Error, UUID])
+                {'ok', ChannelData} ->
+                    handle_metaflow_flow(UUID, JObj, ControlQ, ChannelData, Node);
+                {'error', Error} ->
+                    lager:debug("error ~p getting channel data for ~s, exiting", [Error, UUID])
             end;
         {'ok', #channel{}} -> lager:debug("channel ~s not handled on this node, exiting", [UUID])
     end.
