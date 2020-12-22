@@ -64,14 +64,8 @@ request_metaflow(Node, _UUID, {'ok', #channel{handling_locally='true'
     end;
 request_metaflow(_Node, _UUID, _Channel) -> lager:debug("channel not found : ~s", [_UUID]).
 
-is_metaflows_bind_empty(JObj) ->
-    case kzd_metaflows:numbers(JObj, []) ++ kzd_metaflows:patterns(JObj, []) of
-        [] -> true;
-        _Else -> false
-    end.
-
 maybe_send_meta_bind(Node, UUID, JObj) ->
-    case is_metaflows_bind_empty(JObj) of
+    case kz_metaflows:is_empty(JObj) of
         true ->
             lager:debug_unsafe("metaflow bind reply is empty => ~s", [kz_json:encode(JObj)]);
         false ->
