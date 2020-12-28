@@ -65,12 +65,11 @@ request_metaflow(Node, _UUID, {'ok', #channel{handling_locally='true'
 request_metaflow(_Node, _UUID, _Channel) -> lager:debug("channel not found : ~s", [_UUID]).
 
 maybe_send_meta_bind(Node, UUID, JObj) ->
-    EncodedJObj = kz_json:encode(JObj),
     case kz_metaflows:is_empty(JObj) of
         true ->
-            lager:debug_unsafe("metaflow bind reply is empty => ~p", [EncodedJObj]);
+            lager:debug_unsafe("metaflow bind reply is empty => ~p", [kz_json:encode(JObj)]);
         false ->
-            lager:debug_unsafe("sending metaflow bind reply => ~p", [EncodedJObj]),
+            lager:debug_unsafe("sending metaflow bind reply => ~p", [kz_json:encode(JObj)]),
             freeswitch:json_api(Node, UUID, <<"kz.meta.bind">>, JObj)
     end.
 
