@@ -46,7 +46,7 @@ kazoo(#{fetch_id := Id, payload := JObj} = Ctx) ->
 
 -spec fetch_mod_kazoo_config(kz_term:ne_binary(), map()) -> fs_sendmsg_ret().
 fetch_mod_kazoo_config(<<"COMMAND">>, #{payload := _JObj} = Ctx) ->
-    lager:debug_unsafe("kazoo conf request: ~p", [kz_json:encode(_JObj)]),
+    lager:debug_unsafe("kazoo conf request: ~s", [kz_json:encode(_JObj)]),
     config_req_not_handled(Ctx);
 fetch_mod_kazoo_config(<<"REQUEST_PARAMS">>, #{payload := JObj} = Ctx) ->
     Action = kz_json:get_ne_binary_value(<<"Action">>, JObj),

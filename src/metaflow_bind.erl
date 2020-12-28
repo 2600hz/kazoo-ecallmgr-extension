@@ -67,9 +67,9 @@ request_metaflow(_Node, _UUID, _Channel) -> lager:debug("channel not found : ~s"
 maybe_send_meta_bind(Node, UUID, JObj) ->
     case kz_metaflows:is_empty(JObj) of
         true ->
-            lager:debug_unsafe("metaflow bind reply is empty => ~p", [kz_json:encode(JObj)]);
+            lager:debug_unsafe("metaflow bind reply is empty => ~s", [kz_json:encode(JObj)]);
         false ->
-            lager:debug_unsafe("sending metaflow bind reply => ~p", [kz_json:encode(JObj)]),
+            lager:debug_unsafe("sending metaflow bind reply => ~s", [kz_json:encode(JObj)]),
             freeswitch:json_api(Node, UUID, <<"kz.meta.bind">>, JObj)
     end.
 
@@ -106,7 +106,7 @@ send_request(#{fetch_id := FetchId, payload := Payload}=Map) ->
             lager:info("did not receive route response for metaflow ~s: ~p", [FetchId, R]),
             Map#{metaflow => #{error => R}};
         {'ok', JObj} ->
-            lager:debug_unsafe("metaflow reply: ~p", [kz_json:encode(JObj)]),
+            lager:debug_unsafe("metaflow reply: ~s", [kz_json:encode(JObj)]),
             'true' = kapi_route:resp_v(JObj),
             ControllerQ = kz_api:server_id(JObj),
             Map#{controller_q => ControllerQ, metaflow => #{payload => JObj}}
