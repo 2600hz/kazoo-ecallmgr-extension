@@ -168,7 +168,7 @@ handle_stream(Node, CoreUUID, JObj, Props) ->
 log_event(#{event := 'undefined'
            ,payload := JObj
            }) ->
-    lager:debug_unsafe("received unknown fs event : ~s", [kz_json:encode(JObj, ['pretty'])]);
+    lager:debug("received unknown fs event: ~p", [JObj]);
 log_event(#{category := Category
            ,event := Event
            ,payload := JObj

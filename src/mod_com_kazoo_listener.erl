@@ -135,7 +135,6 @@ code_change(_OldVsn, State, _Extra) ->
 
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
-    %% lager:debug_unsafe("REPLY : ~s", [kz_json:encode(JObj, ['pretty'])]),
     Pid = kz_term:to_pid(kz_api:reply_to(JObj)),
     Event = kz_api:event_name(JObj),
     handle_req(Pid, Event, JObj, Props).
