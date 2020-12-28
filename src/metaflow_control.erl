@@ -25,7 +25,7 @@
 %%------------------------------------------------------------------------------
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, _Props) ->
-    lager:debug("JObj: ~p", [JObj]),
+    lager:debug_unsafe("JObj: ~p", [kz_json:encode(JObj)]),
     UUID = kz_api:call_id(JObj),
     case ecallmgr_fs_channel:fetch(UUID, 'record') of
         {'error', 'not_found'} -> lager:debug("channel ~s not found locally, exiting", [UUID]);
