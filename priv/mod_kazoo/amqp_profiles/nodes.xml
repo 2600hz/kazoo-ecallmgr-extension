@@ -30,10 +30,12 @@
 	<queue>
 		<param name="name" value="freeswitch.nodes.${Core-UUID}" />
 
+	<!--
 		<binding>
 			<param name="exchange" value="nodes" />
 			<param name="federated" value="true" />
 		</binding>
+	-->
 		<binding>
 			<param name="exchange" value="targeted" />
 			<param name="routing-key" value="freeswitch.nodes.${Core-UUID}" />
