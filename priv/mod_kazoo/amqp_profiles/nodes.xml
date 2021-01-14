@@ -45,7 +45,7 @@
 		<param name="consume-exclusive" value="false" />
 		<param name="consume-qos" value="10" />
 		<param name="consume-qos-global" value="false" />
-		<param name="consume-spawn" value="true" />
+		<param name="consume-spawn" value="false" />
 
 	</queue>
 
