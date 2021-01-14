@@ -36,6 +36,7 @@
 		<field name="originated-legs" type="reference" />
 		<field name="originate-causes" type="reference" />
 		<field name="fax_info" type="reference" />
+		<field name="channel-endpoint-name" type="reference" />
 		<field name="variable_originating_leg_uuid" as="Originating-Leg-UUID" />
 		<field name="cdr-extended-data" type="reference" />
 		<field name="debug-call" type="reference" />
