@@ -44,5 +44,6 @@
 	<filters>
 		<!-- <filter name="variable_hangup_cause" type="exclude" compare="value" value="CALL_REJECTED" /> -->
 		<filter name="variable_hangup_cause" type="exclude" compare="value" value="WRONG_CALL_STATE" />
+		<filter name="variable_Call-Interaction-ID" type="include" />
 	</filters>
 </event>
