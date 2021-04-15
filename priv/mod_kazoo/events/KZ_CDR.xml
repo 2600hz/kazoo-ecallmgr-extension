@@ -23,6 +23,7 @@
 		<field name="user-agent" type="reference" />
 		<field name="Custom-Channel-Vars" type="reference" />
 		<field name="Custom-Application-Vars" type="reference" />
+		<field name="Custom-SIP-Headers" type="reference" />
 		<field name="Control" type="reference" />
 		<field name="from-to" type="reference" />
 		<field name="from-to-verto" type="reference" />
