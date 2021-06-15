@@ -1,0 +1,30 @@
+<profile name="dialog" profile-type="event">
+
+	<params>
+       <param name="amqp-exchange" value="cloud.ai" />
+       <param name="amqp-profile" value="dialog"/>
+       <param name="event-channel-mode" value="broadcast"/>
+	</params>
+
+	<events>
+        <event name="KZ_DIALOG_EVENT">
+		    <routing-key>
+		        <field name="dialog" type="static" value="dialog" />
+		        <field name="event" type="static" value="event" />
+		        <field name="variable_ecallmgr_Account-ID" />
+		        <field name="variable_ecallmgr_Dialog-ID" />
+		        <field name="Unique-ID" />
+		    </routing-key>
+        </event>
+	</events>
+
+    <logging>
+        <log name="trace" value="SWITCH_LOG_DEBUG1" />
+        <log name="info" value="SWITCH_LOG_DEBUG1" />
+        <log name="success" value="SWITCH_LOG_DEBUG1" />
+        <log name="time" value="SWITCH_LOG_DEBUG1" />
+        <log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
+        <log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
+    </logging>
+
+</profile>
