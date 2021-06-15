@@ -1,0 +1,15 @@
+<event name="RTCP_RECV_PACKET">
+	<fields verbose="false">
+		<field name="Event-Category" type="static" value="rtcp" />
+		<field name="Event-Name"  type="static" value="received" />
+		<field name="Event-Date-Timestamp" as="Msg-ID" />
+		<field name="Unique-ID" as="Call-ID"/>
+		<field name="Caller-Channel-Created-Time" as="Channel-Created-Time" />
+		<field name="Switch-Nodename" as="Node" />
+		<field name="variable_ecallmgr_Account-ID" as="Account-ID" />
+		<field name="rtcp-in" type="reference" />
+	</fields>
+	<flags>
+		<flag name="uuid-set-data" value="true"/>
+	</flags>
+</event>

@@ -1,0 +1,12 @@
+<definition name="rtcp-out">
+	<field name="rtcp" type="static" serialize-as="object">
+		<fields verbose="false">
+      <field name="srcIp" type="first-of" value="variable_advertised_media_ip|variable_local_media_ip"/>
+      <field name="localIp" type="first-of" value="variable_local_media_ip"/>
+      <field name="variable_local_media_port" as="srcPort" />
+      <field name="variable_remote_media_ip" as="dstIp"/>
+      <field name="variable_remote_media_port" as="dstPort" />
+			<field name="packet" as="packet-b64" />
+    </fields>
+  </field>
+</definition>
