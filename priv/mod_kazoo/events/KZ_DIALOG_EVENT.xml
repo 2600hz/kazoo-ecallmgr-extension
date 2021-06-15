@@ -1,0 +1,14 @@
+<event name="KZ_DIALOG_EVENT">
+	<fields verbose="false">
+	    <field name="Event-Category" type="static" value="dialog" />
+	    <field name="Event-Name" type="static" value="event" />
+	    <field name="App-Name" type="static" value="freeswitch" />
+	    <field name="App-Version" type="static" value="1.0" />
+		<field name="Core-UUID" />
+	    <field name="Action" as="Event-Type" />
+	    <field name="Account-ID" type="first-of" value="Account-ID|variable_ecallmgr_Account-ID" />
+	    <field name="Dialog-ID" type="first-of" value="Dialog-ID|variable_ecallmgr_Dialog-ID" />
+	    <field name="Unique-ID" as="Call-ID" />
+	    <field name="_json_dialog_event_data" as="Event-Data" serialize-as="raw"/>
+	</fields>
+</event>
