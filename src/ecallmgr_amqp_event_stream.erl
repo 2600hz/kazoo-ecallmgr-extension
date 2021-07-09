@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2020, 2600Hz
+%%% @copyright (C) 2012-2021, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,15 +31,9 @@
                      }
                     ]).
 
--define(BINDINGS(Evts), [{'call', [{'restrict_to', Evts}]}]).
-
-
 -define(QUEUE_NAME(Name), <<"ecallmgr_amqp_event_", (kz_term:to_binary(Name))/binary, "_", (binary:replace(kz_term:to_binary(node()), <<"@">>, <<"_">>))/binary>>).
 -define(QUEUE_OPTIONS, [{'exclusive', 'false'}]).
 -define(CONSUME_OPTIONS, [{'exclusive', 'false'}]).
-
-
--define(SERVER, ?MODULE).
 
 -type state() :: map().
 -type bindings() :: atom() | [atom(),...] | kz_term:ne_binary() | kz_term:ne_binaries().

@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2020, 2600Hz
+%%% @copyright (C) 2011-2021, 2600Hz
 %%% @doc Handle BRIDGE events and request metaflow bind
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,7 +14,7 @@
 -export([handle_bridge/1]).
 -export([handle_metaflow/1]).
 
--include("metaflow.hrl").
+-include("ecallmgr_extension.hrl").
 
 -spec init() -> 'ok'.
 init() ->
@@ -22,7 +22,7 @@ init() ->
     _ = kazoo_bindings:bind(<<"event_stream.process.call_event.CHANNEL_METAFLOW">>, ?MODULE, 'handle_metaflow'),
     'ok'.
 
--spec handle_bridge(map()) -> any().
+-spec handle_bridge(map()) -> 'ok' | pid().
 handle_bridge(#{payload := JObj}=Map) ->
     ThisNode = kz_term:to_binary(node()),
     ControlNode = kz_json:get_ne_binary_value([<<"Call-Control">>, <<"Node">>], JObj, ThisNode),
@@ -39,7 +39,11 @@ maybe_request_metaflow(ThisNode, ThisNode, #{node := Node, payload := JObj}) ->
 maybe_request_metaflow(ThisNode, OtherNode, _Map) ->
     lager:debug("not handling request metaflow ~s / ~s", [ThisNode, OtherNode]).
 
--spec request_metaflow(atom(), kz_term:ne_binary(), channel()) -> any().
+-type channel_fetch_resp() :: {'ok', channel()} | {'error', 'not_found'}.
+
+-spec request_metaflow(atom(), kz_term:ne_binary(), channel_fetch_resp()) -> 'ok'.
+request_metaflow(_Node, _UUID, {'error', 'not_found'}) ->
+    lager:debug("channel not found : ~s", [_UUID]);
 request_metaflow(Node, _UUID, {'ok', #channel{handling_locally='true'
                                              ,is_loopback='false'
                                              ,account_id=?NE_BINARY=AccountId
@@ -61,26 +65,25 @@ request_metaflow(Node, _UUID, {'ok', #channel{handling_locally='true'
         {'ok', JObj} -> maybe_send_meta_bind(Node, UUID, JObj);
         {'error', 'timeout'} -> lager:debug("no metaflow available");
         _Else -> lager:debug("error requesting metaflow binding : ~p", [_Else])
-    end;
-request_metaflow(_Node, _UUID, _Channel) -> lager:debug("channel not found : ~s", [_UUID]).
+    end.
 
 maybe_send_meta_bind(Node, UUID, JObj) ->
     case kz_metaflows:is_empty(JObj) of
-        true ->
+        'true' ->
             lager:debug_unsafe("metaflow bind reply is empty => ~s", [kz_json:encode(JObj)]);
-        false ->
+        'false' ->
             lager:error_unsafe("sending metaflow bind reply => ~s", [kz_json:encode(JObj)]),
             freeswitch:json_api(Node, UUID, <<"kz.meta.bind">>, JObj)
     end.
 
--spec handle_metaflow(map()) -> any().
+-spec handle_metaflow(map()) -> map().
 handle_metaflow(Map) ->
     Routines = [fun send_request/1
                ,fun maybe_send_route_win/1
                ],
     kz_maps:exec(Routines, Map#{fetch_id => kz_binary:rand_hex(16)}).
 
--spec send_request(map()) -> any().
+-spec send_request(map()) -> map().
 send_request(#{fetch_id := FetchId, payload := Payload}=Map) ->
     CRProps = [{<<"Metaflow-Request-Type">>, <<"in-call">>}
               ,{<<"Other-Leg-Call-ID">>, kz_json:get_binary_value(<<"Other-Leg-Call-ID">>, Payload)}
@@ -114,19 +117,21 @@ send_request(#{fetch_id := FetchId, payload := Payload}=Map) ->
 
 -spec maybe_send_route_win(map()) -> map().
 maybe_send_route_win(#{metaflow := #{payload := Reply}}=Map) ->
-    case kz_json:get_ne_binary_value(<<"Method">>, Reply) =:= <<"application">> of
-        'true' -> send_metaflow_win(Map);
-        'false' -> Map
+    case kz_json:get_ne_binary_value(<<"Method">>, Reply) of
+        <<"application">> -> send_metaflow_win(Map);
+        _Method -> Map
     end.
 
 -spec send_metaflow_win(map()) -> map().
-send_metaflow_win(#{fetch_id := FetchId, call_id := CallId, payload := _Payload, controller_q := ControllerQ}=Map) ->
+send_metaflow_win(#{fetch_id := FetchId
+                   ,call_id := CallId
+                   ,controller_q := ControllerQ
+                   }=Map) ->
     ControlQ = gen_listener:queue_name('metaflow_listener'),
     Pid = kz_process:spawn(fun metaflow_receiver/1, [Map]),
     Win = [{<<"Msg-ID">>, FetchId}
           ,{<<"Call-ID">>, CallId}
           ,{<<"Control-Queue">>, list_to_binary(["pid://", kz_term:to_binary(Pid), "/", ControlQ])}
-                                                %          ,{<<"Control-PID">>, ControlP}
           | kz_api:default_headers(ControlQ, <<"dialplan">>, <<"route_win">>, ?APP_NAME, ?APP_VERSION)
           ],
     lager:debug("sending metaflow route_win to ~s", [ControllerQ]),
@@ -140,5 +145,5 @@ metaflow_receiver(#{node := Node} = Map) ->
             metaflow_control:exec_payload(Node, JObj),
             metaflow_receiver(Map)
     after
-        15000 -> lager:debug("metaflow receiver exit")
+        15 * ?MILLISECONDS_IN_SECOND -> lager:debug("metaflow receiver exit")
     end.

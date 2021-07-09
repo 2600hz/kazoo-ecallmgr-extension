@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2020, 2600Hz
+%%% @copyright (C) 2012-2021, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -117,8 +117,8 @@ handle_heartbeat(Node, State) ->
     handle_heartbeat(is_media_server(Node), Node, CoreUUID, Nodename, State).
 
 -spec handle_heartbeat(boolean(), kz_types:kz_node(), atom(), atom(), state()) -> state().
-handle_heartbeat(false, _Node, _CoreUUID, _Nodename, State) -> State;
-handle_heartbeat(true, Node, CoreUUID, Nodename, #{nodes := Nodes} = State) ->
+handle_heartbeat('false', _Node, _CoreUUID, _Nodename, State) -> State;
+handle_heartbeat('true', Node, CoreUUID, Nodename, #{nodes := Nodes} = State) ->
     Context = #{core_uuid => CoreUUID
                ,node_uuid => ecallmgr_fs_nodes:instance_uuid(Nodename)
                ,node_up => ecallmgr_fs_nodes:is_node_up(Nodename)
@@ -147,8 +147,8 @@ update_nodes(#{core_uuid := CoreUUID
                             }}.
 
 maybe_remove_older_uuid(CoreUUID, Nodename, Nodes) ->
-    case maps:get(Nodename, Nodes, undefined) of
-        undefined -> Nodes;
+    case maps:get(Nodename, Nodes, 'undefined') of
+        'undefined' -> Nodes;
         #{uuid := CoreUUID} -> Nodes;
         #{uuid := OtherUUID} -> maps:without([OtherUUID], Nodes)
     end.
@@ -158,36 +158,36 @@ maybe_update_code(#{nodes := Nodes} = Context) ->
     _ = maybe_update_code(Nodes, lists:any(fun is_code_not_handled/1, Props)),
     Context.
 
-maybe_update_code(Nodes, true) -> update_code(Nodes);
-maybe_update_code(_Nodes, false) -> ok.
+maybe_update_code(Nodes, 'true') -> update_code(Nodes);
+maybe_update_code(_Nodes, 'false') -> 'ok'.
 
-maybe_node_up(#{is_node := true
-               ,node_up := true
+maybe_node_up(#{is_node := 'true'
+               ,node_up := 'true'
                } = Context) ->
     Context;
-maybe_node_up(#{is_node := true
-               ,node_up := false
+maybe_node_up(#{is_node := 'true'
+               ,node_up := 'false'
                ,nodename := Nodename
                } = Context) ->
     lager:info("notifying node ~s is up", [Nodename]),
     ecallmgr_fs_nodes:nodeup(Nodename, 'heartbeat'),
     Context;
-maybe_node_up(#{is_node := false
+maybe_node_up(#{is_node := 'false'
                ,nodename := Nodename
                } = Context) ->
     lager:info("adding new node ~s", [Nodename]),
-    ecallmgr_fs_nodes:add(Nodename, 'no_cookie', [{'connect_strategy', 'heartbeat'}]),
+    'ok' = ecallmgr_fs_nodes:add(Nodename, 'no_cookie', [{'connect_strategy', 'heartbeat'}]),
     Context.
 
 node_server(Nodename) ->
     ecallmgr_fs_node_sup:node_srv(Nodename).
 
 maybe_node_sync(#{nodename := Nodename
-                 ,node_server := undefined
+                 ,node_server := 'undefined'
                  } = Context) ->
     lager:info("node server is down ~s", [Nodename]),
     Context;
-maybe_node_sync(#{is_node := true
+maybe_node_sync(#{is_node := 'true'
                  ,core_uuid := CoreUUID
                  ,nodename := Nodename
                  ,node_server := Server
@@ -203,14 +203,14 @@ maybe_node_sync(#{is_node := true
 maybe_node_sync(Context) -> Context.
 
 node_instance_uuid(Nodename) ->
-    kz_term:to_atom(ecallmgr_fs_node:instance_uuid(Nodename), true).
+    kz_term:to_atom(ecallmgr_fs_node:instance_uuid(Nodename), 'true').
 
 maybe_node_run(#{nodename := Nodename
-                ,node_server := undefined
+                ,node_server := 'undefined'
                 } = Context) ->
     lager:info("node server is down ~s", [Nodename]),
     Context;
-maybe_node_run(#{is_node := true
+maybe_node_run(#{is_node := 'true'
                 ,nodename := Nodename
                 ,node := #kz_node{modules=Modules}
                 ,node_server := Server
@@ -219,9 +219,9 @@ maybe_node_run(#{is_node := true
     case not lists:member(<<"mod_sofia">>, Loaded)
         andalso should_run_cmds()
     of
-        false ->
+        'false' ->
             Context;
-        true ->
+        'true' ->
             lager:info("starting node commands for ~s", [Nodename]),
             run_node(Server, Nodename),
             Context
@@ -230,9 +230,9 @@ maybe_node_run(#{is_node := true
 run_node(Server, Nodename) ->
     handle_run_node_result(ecallmgr_fs_node:node_restart(Server), Nodename).
 
-handle_run_node_result({error, invalid_node}, Nodename) ->
+handle_run_node_result({'error', 'invalid_node'}, Nodename) ->
     lager:error("how did this happened? node ~s disapeared from fs nodes", [Nodename]);
-handle_run_node_result(ok, _Nodename) -> ok.
+handle_run_node_result('ok', _Nodename) -> 'ok'.
 
 should_run_cmds() ->
     kz_nodes:whapp_oldest_node(?APP) =:= node().
@@ -244,8 +244,8 @@ handle_expired(Node, State) ->
     handle_expired(is_media_server(Node), CoreUUID, Nodename, State).
 
 -spec handle_expired(boolean(), atom(), atom(), state()) -> state().
-handle_expired(false, _CoreUUID, _Nodename, State) -> State;
-handle_expired(true, CoreUUID, Nodename, #{nodes := Nodes} = State) ->
+handle_expired('false', _CoreUUID, _Nodename, State) -> State;
+handle_expired('true', CoreUUID, Nodename, #{nodes := Nodes} = State) ->
     lager:critical("received node down notice for ~s / ~s", [CoreUUID, Nodename]),
     NewNodes = maps:without([CoreUUID, Nodename], Nodes),
     _ = update_code(NewNodes),

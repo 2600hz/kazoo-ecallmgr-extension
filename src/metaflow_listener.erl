@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2020, 2600Hz
+%%% @copyright (C) 2011-2021, 2600Hz
 %%% @doc Receive route(dialplan) requests from FS, request routes and respond
 %%% @author James Aimonetti
 %%% This Source Code Form is subject to the terms of the Mozilla Public
@@ -23,22 +23,15 @@
         ,code_change/3
         ]).
 
--include("metaflow.hrl").
+-include("ecallmgr_extension.hrl").
 
--define(SERVER, ?MODULE).
-%% -define(DEFAULT_METAFLOW_CONTEXT, <<"metaflow">>).
-%% -define(FETCH_SECTION, 'dialplan').
-%% -define(BINDINGS_CFG_KEY, <<"metaflow_routing_bindings">>).
-%% -define(DEFAULT_BINDINGS, [?DEFAULT_METAFLOW_CONTEXT]).
-
--record(state, {control_q :: kz_term:api_binary()
-               }).
+-record(state, {control_q :: kz_term:api_binary()}).
 
 -type state() :: #state{}.
 
 -define(BINDINGS, [{'self', []}
                   ,{'dialplan', []}
-                  ,{'metaflow', [{restrict_to, ['action', 'flow']}, 'federate']}
+                  ,{'metaflow', [{'restrict_to', ['action', 'flow']}, 'federate']}
                   ]).
 
 -define(RESPONDERS, [{'metaflow_control'

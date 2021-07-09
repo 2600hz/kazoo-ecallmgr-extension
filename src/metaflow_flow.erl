@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2020, 2600Hz
+%%% @copyright (C) 2011-2021, 2600Hz
 %%% @doc Receive flow requests
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,7 +12,7 @@
 
 -export([handle_req/2]).
 
--include("metaflow.hrl").
+-include("ecallmgr_extension.hrl").
 
 %%%=============================================================================
 %%% API
@@ -67,11 +67,11 @@ handle_metaflow_flow(UUID, JObj, ControlQ, ChannelJObj, Node) ->
             lager:info("did not receive route response for request ~s: ~p", [FetchId, _R]);
         {'ok', Resp} ->
             'true' = kapi_route:resp_v(Resp),
-            start_metaflow_handling(Node, FetchId, UUID, Resp, ControlQ)
+            start_metaflow_handling(FetchId, UUID, Resp, ControlQ)
     end.
 
--spec start_metaflow_handling(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), kz_term:ne_binary()) -> 'ok'.
-start_metaflow_handling(_Node, FetchId, CallId, JObj, ControlQ) ->
+-spec start_metaflow_handling(kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), kz_term:ne_binary()) -> 'ok'.
+start_metaflow_handling(FetchId, CallId, JObj, ControlQ) ->
     CCVs = [{[<<"Custom-Channel-Vars">>, <<"Application-Name">>], kz_json:get_value(<<"App-Name">>, JObj)}
            ,{[<<"Custom-Channel-Vars">>, <<"Application-Node">>], kz_json:get_value(<<"Node">>, JObj)}
            ],
