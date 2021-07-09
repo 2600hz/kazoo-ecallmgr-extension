@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2020, 2600Hz
+%%% @copyright (C) 2011-2021, 2600Hz
 %%% @doc Receive route(dialplan) requests from FS, request routes and respond
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,10 +9,9 @@
 %%%-----------------------------------------------------------------------------
 -module(metaflow_action).
 
-
 -export([handle_req/2]).
 
--include("metaflow.hrl").
+-include("ecallmgr_extension.hrl").
 
 %%%=============================================================================
 %%% API
@@ -76,14 +75,14 @@ route_metaflow_action(UUID, ChannelJObj, Node) ->
             lager:info("did not receive route response for request ~s: ~p", [FetchId, _R]);
         {'ok', JObj} ->
             'true' = kapi_route:resp_v(JObj),
-            start_metaflow_handling(Node, FetchId, UUID, JObj, ChannelJObj)
+            start_metaflow_handling(FetchId, UUID, JObj, ChannelJObj)
     end.
 
--spec start_metaflow_handling(atom(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), kz_evt_freeswitch:payload()) -> 'ok'.
-start_metaflow_handling(_Node, FetchId, CallId, JObj, ChannelJObj) ->
+-spec start_metaflow_handling(kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object(), kz_evt_freeswitch:payload()) -> 'ok'.
+start_metaflow_handling(FetchId, CallId, JObj, ChannelJObj) ->
     ControlQ = kz_json:get_value(<<"Control-Queue">>, ChannelJObj),
-    CCVs = [{[<<"Custom-Channel-Vars">>, <<"Application-Name">>], kz_json:get_value(<<"App-Name">>, JObj)}
-           ,{[<<"Custom-Channel-Vars">>, <<"Application-Node">>], kz_json:get_value(<<"Node">>, JObj)}
+    CCVs = [{[<<"Custom-Channel-Vars">>, <<"Application-Name">>], kz_api:app_name(JObj)}
+           ,{[<<"Custom-Channel-Vars">>, <<"Application-Node">>], kz_api:node(JObj)}
            ],
     send_metaflow_win(ControlQ, FetchId, CallId, kz_json:set_values(CCVs, JObj)).
 
@@ -91,7 +90,7 @@ start_metaflow_handling(_Node, FetchId, CallId, JObj, ChannelJObj) ->
 send_metaflow_win(ControlQ, FetchId, CallId, JObj) ->
     lager:debug("ROUTE REP ~s", [kz_json:encode(JObj, ['pretty'])]),
     ControllerQ = kz_api:server_id(JObj),
-    CCVs = kz_json:get_value(<<"Custom-Channel-Vars">>, JObj),
+    CCVs = kz_json:get_json_value(<<"Custom-Channel-Vars">>, JObj),
     Win = [{<<"Msg-ID">>, FetchId}
           ,{<<"Call-ID">>, CallId}
           ,{<<"Control-Queue">>, ControlQ}

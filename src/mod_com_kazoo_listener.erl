@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2020, 2600Hz
+%%% @copyright (C) 2011-2021, 2600Hz
 %%% @doc handle communication with freeswitch thru amqp
 %%%
 %%% This Source Code Form is subject to the terms of the Mozilla Public
@@ -30,9 +30,6 @@
 -define(BINDINGS, [{'self', []}]).
 -define(QUEUE_OPTIONS, [{'exclusive', 'false'}]).
 -define(CONSUME_OPTIONS, [{'exclusive', 'false'}]).
-
-
--define(SERVER, ?MODULE).
 
 -type state() :: map().
 
