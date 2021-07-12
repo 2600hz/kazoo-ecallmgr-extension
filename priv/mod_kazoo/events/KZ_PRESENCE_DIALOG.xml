@@ -13,7 +13,9 @@
 		<field name="Presence-Dialog-To-User" as="To-User" />
 		<field name="Presence-Dialog-Realm" as="To-Realm" />
 		<field name="variable_sip_to_tag" as="To-Tag" />
-		<field name="Presence-Dialog-From" as="To-URI" />
+
+		<!--<field name="Presence-Dialog-From" as="To-URI" />-->
+		<field name="To-URI" type="expand" value="${Presence-Dialog-From};sid=${Presence-Media-Server-Hash}" />
 
 		<field name="Presence-Dialog-Realm-Hash" />
 
@@ -21,6 +23,14 @@
 		<field name="Presence-Dialog-Expires" as="Expires" />
 		<field name="Presence-Dialog-State" as="State" />
 		<field name="Unique-ID" as="Call-ID" />
+
+		<field name="CCVs" type="reference" />
+		<field name="interaction-id" type="reference" />
+
+		<!--
+		<field name="Dialog-ID" type="expand" value="${Unique-ID};sid=${Presence-Media-Server-Hash};early-only=true" />
+		<field name="Call-ID" type="expand" value="${Unique-ID};sid=${Presence-Media-Server-Hash};early-only=true" />
+		-->
 		<field name="Event-Package" type="static" value="dialog" />
 		<field name="Switch-URI" type="reference" />
 		<field name="App-Name" type="static" value="mod_presence" />
