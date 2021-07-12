@@ -1,6 +1,6 @@
 <profile name="dialog" profile-type="worker">
 
-	<connection-ref workers="3" channels="5">
+	<connection-ref workers="3" channels="3">
 	   <property name="is-local" value="true"/>
 	</connection-ref>
 
@@ -15,22 +15,41 @@
 
 	<declare-exchanges>
 		<exchange>
-			<param name="name" value="cloud.ai" />
+			<param name="name" value="dialog" />
 			<param name="type" value="topic" />
+		</exchange>
+		<exchange>
+			<param name="name" value="targeted" />
+			<param name="type" value="direct" />
 		</exchange>
 	</declare-exchanges>
 
 	<queue>
+	<!--
 		<param name="name" value="freeswitch.dialog.${Core-UUID}" />
 
 		<binding>
-			<param name="exchange" value="cloud.ai" />
+			<param name="exchange" value="dialog" />
 			<param name="federated" value="true" />
 			<param name="routing-key" value="freeswitch.dialog.${Core-UUID}" />
 		</binding>
 
 		<param name="exclusive" value="false" />
 		<param name="consume-exclusive" value="false" />
+		<param name="consume-qos" value="10" />
+		<param name="consume-qos-global" value="false" />
+		<param name="consume-spawn" value="false" />
+	-->
+
+		<param name="name" value="${Core-UUID}-dialog-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+
+		<binding>
+			<param name="exchange" value="targeted" />
+			<param name="routing-key" value="${Core-UUID}-dialog-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+		</binding>
+
+		<param name="exclusive" value="true" />
+		<param name="consume-exclusive" value="true" />
 		<param name="consume-qos" value="10" />
 		<param name="consume-qos-global" value="false" />
 		<param name="consume-spawn" value="false" />
@@ -50,7 +69,7 @@
 		</params>
 		<fields>
 			<field name="Server-ID"
-				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+				value="${Core-UUID}-dialog-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
 		</fields>
 	</publisher>
 

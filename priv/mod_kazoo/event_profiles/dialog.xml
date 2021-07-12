@@ -1,7 +1,7 @@
 <profile name="dialog" profile-type="event">
 
 	<params>
-       <param name="amqp-exchange" value="cloud.ai" />
+       <param name="amqp-exchange" value="dialog" />
        <param name="amqp-profile" value="dialog"/>
        <param name="event-channel-mode" value="broadcast"/>
 	</params>
