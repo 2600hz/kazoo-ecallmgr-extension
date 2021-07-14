@@ -79,7 +79,7 @@ control_process(Fun, Cmd, Node) ->
 
     M = get_mfa(Category, Event, Fun),
 
-    try apply(M, Fun, [Node, CallId, Cmd, self()])
+    try apply(M, Fun, [Node, CallId, Cmd])
     catch
         _:{'error', 'nosession'}:_ ->
             lager:debug("unable to execute command, no session");
@@ -103,10 +103,10 @@ exec_dialplan(Node, UUID, DP) ->
 -spec get_mfa(kz_term:ne_binary(), kz_term:ne_binary(), atom()) -> module().
 get_mfa(Category, Name, Fun) ->
     ModuleName = <<"ecallmgr_", Category/binary, "_", Name/binary>>,
-    case kz_module:is_exported(ModuleName, Fun, 4) of
+    case kz_module:is_exported(ModuleName, Fun, 3) of
         'true' ->
             kz_term:to_atom(ModuleName);
         'false' ->
-            lager:error("module ~s does not export ~s/4", [ModuleName, Fun]),
+            lager:error("module ~s does not export ~s/3", [ModuleName, Fun]),
             throw({'error', 'no_function'})
     end.
