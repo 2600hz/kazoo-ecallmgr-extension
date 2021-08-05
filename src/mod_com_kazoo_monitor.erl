@@ -110,15 +110,30 @@ core_uuid(#kz_node{runtime=Runtime}) ->
 is_media_server(#kz_node{kapps=Apps}) ->
     props:is_defined(<<"freeswitch">>, Apps).
 
+-spec is_local_zone(kz_types:kz_node()) -> boolean().
+is_local_zone(#kz_node{zone=Zone}) ->
+    Zone =:= kz_nodes:local_zone().
+
+-spec should_handle_heartbeat(kz_types:kz_node()) -> boolean().
+should_handle_heartbeat(Node) ->
+    Funs = [fun is_media_server/1
+           ,fun is_local_zone/1
+           ],
+    lists:all(fun(F) -> F(Node) end, Funs).
+
 -spec handle_heartbeat(kz_types:kz_node(), state()) -> state().
 handle_heartbeat(Node, State) ->
+    handle_heartbeat(should_handle_heartbeat(Node), Node, State).
+
+-spec handle_heartbeat(boolean(), kz_types:kz_node(), state()) -> state().
+handle_heartbeat(false, _Node, State) -> State;
+handle_heartbeat(true, Node, State) ->
     CoreUUID = core_uuid(Node),
     Nodename = node_name(Node),
-    handle_heartbeat(is_media_server(Node), Node, CoreUUID, Nodename, State).
+    handle_heartbeat(Node, CoreUUID, Nodename, State).
 
--spec handle_heartbeat(boolean(), kz_types:kz_node(), atom(), atom(), state()) -> state().
-handle_heartbeat('false', _Node, _CoreUUID, _Nodename, State) -> State;
-handle_heartbeat('true', Node, CoreUUID, Nodename, #{nodes := Nodes} = State) ->
+-spec handle_heartbeat(kz_types:kz_node(), atom(), atom(), state()) -> state().
+handle_heartbeat(Node, CoreUUID, Nodename, #{nodes := Nodes} = State) ->
     Context = #{core_uuid => CoreUUID
                ,node_uuid => ecallmgr_fs_nodes:instance_uuid(Nodename)
                ,node_up => ecallmgr_fs_nodes:is_node_up(Nodename)
