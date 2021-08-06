@@ -109,6 +109,7 @@ build_kazoo_config() ->
                                 ,amqp_profiles_el(AMQPProfiles)
                                 ,connections_el()
                                 ,variables_el()
+                                ,caches_el()
                                 ]
                                ),
     SectionEl = section_el(<<"configuration">>, ConfigurationEl),
@@ -324,3 +325,43 @@ sofia_static_overrides() ->
     ,{<<"keep-auth-caller-id">>, <<"true">>}
     ,{<<"enable-dynamic-outbound-proxy">>, <<"true">>}
     ].
+
+-spec caches_el() -> kz_types:xml_el().
+caches_el() ->
+    #xmlElement{name='caches'
+               ,content=caches()
+               }.
+
+-spec caches() -> kz_types:xml_els().
+caches() ->
+    Caches = kz_app_config:get_json(ecallmgr, <<"caches">>, kz_json:new()),
+    lists:map(fun cache/1, kz_json:to_proplist(Caches)).
+
+-spec cache(tuple()) -> kz_types:xml_el().
+cache({Name, Values}) ->
+    Content = lists:map(fun cache_entry/1, kz_json:to_proplist(Values)),
+    cache_el(Name, Content).
+
+-spec cache_el(binary(), kz_types:xml_els()) -> kz_types:xml_el().
+cache_el(Name, Content) ->
+    #xmlElement{name='cache'
+               ,attributes=[xml_attrib('name', Name)]
+               ,content=Content
+               }.
+
+%% TODO
+%% handle types other them string
+-spec cache_entry(tuple()) -> kz_types:xml_el().
+cache_entry({Key, Value})
+  when is_binary(Value) ->
+    cache_entry_el(Key, 'string', Value).
+
+
+-spec cache_entry_el(binary(), atom(), binary()) -> kz_types:xml_el().
+cache_entry_el(Key, Type, Value) ->
+    #xmlElement{name='entry'
+               ,attributes=[xml_attrib('key', Key)
+                           ,xml_attrib('type', Type)
+                           ,xml_attrib('value', Value)
+                           ]
+               }.
