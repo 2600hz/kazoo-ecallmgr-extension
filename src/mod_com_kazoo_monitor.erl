@@ -135,22 +135,39 @@ handle_heartbeat(true, Node, State) ->
 -spec handle_heartbeat(kz_types:kz_node(), atom(), atom(), state()) -> state().
 handle_heartbeat(Node, CoreUUID, Nodename, #{nodes := Nodes} = State) ->
     Context = #{core_uuid => CoreUUID
-               ,node_uuid => ecallmgr_fs_nodes:instance_uuid(Nodename)
-               ,node_up => ecallmgr_fs_nodes:is_node_up(Nodename)
                ,nodes => Nodes
                ,node => Node
                ,nodename => Nodename
-               ,is_node => ecallmgr_fs_nodes:is_node(Nodename)
-               ,node_server => node_server(Nodename)
                },
-    Routines = [fun update_nodes/1
+    Routines = [fun instance_id/1
+               ,fun is_node_up/1
+               ,fun is_node/1
+               ,fun node_server/1
+               ,fun update_nodes/1
                ,fun maybe_update_code/1
                ,fun maybe_node_up/1
                ,fun maybe_node_sync/1
                ,fun maybe_node_run/1
                ],
-    #{nodes := NewNodes} = kz_maps:exec(Routines, Context),
-    State#{nodes => NewNodes}.
+    try
+        #{nodes := NewNodes} = kz_maps:exec(Routines, Context),
+        State#{nodes => NewNodes}
+    catch
+        _Exception:_Error:_Stack ->
+            State
+    end.
+
+instance_id(#{nodename := Nodename} = Context) ->
+    Context#{node_uuid => ecallmgr_fs_nodes:instance_uuid(Nodename)}.
+
+is_node_up(#{nodename := Nodename} = Context) ->
+    Context#{node_up => ecallmgr_fs_nodes:is_node_up(Nodename)}.
+
+is_node(#{nodename := Nodename} = Context) ->
+    Context#{is_node => ecallmgr_fs_nodes:is_node(Nodename)}.
+
+node_server(#{nodename := Nodename} = Context) ->
+    Context#{node_server => ecallmgr_fs_node_sup:node_srv(Nodename)}.
 
 update_nodes(#{core_uuid := CoreUUID
               ,nodename := Nodename
@@ -191,11 +208,8 @@ maybe_node_up(#{is_node := 'false'
                ,nodename := Nodename
                } = Context) ->
     lager:info("adding new node ~s", [Nodename]),
-    'ok' = ecallmgr_fs_nodes:add(Nodename, 'no_cookie', [{'connect_strategy', 'heartbeat'}]),
+    'ok' = ecallmgr_fs_nodes:add(Nodename, erlang:get_cookie(), [{'connect_strategy', 'heartbeat'}]),
     Context.
-
-node_server(Nodename) ->
-    ecallmgr_fs_node_sup:node_srv(Nodename).
 
 maybe_node_sync(#{nodename := Nodename
                  ,node_server := 'undefined'
