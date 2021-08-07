@@ -164,5 +164,5 @@ handle_req(JObj, Props) ->
 
 not_found(#{node := Node, fetch_id := FetchId, section := Section, routing := Routing}=Ctx) ->
     lager:debug("replying not found to ~s request ~s from node ~s with routing ~s", [Section, FetchId, Node, Routing]),
-    {'ok', XmlResp} = ecallmgr_fs_xml:not_found(),
+    {'ok', XmlResp} = ecallmgr_fs_xml:not_found(Routing),
     mod_com_kazoo:fetch_reply(Ctx#{reply => iolist_to_binary(XmlResp)}).
