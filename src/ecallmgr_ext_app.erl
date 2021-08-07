@@ -84,9 +84,9 @@ check_modules() ->
               _ = kapps_config:set_default(?CONFIG_CAT, Key, ?EXT_NODE_MODULES),
               lager:notice("commercial modules updated");
         List when is_list(List) ->
-            case List -- ?EXT_NODE_MODULES of
+            case ?EXT_NODE_MODULES -- List of
                 [] -> 'ok';
-                _Diff -> lager:notice("commercial modules configured : ~p", [_Diff]),
+                _Diff -> lager:notice("commercial modules configured : ~p : ~p", [_Diff, List]),
                          _ = kapps_config:set_default(?CONFIG_CAT, Key, ?EXT_NODE_MODULES),
                          lager:notice("commercial modules updated")
             end;

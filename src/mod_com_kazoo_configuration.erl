@@ -21,6 +21,10 @@
 -import(ecallmgr_fs_xml
        ,[section_el/2
         ,config_el/3
+        ,param_el/2
+        ,xml_attrib/2
+        ,variable_el/2
+        ,variables_el/1
         ]).
 
 -include("ecallmgr_extension.hrl").
@@ -103,6 +107,9 @@ build_kazoo_config() ->
                                 ,fetch_handlers_el(FetchProfiles)
                                 ,command_handlers_el(APIProfiles)
                                 ,amqp_profiles_el(AMQPProfiles)
+                                ,connections_el()
+                                ,variables_el()
+                                ,caches_el()
                                 ]
                                ),
     SectionEl = section_el(<<"configuration">>, ConfigurationEl),
@@ -203,4 +210,158 @@ command_handlers_el(Content) ->
 amqp_profiles_el(Content) ->
     #xmlElement{name='amqp-profiles'
                ,content=Content
+               }.
+
+-spec connections_el() -> kz_types:xml_el().
+connections_el() ->
+    LocalZone = kz_nodes:local_zone(),
+    Connections = lists:filtermap(fun connection_filtermap/1, kz_amqp_connections:connections()),
+    connections_el(LocalZone, Connections).
+
+-spec connections_el(atom() | binary(), kz_types:xml_els()) -> kz_types:xml_el().
+connections_el(LocalZone, Content) ->
+    #xmlElement{name='connections'
+               ,attributes=[xml_attrib('local-zone', kz_term:to_binary(LocalZone))]
+               ,content=Content
+               }.
+
+-spec connection_el(atom() | binary(), kz_types:xml_els()) -> kz_types:xml_el().
+connection_el(Name, Content) ->
+    #xmlElement{name='connection'
+               ,attributes=[xml_attrib('name', kz_term:to_binary(Name))]
+               ,content=Content
+               }.
+
+connection_param({K, V}) ->
+    param_el(K, kz_term:to_binary(V)).
+
+connection_params(_, {error, _}) -> false;
+connection_params(Zone, {ok, #amqp_params_network{host = Hostname
+                                                 ,port = Port
+                                                 ,virtual_host = VirtualHost
+                                                 ,username = Username
+                                                 ,password = Password
+                                                 }}) ->
+    Props = [{hostname, Hostname}
+            ,{port, Port}
+            ,{virtualhost, VirtualHost}
+            ,{username, Username}
+            ,{password, Password}
+            ,{zone, Zone}
+            ],
+    ConnectionParams = lists:map(fun connection_param/1, props:filter_empty(Props)),
+    ConnectionProperties = connection_properties(Zone),
+    Name = list_to_binary([Hostname, "-", kz_term:to_binary(Zone)]),
+    {true, connection_el(Name, ConnectionParams ++ ConnectionProperties)}.
+
+connection_filtermap(#kz_amqp_connections{broker=Broker
+                                         ,zone=Zone
+                                         ,hidden = false
+                                         ,tags = []
+                                         }) ->
+    connection_params(connection_zone(Zone), amqp_uri:parse(Broker));
+connection_filtermap(_) -> false.
+
+-spec property_el(kz_types:xml_attrib_value(), kz_types:xml_attrib_value()) -> kz_types:xml_el().
+property_el(Name, Value) ->
+    #xmlElement{name='property'
+               ,attributes=[xml_attrib('name', Name)
+                           ,xml_attrib('value', Value)
+                           ]
+               }.
+
+connection_properties(Zone) ->
+    connection_properties(Zone, kz_nodes:local_zone()).
+
+connection_properties(Zone, Zone) ->
+    [property_el("zone", Zone)
+    ,property_el("primary", true)
+    ,property_el("is-federated", false)
+    ,property_el("is-local", true)
+    ];
+connection_properties(Zone, _LocalZone) ->
+    [property_el("zone", Zone)
+    ,property_el("primary", false)
+    ,property_el("is-federated", true)
+    ,property_el("is-local", false)
+    ].
+
+connection_zone(local) -> kz_nodes:local_zone();
+connection_zone(Zone) -> Zone.
+
+variables_el() ->
+    Variables = sofia_overrides(),
+    variables_el(Variables).
+
+sofia_overrides() ->
+    Static = kz_json:from_list(sofia_static_overrides()),
+    Configured = sofia_configured_overrides(),
+    Variables = kz_json:set_values(kz_json:to_proplist(Configured), Static),
+    lists:map(fun sofia_profile_override/1, kz_json:to_proplist(Variables)).
+
+sofia_profile_override({K, V}) ->
+    variable_el(<<"sofia-profile-override-", K/binary>>, V).
+
+sofia_configured_overrides() ->
+    kz_app_config:get_json(ecallmgr, <<"sofia_profile_overrides">>, kz_json:new()).
+
+sofia_static_overrides() ->
+    [{<<"apply-inbound-acl-x-token">>, <<"X-FS-Auth-Token">>}
+    ,{<<"apply-proxy-acl-x-token">>, <<"X-AUTH-Token">>}
+    ,{<<"enable-uuid-acl-check">>, <<"true">>}
+    ,{<<"apply-proxy-acl-uuid-x-header">>, <<"X-Proxy-Core-UUID">>}
+    ,{<<"apply-inbound-acl-uuid-x-header">>, <<"X-FS-Core-UUID">>}
+    ,{<<"enable-core-uuid-header">>, <<"true">>}
+    ,{<<"auth-calls">>, <<"true">>}
+    ,{<<"auth-calls-acl-only">>, <<"true">>}
+    ,{<<"auth-require-user">>, <<"true">>}
+    ,{<<"disable-register">>, <<"true">>}
+    ,{<<"accept-blind-auth">>, <<"false">>}
+    ,{<<"accept-blind-reg">>, <<"false">>}
+    ,{<<"manage-presence">>, <<"false">>}
+    ,{<<"manage-shared-appearance">>, <<"false">>}
+    ,{<<"channel-xml-fetch-on-nightmare-transfer">>, <<"true">>}
+    ,{<<"fire-transfer-events">>, <<"true">>}
+    ,{<<"keep-auth-caller-id">>, <<"true">>}
+    ,{<<"enable-dynamic-outbound-proxy">>, <<"false">>}
+    ].
+
+-spec caches_el() -> kz_types:xml_el().
+caches_el() ->
+    #xmlElement{name='caches'
+               ,content=caches()
+               }.
+
+-spec caches() -> kz_types:xml_els().
+caches() ->
+    Caches = kz_app_config:get_json(ecallmgr, <<"caches">>, kz_json:new()),
+    lists:map(fun cache/1, kz_json:to_proplist(Caches)).
+
+-spec cache(tuple()) -> kz_types:xml_el().
+cache({Name, Values}) ->
+    Content = lists:map(fun cache_entry/1, kz_json:to_proplist(Values)),
+    cache_el(Name, Content).
+
+-spec cache_el(binary(), kz_types:xml_els()) -> kz_types:xml_el().
+cache_el(Name, Content) ->
+    #xmlElement{name='cache'
+               ,attributes=[xml_attrib('name', Name)]
+               ,content=Content
+               }.
+
+%% TODO
+%% handle types other them string
+-spec cache_entry(tuple()) -> kz_types:xml_el().
+cache_entry({Key, Value})
+  when is_binary(Value) ->
+    cache_entry_el(Key, 'string', Value).
+
+
+-spec cache_entry_el(binary(), atom(), binary()) -> kz_types:xml_el().
+cache_entry_el(Key, Type, Value) ->
+    #xmlElement{name='entry'
+               ,attributes=[xml_attrib('key', Key)
+                           ,xml_attrib('type', Type)
+                           ,xml_attrib('value', Value)
+                           ]
                }.

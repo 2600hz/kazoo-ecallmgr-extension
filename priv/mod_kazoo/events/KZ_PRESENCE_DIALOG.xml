@@ -4,7 +4,7 @@
 		<field name="Event-Name" type="static" value="dialog_update" />
 		<field name="Presence-Dialog-Presence-ID" as="Presence-ID" />
 
-		<field name="Presence-Dialog-From" as="From" />
+		<field name="Presence-Dialog-From"  as="From" />
 		<field name="Presence-Dialog-From-User" as="From-User" />
 		<field name="Presence-Dialog-Realm" as="From-Realm" />
 		<field name="variable_sip_from_tag" as="From-Tag" />

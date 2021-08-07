@@ -110,32 +110,64 @@ core_uuid(#kz_node{runtime=Runtime}) ->
 is_media_server(#kz_node{kapps=Apps}) ->
     props:is_defined(<<"freeswitch">>, Apps).
 
+-spec is_local_zone(kz_types:kz_node()) -> boolean().
+is_local_zone(#kz_node{zone=Zone}) ->
+    Zone =:= kz_nodes:local_zone().
+
+-spec should_handle_heartbeat(kz_types:kz_node()) -> boolean().
+should_handle_heartbeat(Node) ->
+    Funs = [fun is_media_server/1
+           ,fun is_local_zone/1
+           ],
+    lists:all(fun(F) -> F(Node) end, Funs).
+
 -spec handle_heartbeat(kz_types:kz_node(), state()) -> state().
 handle_heartbeat(Node, State) ->
+    handle_heartbeat(should_handle_heartbeat(Node), Node, State).
+
+-spec handle_heartbeat(boolean(), kz_types:kz_node(), state()) -> state().
+handle_heartbeat(false, _Node, State) -> State;
+handle_heartbeat(true, Node, State) ->
     CoreUUID = core_uuid(Node),
     Nodename = node_name(Node),
-    handle_heartbeat(is_media_server(Node), Node, CoreUUID, Nodename, State).
+    handle_heartbeat(Node, CoreUUID, Nodename, State).
 
--spec handle_heartbeat(boolean(), kz_types:kz_node(), atom(), atom(), state()) -> state().
-handle_heartbeat(false, _Node, _CoreUUID, _Nodename, State) -> State;
-handle_heartbeat(true, Node, CoreUUID, Nodename, #{nodes := Nodes} = State) ->
+-spec handle_heartbeat(kz_types:kz_node(), atom(), atom(), state()) -> state().
+handle_heartbeat(Node, CoreUUID, Nodename, #{nodes := Nodes} = State) ->
     Context = #{core_uuid => CoreUUID
-               ,node_uuid => ecallmgr_fs_nodes:instance_uuid(Nodename)
-               ,node_up => ecallmgr_fs_nodes:is_node_up(Nodename)
                ,nodes => Nodes
                ,node => Node
                ,nodename => Nodename
-               ,is_node => ecallmgr_fs_nodes:is_node(Nodename)
-               ,node_server => node_server(Nodename)
                },
-    Routines = [fun update_nodes/1
+    Routines = [fun instance_id/1
+               ,fun is_node_up/1
+               ,fun is_node/1
+               ,fun node_server/1
+               ,fun update_nodes/1
                ,fun maybe_update_code/1
                ,fun maybe_node_up/1
                ,fun maybe_node_sync/1
                ,fun maybe_node_run/1
                ],
-    #{nodes := NewNodes} = kz_maps:exec(Routines, Context),
-    State#{nodes => NewNodes}.
+    try
+        #{nodes := NewNodes} = kz_maps:exec(Routines, Context),
+        State#{nodes => NewNodes}
+    catch
+        _Exception:_Error:_Stack ->
+            State
+    end.
+
+instance_id(#{nodename := Nodename} = Context) ->
+    Context#{node_uuid => ecallmgr_fs_nodes:instance_uuid(Nodename)}.
+
+is_node_up(#{nodename := Nodename} = Context) ->
+    Context#{node_up => ecallmgr_fs_nodes:is_node_up(Nodename)}.
+
+is_node(#{nodename := Nodename} = Context) ->
+    Context#{is_node => ecallmgr_fs_nodes:is_node(Nodename)}.
+
+node_server(#{nodename := Nodename} = Context) ->
+    Context#{node_server => ecallmgr_fs_node_sup:node_srv(Nodename)}.
 
 update_nodes(#{core_uuid := CoreUUID
               ,nodename := Nodename
@@ -176,11 +208,8 @@ maybe_node_up(#{is_node := false
                ,nodename := Nodename
                } = Context) ->
     lager:info("adding new node ~s", [Nodename]),
-    ecallmgr_fs_nodes:add(Nodename, 'no_cookie', [{'connect_strategy', 'heartbeat'}]),
+    'ok' = ecallmgr_fs_nodes:add(Nodename, erlang:get_cookie(), [{'connect_strategy', 'heartbeat'}]),
     Context.
-
-node_server(Nodename) ->
-    ecallmgr_fs_node_sup:node_srv(Nodename).
 
 maybe_node_sync(#{nodename := Nodename
                  ,node_server := undefined
