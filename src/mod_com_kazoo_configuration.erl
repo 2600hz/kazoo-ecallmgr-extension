@@ -308,6 +308,7 @@ sofia_configured_overrides() ->
 sofia_static_overrides() ->
     [{<<"apply-inbound-acl-x-token">>, <<"X-FS-Auth-Token">>}
     ,{<<"apply-proxy-acl-x-token">>, <<"X-AUTH-Token">>}
+    ,{<<"user-x-token-jwt-header">>, <<"X-AUTH-JWT-Token">>}
     ,{<<"enable-uuid-acl-check">>, <<"true">>}
     ,{<<"apply-proxy-acl-uuid-x-header">>, <<"X-Proxy-Core-UUID">>}
     ,{<<"apply-inbound-acl-uuid-x-header">>, <<"X-FS-Core-UUID">>}
