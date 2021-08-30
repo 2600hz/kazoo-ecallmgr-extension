@@ -55,14 +55,4 @@
 		<param name="cache-expires-ms" value="120000" />
 	</params>
 
-	<publisher>
-		<params>
-			<param name="delivery-mode" value="0" />
-		</params>
-		<fields>
-			<field name="Server-ID"
-				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
-		</fields>
-	</publisher>
-
 </profile>
