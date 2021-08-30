@@ -1,8 +1,6 @@
 -ifndef(ECALLMGR_EXTENSION_HRL).
 
 -include_lib("ecallmgr/src/ecallmgr.hrl").
--include_lib("kazoo_amqp/include/kz_amqp.hrl").
--include_lib("kazoo_stdlib/include/kz_log.hrl").
 
 -undef(APP).
 -undef(APP_NAME).
