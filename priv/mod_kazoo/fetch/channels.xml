@@ -2,7 +2,7 @@
 
             <connection name="primary" />
 
-            <fields verbose="true">
+            <fields>
                 <field name="fetch-info" type="reference" />
                 <field name="Event-Category" type="static" value="channels" />
                 <field name="Event-Name" type="static" value="channel_req" />
