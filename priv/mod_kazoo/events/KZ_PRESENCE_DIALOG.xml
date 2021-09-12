@@ -1,5 +1,5 @@
 <event name="KZ_PRESENCE_DIALOG">
-	<fields verbose="false">
+	<fields>
 		<field name="Event-Category" type="static" value="presence" />
 		<field name="Event-Name" type="static" value="dialog_update" />
 		<field name="Presence-Dialog-Presence-ID" as="Presence-ID" />

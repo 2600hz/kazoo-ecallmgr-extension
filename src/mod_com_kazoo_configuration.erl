@@ -135,9 +135,10 @@ fs_profile_events(XmlEl, DefFiles0) ->
 fs_profile_event(ProfileEventXml, {DefFiles, EventXmls}) ->
     [NameAttr] = xmerl_xpath:string("@name", ProfileEventXml),
     RoutingKey = xmerl_xpath:string("routing-key", ProfileEventXml),
+    Logging = xmerl_xpath:string("logging", ProfileEventXml),
     EventFile = fs_evt_filename(NameAttr),
     Tmp = #xmlElement{content = Content} = fs_xml(EventFile),
-    EventXml = Tmp#xmlElement{content = Content ++ RoutingKey},
+    EventXml = Tmp#xmlElement{content = Content ++ RoutingKey ++ Logging},
     {fs_defs(EventXml, DefFiles), [EventXml | EventXmls]}.
 
 -spec fs_handler(file:filename_all(), {kz_types:xml_els(), kz_types:xml_els()}) -> {kz_types:xml_els(), kz_types:xml_els()}.
@@ -153,8 +154,10 @@ fs_defs(XmlEl, Acc) ->
 
 -spec fs_xml(file:filename_all()) -> kz_types:xml_el().
 fs_xml(File) ->
-    {Xml, _} = xmerl_scan:file(File),
-    Xml.
+    case xmerl_scan:file(re:replace(File, "::", "-", ['global'])) of
+        {error, _Err} -> throw({invalid_configuration, lists:flatten(io_lib:format("error reading file : ~s : ~p", [File, _Err]))});
+        {Xml, _} -> Xml
+    end.
 
 -spec fs_def_filename(kz_types:xml_attrib() | string()) -> file:filename_all().
 fs_def_filename(Name) ->

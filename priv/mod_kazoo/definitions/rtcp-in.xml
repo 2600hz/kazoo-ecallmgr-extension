@@ -1,6 +1,6 @@
 <definition name="rtcp-in">
 	<field name="rtcp" type="static" serialize-as="object">
-		<fields verbose="false">
+		<fields>
       <field name="variable_remote_media_ip" as="srcIp"/>
       <field name="variable_remote_media_port" as="srcPort" />
       <field name="dstIp" type="first-of" value="variable_advertised_media_ip|variable_local_media_ip"/>
