@@ -1,5 +1,5 @@
 <event name="KZ_CDR">
-	<fields verbose="false">
+	<fields>
 		<field name="Event-Category" type="static" value="cdr" />
 		<field name="Event-Name" type="static" value="report" />
 		<field name="msg-id" type="reference" />

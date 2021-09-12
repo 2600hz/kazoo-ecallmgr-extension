@@ -1,5 +1,5 @@
 <event name="RELAY_EVENT_CHANNEL">
-	<fields verbose="false">
+	<fields>
 	    <field name="Event-Category" type="static" value="relay" />
 		<field name="Event-Name" type="expand" value="${Relay-Category}.${Relay-Event}" />
 	    <field name="App-Name" type="static" value="freeswitch" />

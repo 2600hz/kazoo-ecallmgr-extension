@@ -1,5 +1,5 @@
 <event name="CONFERENCE_EVENT_CHANNEL">
-	<fields verbose="false">
+	<fields>
 	    <field name="Event-Category" type="static" value="live" />
 		<field name="Event-Name" type="expand" value="conference.${Live-Event}"/>
 	    <field name="App-Name" type="static" value="freeswitch" />
