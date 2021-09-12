@@ -7,7 +7,7 @@
 		<field name="Fetch-Key-Value" />
 	</cache>
 
-	<fields verbose="true">
+	<fields>
 		<field name="fetch-info" type="reference" />
 		<field name="Event-Category" type="static" value="languages" />
 		<field name="Event-Name" type="static" value="language_req" />
