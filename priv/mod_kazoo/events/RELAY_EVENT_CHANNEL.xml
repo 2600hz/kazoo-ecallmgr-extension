@@ -4,6 +4,7 @@
 		<field name="Event-Name" type="expand" value="${Relay-Category}.${Relay-Event}" />
 	    <field name="App-Name" type="static" value="freeswitch" />
 	    <field name="App-Version" type="static" value="1.0" />
+	    <field name="Relay-Msg-ID" as="Msg-ID" />
 		<field name="Event-Channel" />
 		<field name="Event-Channel-Event" />
 		<field name="Event-Channel-ID" />
