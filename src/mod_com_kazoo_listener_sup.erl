@@ -28,7 +28,7 @@
 -spec start_link() -> kz_types:startlink_ret().
 start_link() ->
     {'ok', Pid} = supervisor:start_link({'local', ?MODULE}, ?MODULE, []),
-    Workers = kapps_config:get_integer(?CONFIG_CAT, <<"com_kazoo_api_listeners">>, 5),
+    Workers = kz_app_config:get_integer(?APP_CONFIG_CAT, [<<"amqp">>, <<"api">>, <<"listeners">>], 5),
     QueueId = kz_binary:rand_hex(16),
     kz_process:spawn(fun() -> [begin
                                    _ = supervisor:start_child(Pid, [QueueId]),

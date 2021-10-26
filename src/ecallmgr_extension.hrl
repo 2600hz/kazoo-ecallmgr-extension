@@ -16,6 +16,7 @@
         ,<<"resource">>
         ]).
 
+-define(APP_CONFIG_CAT, 'ecallmgr').
 -define(CONFIG_CAT, <<"ecallmgr">>).
 
 
