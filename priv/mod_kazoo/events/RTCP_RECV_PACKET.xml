@@ -11,5 +11,6 @@
 	</fields>
 	<flags>
 		<flag name="uuid-set-data" value="true"/>
+		<flag name="producer-dispatcher" value="true"/>
 	</flags>
 </event>
