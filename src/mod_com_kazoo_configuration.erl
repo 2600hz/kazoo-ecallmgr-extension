@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2020, 2600Hz
+%%% @copyright (C) 2012-2021, 2600Hz
 %%% @doc Send config commands to FS
 %%%
 %%% This Source Code Form is subject to the terms of the Mozilla Public
@@ -110,6 +110,7 @@ build_kazoo_config() ->
                                 ,connections_el()
                                 ,variables_el()
                                 ,caches_el()
+                                | pre_process()
                                 ]
                                ),
     SectionEl = section_el(<<"configuration">>, ConfigurationEl),
@@ -135,9 +136,11 @@ fs_profile_events(XmlEl, DefFiles0) ->
 fs_profile_event(ProfileEventXml, {DefFiles, EventXmls}) ->
     [NameAttr] = xmerl_xpath:string("@name", ProfileEventXml),
     RoutingKey = xmerl_xpath:string("routing-key", ProfileEventXml),
+    Logging = xmerl_xpath:string("logging", ProfileEventXml),
+    Flags = xmerl_xpath:string("flags", ProfileEventXml),
     EventFile = fs_evt_filename(NameAttr),
     Tmp = #xmlElement{content = Content} = fs_xml(EventFile),
-    EventXml = Tmp#xmlElement{content = Content ++ RoutingKey},
+    EventXml = Tmp#xmlElement{content = Content ++ RoutingKey ++ Logging ++ Flags},
     {fs_defs(EventXml, DefFiles), [EventXml | EventXmls]}.
 
 -spec fs_handler(file:filename_all(), {kz_types:xml_els(), kz_types:xml_els()}) -> {kz_types:xml_els(), kz_types:xml_els()}.
@@ -153,8 +156,10 @@ fs_defs(XmlEl, Acc) ->
 
 -spec fs_xml(file:filename_all()) -> kz_types:xml_el().
 fs_xml(File) ->
-    {Xml, _} = xmerl_scan:file(File),
-    Xml.
+    case xmerl_scan:file(re:replace(File, "::", "-", ['global'])) of
+        {error, _Err} -> throw({invalid_configuration, lists:flatten(io_lib:format("error reading file : ~s : ~p", [File, _Err]))});
+        {Xml, _} -> Xml
+    end.
 
 -spec fs_def_filename(kz_types:xml_attrib() | string()) -> file:filename_all().
 fs_def_filename(Name) ->
@@ -289,6 +294,29 @@ connection_properties(Zone, _LocalZone) ->
 connection_zone(local) -> kz_nodes:local_zone();
 connection_zone(Zone) -> Zone.
 
+pre_process() ->
+    Static = kz_json:from_list(pre_process_static_overrides()),
+    Configured = pre_process_configured_overrides(),
+    Variables = kz_json:set_values(kz_json:to_proplist(Configured), Static),
+    lists:map(fun pre_process_override/1, kz_json:to_proplist(Variables)).
+
+pre_process_override({K, V}) ->
+    pre_process_el(K, V).
+
+pre_process_configured_overrides() ->
+    kz_app_config:get_json(?APP_CONFIG_CAT, <<"config_pre_process_overrides">>, kz_json:new()).
+
+pre_process_static_overrides() ->
+    [{<<"stun-set">>, <<"external_rtp_ip=stun:stun.l.google.com:19302">>}
+    ].
+
+pre_process_el(Cmd, Data) ->
+    #xmlElement{name='X-PRE-PROCESS'
+               ,attributes=[xml_attrib('cmd', Cmd)
+                           ,xml_attrib('data', Data)
+                           ]
+               }.
+
 variables_el() ->
     Variables = sofia_overrides(),
     variables_el(Variables).
@@ -303,7 +331,7 @@ sofia_profile_override({K, V}) ->
     variable_el(<<"sofia-profile-override-", K/binary>>, V).
 
 sofia_configured_overrides() ->
-    kz_app_config:get_json(ecallmgr, <<"sofia_profile_overrides">>, kz_json:new()).
+    kz_app_config:get_json(?APP_CONFIG_CAT, <<"sofia_profile_overrides">>, kz_json:new()).
 
 sofia_static_overrides() ->
     [{<<"apply-inbound-acl-x-token">>, <<"X-FS-Auth-Token">>}
@@ -335,7 +363,7 @@ caches_el() ->
 
 -spec caches() -> kz_types:xml_els().
 caches() ->
-    Caches = kz_app_config:get_json(ecallmgr, <<"caches">>, kz_json:new()),
+    Caches = kz_app_config:get_json(?APP_CONFIG_CAT, <<"caches">>, kz_json:new()),
     lists:map(fun cache/1, kz_json:to_proplist(Caches)).
 
 -spec cache(tuple()) -> kz_types:xml_el().

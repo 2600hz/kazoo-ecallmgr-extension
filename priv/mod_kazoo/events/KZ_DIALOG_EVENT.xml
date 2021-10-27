@@ -1,5 +1,5 @@
 <event name="KZ_DIALOG_EVENT">
-	<fields verbose="false">
+	<fields>
 	    <field name="Event-Category" type="static" value="dialog" />
 	    <field name="Event-Name" type="static" value="event" />
 	    <field name="App-Name" type="static" value="freeswitch" />

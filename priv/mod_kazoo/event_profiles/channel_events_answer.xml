@@ -1,0 +1,31 @@
+<profile name="channel_events_answer" profile-type="event">
+
+	<params>
+	   <param name="amqp-exchange" value="callevt" />
+	   <param name="amqp-profile" value="push-event"/>
+	   <param name="event-channel-mode" value="worker"/>
+	   <param name="producer-use-dispatcher" value="true" />
+	   <param name="producer-dispatcher-workers" value="20" />
+	</params>
+
+	<events>
+		<event name="CHANNEL_ANSWER">
+			<flags>
+				<flag name="producer-dispatcher" value="true"/>
+			</flags>
+		</event>
+	</events>
+
+	<routing-key>
+		<field name="call" type="static" value="call" />
+		<field name="event" type="first-of"	value="kazoo_event_name|Event-Subclass|Event-Name" />
+		<field name="Unique-ID" />
+		<param name="hash-event-field" value="Unique-ID" />
+		<param name="hash-amqp-header" value="call-id" />		
+	</routing-key>
+
+    <logging>
+		<log name="producer" value="SWITCH_LOG_DEBUG" />
+    </logging>
+
+</profile>

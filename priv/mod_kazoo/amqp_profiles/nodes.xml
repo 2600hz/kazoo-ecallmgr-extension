@@ -33,6 +33,7 @@
 		<binding>
 			<param name="exchange" value="nodes" />
 			<param name="federated" value="true" />
+			<param name="routing-key" value="freeswitch.nodes.${Core-UUID}" />
 		</binding>
 
 		<binding>
@@ -44,7 +45,8 @@
 		<param name="consume-exclusive" value="false" />
 		<param name="consume-qos" value="10" />
 		<param name="consume-qos-global" value="false" />
-		<param name="consume-spawn" value="false" />
+		<param name="consume-spawn" value="true" />
+		<param name="consume-no-ack" value="true" />
 
 	</queue>
 
@@ -54,15 +56,5 @@
 		<param name="query-timeout-ms" value="2500" />
 		<param name="cache-expires-ms" value="120000" />
 	</params>
-
-	<publisher>
-		<params>
-			<param name="delivery-mode" value="0" />
-		</params>
-		<fields>
-			<field name="Server-ID"
-				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
-		</fields>
-	</publisher>
 
 </profile>

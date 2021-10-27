@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2020-, 2600Hz
+%%% @copyright (C) 2021-, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -403,7 +403,7 @@ async_api(Node, Cmd, Args) ->
 
 -spec contact_api() -> binary().
 contact_api() ->
-    case kz_app_config:get_boolean(?APP, <<"use_proxy_contact_api">>, false) of
+    case kz_app_config:get_boolean(?APP_CONFIG_CAT, <<"use_proxy_contact_api">>, false) of
         true -> <<"kz_proxy_contact">>;
         false -> <<"kz_contact">>
     end.

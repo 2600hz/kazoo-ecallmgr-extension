@@ -4,10 +4,16 @@
        <param name="amqp-exchange" value="cdr" />
        <param name="amqp-profile" value="push-event"/>
        <param name="event-channel-mode" value="broadcast"/>
+	   <param name="producer-use-dispatcher" value="true" />
+	   <param name="producer-dispatcher-workers" value="10" />
 	</params>
 
 	<events>
-		<event name="KZ_CDR" />
+		<event name="KZ_CDR">
+			<flags>
+				<flag name="producer-dispatcher" value="true"/>
+			</flags>
+		</event>
 	</events>
 
 	<routing-key>
@@ -15,5 +21,9 @@
 		<field name="variable_ecallmgr_Account-ID" />
 		<field name="Unique-ID" />
 	</routing-key>
+
+    <logging>
+		<log name="producer" value="SWITCH_LOG_DEBUG" />
+    </logging>
 
 </profile>
