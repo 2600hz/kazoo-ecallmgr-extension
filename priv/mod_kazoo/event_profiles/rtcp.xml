@@ -3,7 +3,9 @@
 	<params>
        <param name="amqp-exchange" value="rtcp" />
        <param name="amqp-profile" value="rtcp"/>
-       <param name="event-channel-mode" value="broadcast"/>
+       <!--<param name="event-channel-mode" value="broadcast"/>-->
+	   <param name="producer-use-dispatcher" value="true" />
+	   <param name="producer-dispatcher-workers" value="10" />
 	</params>
 
 	<events>

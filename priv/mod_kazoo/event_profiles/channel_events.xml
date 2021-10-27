@@ -7,11 +7,13 @@
 	</params>
 
 	<events>
+	<!--
 		<event name="CHANNEL_CREATE" />
 		<event name="CHANNEL_ANSWER" />
 		<event name="CHANNEL_DESTROY" />
 		<event name="CHANNEL_BRIDGE" />
 		<event name="CHANNEL_UNBRIDGE" />
+	-->
 		<event name="DTMF" />
 		<event name="RECORD_START" />
 		<event name="RECORD_STOP" />
