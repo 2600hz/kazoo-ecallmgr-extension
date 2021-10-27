@@ -16,6 +16,7 @@
         ,<<"resource">>
         ]).
 
+-define(APP_CONFIG_CAT, 'ecallmgr').
 -define(CONFIG_CAT, <<"ecallmgr">>).
 
 
@@ -24,9 +25,13 @@
                                      ,{'fax', ?FAX_EVENTS}
                                      ,{'cdr', ['KZ_CDR']}
                                      ,{'record', ['RECORD_START', 'RECORD_STOP']}
+                                     ,{'channel', ['CHANNEL_CREATE', 'CHANNEL_ANSWER', 'CHANNEL_DESTROY']}
                                      ]).
 
 -define(FS_EXTENSION_INCLUDE_EVENTS, [{'record', ['RECORD_STOP']}
+                                     ,{'create', ['CHANNEL_CREATE']}
+                                     ,{'answer', ['CHANNEL_ANSWER']}
+                                     ,{'destroy', ['CHANNEL_DESTROY']}
                                      ]).
 
 -define(ECALLMGR_EXTENSION_HRL, 'true').

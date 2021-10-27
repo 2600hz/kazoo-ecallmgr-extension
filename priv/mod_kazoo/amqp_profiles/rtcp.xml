@@ -1,6 +1,6 @@
 <profile name="rtcp" profile-type="worker">
 
-	<connection-ref workers="3" channels="5">
+	<connection-ref workers="8" channels="5">
 	   <property name="is-local" value="true"/>
 	</connection-ref>
 
