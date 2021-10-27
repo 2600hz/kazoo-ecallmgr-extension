@@ -405,7 +405,7 @@ async_api(Node, Cmd, Args) ->
 
 -spec contact_api() -> binary().
 contact_api() ->
-    case kz_app_config:get_boolean(?APP, <<"use_proxy_contact_api">>, true) of
+    case kz_app_config:get_boolean(?APP_CONFIG_CAT, <<"use_proxy_contact_api">>, true) of
         true -> <<"kz_proxy_contact">>;
         false -> <<"kz_contact">>
     end.

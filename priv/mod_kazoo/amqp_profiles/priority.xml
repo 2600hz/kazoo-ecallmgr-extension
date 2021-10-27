@@ -1,8 +1,11 @@
-<profile name="push-event" profile-type="worker">
+<profile name="priority" profile-type="worker">
 
-	<connection-ref workers="22" channels="10">
+	<connection-ref workers="10" channels="10">
 	   <property name="is-local" value="true"/>
 	</connection-ref>
+    <connection-ref workers="1" channels="1">
+       <property name="is-federated" value="true"/>
+    </connection-ref>
 
 	<logging>
 		<log name="trace" value="SWITCH_LOG_DEBUG1" />
@@ -23,18 +26,6 @@
 			<param name="type" value="topic" />
 		</exchange>
 		<exchange>
-			<param name="name" value="conference" />
-			<param name="type" value="topic" />
-		</exchange>
-		<exchange>
-			<param name="name" value="presence" />
-			<param name="type" value="topic" />
-		</exchange>
-		<exchange>
-			<param name="name" value="cdr" />
-			<param name="type" value="topic" />
-		</exchange>
-		<exchange>
 			<param name="name" value="targeted" />
 			<param name="type" value="direct" />
 		</exchange>
@@ -44,6 +35,7 @@
 		<param name="workers" value="4" />
 		<param name="channels" value="5" />
 		<param name="reconnect_interval_ms" value="10000"/>
+		<param name="client-side-hash-pipeline" value="false"/>
 	</params>
 
 	<publisher>
