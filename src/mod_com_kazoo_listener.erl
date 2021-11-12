@@ -11,12 +11,11 @@
 -module(mod_com_kazoo_listener).
 -behaviour(gen_listener).
 
--export([start_link/1]).
+-export([start_link/2]).
 
 -export([init/1
         ,handle_call/3
         ,handle_cast/2
-        ,handle_req/2
         ,handle_event/2
         ,handle_info/2
         ,terminate/2
@@ -25,11 +24,11 @@
 
 -include("ecallmgr_extension.hrl").
 
--define(RESPONDERS, [{?MODULE, [{<<"*">>, <<"*">>}]}]).
-
+-define(RESPONDERS, []).
 -define(BINDINGS, [{'self', []}]).
 -define(QUEUE_OPTIONS, [{'exclusive', 'false'}]).
 -define(CONSUME_OPTIONS, [{'exclusive', 'false'}]).
+-define(QOS, 50).
 
 -type state() :: map().
 
@@ -41,16 +40,17 @@
 %% @doc Starts the server
 %% @end
 %%------------------------------------------------------------------------------
--spec start_link(kz_term:ne_binary()) -> kz_types:startlink_ret().
-start_link(Queue) ->
+-spec start_link(pid(), kz_term:ne_binary()) -> kz_types:startlink_ret().
+start_link(Parent, Queue) ->
     gen_listener:start_link(?MODULE
                            ,[{'responders', ?RESPONDERS}
                             ,{'bindings', ?BINDINGS}
                             ,{'queue_name', Queue}
                             ,{'queue_options', ?QUEUE_OPTIONS}
                             ,{'consume_options', ?CONSUME_OPTIONS}
+                            ,{'basic_qos', ?QOS}
                             ]
-                           ,[Queue]).
+                           ,[Parent, Queue]).
 
 
 %%%=============================================================================
@@ -63,8 +63,8 @@ start_link(Queue) ->
 %% @end
 %%------------------------------------------------------------------------------
 -spec init(list()) -> {'ok', state()}.
-init([Queue]) ->
-    {'ok', #{queue => Queue}}.
+init([Pid, Queue]) ->
+    {'ok', #{manager => Pid, queue => Queue}}.
 
 %%------------------------------------------------------------------------------
 %% @doc Handling call messages
@@ -81,6 +81,10 @@ handle_call(_Request, _From, State) ->
 %% @end
 %%------------------------------------------------------------------------------
 -spec handle_cast(any(), state()) -> kz_types:handle_cast_ret_state(state()).
+handle_cast({'gen_listener',{'is_consuming', true}}, #{manager := Pid} = State) ->
+    lager:info("com kazoo api listener is active, notifying manager"),
+    gen_server:cast(Pid, {'com_kazoo_api_listener_is_ready', self(), kz_amqp_channel:consumer_channel()}),
+    {'noreply', State};
 handle_cast({'gen_listener', _}, State) ->
     {'noreply', State};
 handle_cast(_Msg, State) ->
@@ -93,9 +97,6 @@ handle_cast(_Msg, State) ->
 %% @end
 %%------------------------------------------------------------------------------
 -spec handle_info(any(), state()) -> kz_types:handle_info_ret_state(state()).
-handle_info({'amqp_send', Payload, PublisherFun}, #{queue := Q} = State) ->
-    PublisherFun([{<<"Server-ID">>, Q} | Payload]),
-    {'noreply', State};
 handle_info(_Other, State) ->
     lager:debug("unhandled msg: ~p", [_Other]),
     {'noreply', State}.
@@ -106,8 +107,9 @@ handle_info(_Other, State) ->
 %% @end
 %%------------------------------------------------------------------------------
 -spec handle_event(kz_json:object(), state()) -> gen_listener:handle_event_return().
-handle_event(_JObj, #{}) ->
-    {'reply', []}.
+handle_event(JObj, #{}) ->
+    handle_req(JObj),
+    ignore.
 
 %%------------------------------------------------------------------------------
 %% @doc This function is called by a gen_server when it is about to
@@ -130,17 +132,17 @@ terminate(_Reason, #{}) ->
 code_change(_OldVsn, State, _Extra) ->
     {'ok', State}.
 
--spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
-handle_req(JObj, Props) ->
+-spec handle_req(kz_json:object()) -> 'ok'.
+handle_req(JObj) ->
     %% lager:debug_unsafe("REPLY : ~s", [kz_json:encode(JObj, ['pretty'])]),
     Pid = kz_term:to_pid(kz_api:reply_to(JObj)),
     Event = kz_api:event_name(JObj),
-    handle_req(Pid, Event, JObj, Props).
+    handle_req(Pid, Event, JObj).
 
-handle_req('undefined', _Event, _JObj, _Props) ->
+handle_req('undefined', _Event, _JObj) ->
     lager:warning("NO REPLY-TO-PID ~s : ~p", [_Event, _JObj]);
 
-handle_req(Pid, <<"API">>, JObj, _Props) ->
+handle_req(Pid, <<"API">>, JObj) ->
     case kz_json:get_atom_value(<<"Result">>, JObj) of
         'ok' ->
             case kz_json:get_ne_binary_value(<<"Return">>, JObj) of
@@ -151,7 +153,7 @@ handle_req(Pid, <<"API">>, JObj, _Props) ->
         'error' -> api_result(Pid, 'error', kz_json:get_ne_binary_value(<<"Return">>, JObj))
     end;
 
-handle_req(Pid, <<"BACKGROUND_JOB">>, JObj, _Props) ->
+handle_req(Pid, <<"BACKGROUND_JOB">>, JObj) ->
     JobId = kz_json:get_ne_binary_value(<<"Job-UUID">>, JObj),
     Data = kz_json:to_proplist(JObj),
     Reply = kz_json:get_ne_binary_value(<<"Job-Return">>, JObj),
@@ -165,13 +167,13 @@ handle_req(Pid, <<"BACKGROUND_JOB">>, JObj, _Props) ->
         'bgerror' -> bgapi_result(Pid, 'bgerror', Reply, JobId, Data)
     end;
 
-handle_req(Pid, <<"json_api.reply">>, JObj, _Props) ->
+handle_req(Pid, <<"json_api.reply">>, JObj) ->
     case kz_json:get_atom_value(<<"status">>, JObj) of
         'success' -> Pid ! {'switch_reply', {'ok', kz_json:get_json_value(<<"response">>, JObj)}};
         'error' -> Pid ! {'switch_reply', {'error', kz_json:get_first_defined([<<"error">>, <<"message">>], JObj)}}
     end;
 
-handle_req(_Pid, _Event, _JObj, _Props) ->
+handle_req(_Pid, _Event, _JObj) ->
     lager:warning("REPLY-TO-PID ~p ,  ~s : ~p", [_Pid, _Event, _JObj]).
 
 bgapi_result(Pid, Result, Bin, JobId, Data) ->

@@ -18,8 +18,10 @@
 -export([start_link/0]).
 -export([init/1]).
 
+-export([start_monitor/0]).
+
 -define(CHILDREN, [?SUPER('mod_com_kazoo_listener_sup')
-                  ,?WORKER('mod_com_kazoo_monitor')
+                  ,?WORKER('mod_com_kazoo_api')
                   ]).
 
 %% ===================================================================
@@ -53,3 +55,12 @@ init([]) ->
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
 
     {'ok', {SupFlags, ?CHILDREN}}.
+
+-spec start_monitor() -> kz_types:sup_startchild_ret() | ok.
+start_monitor() ->
+    start_monitor(whereis(mod_com_kazoo_monitor)).
+
+-spec start_monitor(kz_term:api_pid()) -> kz_types:sup_startchild_ret() | ok.
+start_monitor(undefined) -> supervisor:start_child(?MODULE, ?WORKER('mod_com_kazoo_monitor'));
+start_monitor(_) -> ok.
+
