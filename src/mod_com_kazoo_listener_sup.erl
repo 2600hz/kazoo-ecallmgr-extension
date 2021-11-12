@@ -15,7 +15,7 @@
 
 -export([start_link/0]).
 -export([init/1]).
--export([send/2]).
+-export([start_listener/2]).
 
 %% ===================================================================
 %% API functions
@@ -57,13 +57,6 @@ init([]) ->
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
     {'ok', {SupFlags, [?WORKER_ARGS_TYPE('mod_com_kazoo_listener', [], 'temporary')]}}.
 
--type api_publish_fun() :: fun((kz_term:api_terms()) -> any()).
-
--spec send(kz_term:api_terms(), api_publish_fun()) -> 'ok'.
-send(Payload, PublishFun) ->
-    Listeners = supervisor:which_children(?MODULE),
-    Size = length(Listeners),
-    Selected = rand:uniform(Size),
-    {_, APIServer, _, _} = lists:nth(Selected, Listeners),
-    APIServer ! {'amqp_send', Payload, PublishFun},
-    'ok'.
+-spec start_listener(pid(), kz_term:ne_binary()) -> kz_types:startlink_ret().
+start_listener(Pid, Queue) ->
+    supervisor:start_child(?MODULE, [Pid, Queue]).
