@@ -365,7 +365,7 @@ bgapi4(Node, Cmd, Args, Fun, CallBackParams, Self) ->
     end.
 
 send(Node, Payload, PublishFun) ->
-    mod_com_kazoo_listener_sup:send(payload(Node, Payload), PublishFun).
+    mod_com_kazoo_api:send(payload(Node, Payload), PublishFun).
 
 -spec core_uuid(atom()) -> atom().
 core_uuid(X)
