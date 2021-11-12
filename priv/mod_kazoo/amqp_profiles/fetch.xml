@@ -4,11 +4,6 @@
        <property name="is-local" value="true"/>
     </connection-ref>
 
-	<connection-ref zone="local" include-federated="true" />
-	<connection-refs tag="blue" include-federated="true" />
-
-	<connection name="lx1" />
-
 	<logging>
 		<log name="trace" value="SWITCH_LOG_DEBUG1" />
 		<log name="info" value="SWITCH_LOG_DEBUG" />
