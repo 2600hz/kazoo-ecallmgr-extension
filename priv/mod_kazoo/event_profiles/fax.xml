@@ -16,7 +16,8 @@
 
 	<routing-key>
 		<field name="fax" type="static" value="call.CHANNEL_FAX_STATUS" encode-part="false" />
-        <field name="FAX-ID" type="first-of" value="variable_sip_origination_call_uuid|Unique-ID" />
+        <!--<field name="FAX-ID" type="first-of" value="variable_sip_origination_call_uuid|Unique-ID" />-->
+        <field name="Unique-ID" />
         <param name="hash-event-field" value="Unique-ID" />
         <param name="hash-amqp-header" value="call-id" />
 	</routing-key>
