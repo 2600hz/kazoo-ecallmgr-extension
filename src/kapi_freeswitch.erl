@@ -315,26 +315,26 @@ bind_q(Queue, ['events'|Restrict], Props) ->
                   end, event_routing_keys(Props)),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['configuration'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['dialplan'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['directory'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['channels'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['languages'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['fetch'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH),
-    kz_amqp_util:bind_q_to_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
-    kz_amqp_util:bind_q_to_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
-    kz_amqp_util:bind_q_to_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
-    kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, [_|Restrict], Props) ->
     bind_q(Queue, Restrict, Props);
