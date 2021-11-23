@@ -137,7 +137,7 @@ remove_listener(Pid, State) ->
             NewListeners = maps:without([Pid], Listeners),
             NewChannels = maps:without([Channel], Channels),
             State#{refs => NewRefs, listeners => NewListeners, channels => NewChannels}
-end.
+    end.
 
 -spec add_listener(pid(), pid(), kz_term:ne_binary(), boolean(), state()) -> state().
 add_listener(Pid, Channel, Queue, Active, State0) ->

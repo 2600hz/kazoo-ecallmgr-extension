@@ -329,7 +329,7 @@ send_wait(MsgId, Timeout) ->
     receive
         {'switch_reply', MsgId, Msg} -> Msg
     after Timeout ->
-        {'error', 'timeout'}
+            {'error', 'timeout'}
     end.
 
 -spec core_uuid(atom()) -> atom().
