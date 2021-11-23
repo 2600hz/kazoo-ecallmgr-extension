@@ -26,8 +26,12 @@
 
 -define(RESPONDERS, []).
 -define(BINDINGS, [{'self', []}]).
--define(QUEUE_OPTIONS, [{'exclusive', 'false'}]).
--define(CONSUME_OPTIONS, [{'exclusive', 'false'}]).
+
+-define(QUEUE_OPTIONS, []).
+-define(CONSUME_OPTIONS, []).
+-define(SHARED_QUEUE_OPTIONS, [{'exclusive', 'false'}]).
+-define(SHARED_CONSUME_OPTIONS, [{'exclusive', 'false'}]).
+
 -define(QOS, 50).
 
 -type state() :: map().
@@ -40,17 +44,15 @@
 %% @doc Starts the server
 %% @end
 %%------------------------------------------------------------------------------
--spec start_link(pid(), kz_term:ne_binary()) -> kz_types:startlink_ret().
+-spec start_link(pid(), kz_term:api_ne_binary()) -> kz_types:startlink_ret().
 start_link(Parent, Queue) ->
     gen_listener:start_link(?MODULE
                            ,[{'responders', ?RESPONDERS}
                             ,{'bindings', ?BINDINGS}
-                            ,{'queue_name', Queue}
-                            ,{'queue_options', ?QUEUE_OPTIONS}
-                            ,{'consume_options', ?CONSUME_OPTIONS}
                             ,{'basic_qos', ?QOS}
+                            | queue_settings(Queue)
                             ]
-                           ,[Parent, Queue]).
+                           ,[Parent]).
 
 
 %%%=============================================================================
@@ -63,8 +65,8 @@ start_link(Parent, Queue) ->
 %% @end
 %%------------------------------------------------------------------------------
 -spec init(list()) -> {'ok', state()}.
-init([Pid, Queue]) ->
-    {'ok', #{manager => Pid, queue => Queue}}.
+init([Pid]) ->
+    {'ok', #{manager => Pid}}.
 
 %%------------------------------------------------------------------------------
 %% @doc Handling call messages
@@ -81,10 +83,12 @@ handle_call(_Request, _From, State) ->
 %% @end
 %%------------------------------------------------------------------------------
 -spec handle_cast(any(), state()) -> kz_types:handle_cast_ret_state(state()).
-handle_cast({'gen_listener',{'is_consuming', true}}, #{manager := Pid} = State) ->
+handle_cast({'gen_listener',{'is_consuming', Active}}, #{manager := Pid, queue := Queue} = State) ->
     lager:info("com kazoo api listener is active, notifying manager"),
-    gen_server:cast(Pid, {'com_kazoo_api_listener_is_ready', self(), kz_amqp_channel:consumer_channel()}),
+    gen_server:cast(Pid, {'com_kazoo_api_listener_is_ready', self(), kz_amqp_channel:consumer_channel(), Queue, Active}),
     {'noreply', State};
+handle_cast({'gen_listener',{'created_queue', QueueName}}, State) ->
+    {'noreply', State#{queue => QueueName}};
 handle_cast({'gen_listener', _}, State) ->
     {'noreply', State};
 handle_cast(_Msg, State) ->
@@ -143,14 +147,15 @@ handle_req('undefined', _Event, _JObj) ->
     lager:warning("NO REPLY-TO-PID ~s : ~p", [_Event, _JObj]);
 
 handle_req(Pid, <<"API">>, JObj) ->
+    MsgId = kz_api:msg_id(JObj),
     case kz_json:get_atom_value(<<"Result">>, JObj) of
         'ok' ->
             case kz_json:get_ne_binary_value(<<"Return">>, JObj) of
-                <<"-ERR", Error/binary>> -> api_result(Pid, 'error', Error);
-                <<"+OK", Msg/binary>> -> api_result(Pid, 'ok', Msg);
-                Msg -> api_result(Pid, 'ok', Msg)
+                <<"-ERR", Error/binary>> -> api_result(Pid, MsgId, 'error', Error);
+                <<"+OK", Msg/binary>> -> api_result(Pid, MsgId, 'ok', Msg);
+                Msg -> api_result(Pid, MsgId, 'ok', Msg)
             end;
-        'error' -> api_result(Pid, 'error', kz_json:get_ne_binary_value(<<"Return">>, JObj))
+        'error' -> api_result(Pid, MsgId, 'error', kz_json:get_ne_binary_value(<<"Return">>, JObj))
     end;
 
 handle_req(Pid, <<"BACKGROUND_JOB">>, JObj) ->
@@ -168,16 +173,17 @@ handle_req(Pid, <<"BACKGROUND_JOB">>, JObj) ->
     end;
 
 handle_req(Pid, <<"json_api.reply">>, JObj) ->
+    MsgId = kz_api:msg_id(JObj),
     case kz_json:get_atom_value(<<"status">>, JObj) of
-        'success' -> Pid ! {'switch_reply', {'ok', kz_json:get_json_value(<<"response">>, JObj)}};
-        'error' -> Pid ! {'switch_reply', {'error', kz_json:get_first_defined([<<"error">>, <<"message">>], JObj)}}
+        'success' -> Pid ! {'switch_reply', MsgId, {'ok', kz_json:get_json_value(<<"response">>, JObj)}};
+        'error' -> Pid ! {'switch_reply', MsgId, {'error', kz_json:get_first_defined([<<"error">>, <<"message">>], JObj)}}
     end;
 
 handle_req(_Pid, _Event, _JObj) ->
     lager:warning("REPLY-TO-PID ~p ,  ~s : ~p", [_Pid, _Event, _JObj]).
 
 bgapi_result(Pid, Result, Bin, JobId, Data) ->
-    Pid ! {'switch_reply', bgapi_result(Result, Bin, JobId, Data)}.
+    Pid ! {'switch_job_reply', bgapi_result(Result, Bin, JobId, Data)}.
 
 -spec bgapi_result('bgerror' | 'bgok', kz_term:api_ne_binary(), JobId, Data) ->
           {'bgok' | 'bgerror', JobId, boolean() | kz_term:ne_binary(), Data} |
@@ -195,8 +201,8 @@ bgapi_result(Result, Bin, JobId, Data) ->
         Msg -> {Result, JobId, Msg, Data}
     end.
 
-api_result(Pid, Result, Bin) ->
-    Pid ! {'switch_reply', api_result(Result, Bin)}.
+api_result(Pid, MsgId, Result, Bin) ->
+    Pid ! {'switch_reply', MsgId, api_result(Result, Bin)}.
 
 api_result(Result, 'undefined') -> Result;
 api_result(Result, <<"-ERR", Error/binary>>) ->
@@ -211,3 +217,14 @@ api_result(Result, Bin) ->
         <<"false">> -> {Result, 'false'};
         Msg -> {Result, Msg}
     end.
+
+queue_settings('undefined') ->
+    [{'queue_name', list_to_binary([<<"com-kazoo-api-">>, kz_binary:rand_uuid()])}
+    ,{'queue_options', ?QUEUE_OPTIONS}
+    ,{'consume_options', ?CONSUME_OPTIONS}
+    ];
+queue_settings(Queue) ->
+    [{'queue_name', Queue}
+    ,{'queue_options', ?SHARED_QUEUE_OPTIONS}
+    ,{'consume_options', ?SHARED_CONSUME_OPTIONS}
+    ].

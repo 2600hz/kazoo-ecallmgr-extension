@@ -80,12 +80,7 @@ version(Node) ->
 
 -spec version(atom(), pos_integer()) -> fs_api_return().
 version(Node, Timeout) ->
-    send(Node, [], fun kapi_freeswitch:publish_version/1),
-    receive
-        {'switch_reply', Msg} -> Msg
-    after Timeout ->
-            {'error', 'timeout'}
-    end.
+    send(Node, [], fun kapi_freeswitch:publish_version/1, Timeout).
 
 -spec noevents(atom()) -> fs_api_return().
 noevents(_Node) -> 'ok'.
@@ -139,12 +134,7 @@ api(Node, Cmd, Args, Timeout)
                 [{<<"API-Arguments">>, Args}
                 ,{<<"API-Command">>, Cmd}
                 ]),
-    send(Node, Payload, fun kapi_freeswitch:publish_api/1),
-    receive
-        {'switch_reply', Msg} -> Msg
-    after Timeout ->
-            {'error', 'timeout'}
-    end.
+    send(Node, Payload, fun kapi_freeswitch:publish_api/1, Timeout).
 
 %% @doc Make a backgrounded API call to FreeSWITCH. The asynchronous reply is
 %% sent to calling process after it is received. This function
@@ -196,12 +186,8 @@ json_api(Node, UUID, Cmd, Data, Timeout) when is_atom(Node) ->
                 [{<<"Call-ID">>, UUID}
                 ,{<<"Payload">>, JObj}
                 ]),
-    send(Node, Payload, fun kapi_freeswitch:publish_json_api/1),
-    receive
-        {'switch_reply', Msg} -> Msg
-    after Timeout ->
-            {'error', 'timeout'}
-    end.
+    lager:debug_unsafe("PROP => ~p", [Payload]),
+    send(Node, Payload, fun kapi_freeswitch:publish_json_api/1, Timeout).
 
 -type event() :: kz_json:object().
 
@@ -226,12 +212,7 @@ sendevent(Node, EventName, Headers) ->
     Payload = [{<<"Fire-Event-Name">>, kz_term:to_binary(EventName)}
               ,{<<"Headers">>, kz_json:from_list(Headers)}
               ],
-    send(Node, Payload, fun kapi_freeswitch:publish_event/1),
-    receive
-        {'switch_reply', Msg} -> Msg
-    after ?API_TIMEOUT ->
-            {'error', 'timeout'}
-    end.
+    send(Node, Payload, fun kapi_freeswitch:publish_event/1).
 
 -spec sendevent_custom(atom(), atom(), list()) -> fs_api_return().
 sendevent_custom(Node, SubClassName, Headers) ->
@@ -239,12 +220,7 @@ sendevent_custom(Node, SubClassName, Headers) ->
               ,{<<"Fire-Event-Subclass">>, kz_term:to_binary(SubClassName)}
               ,{<<"Headers">>, kz_json:from_list(Headers)}
               ],
-    send(Node, Payload, fun kapi_freeswitch:publish_event/1),
-    receive
-        {'switch_reply', Msg} -> Msg
-    after ?API_TIMEOUT ->
-            {'error', 'timeout'}
-    end.
+    send(Node, Payload, fun kapi_freeswitch:publish_event/1).
 
 -spec sync_channel(atom(), kz_term:ne_binary()) -> 'ok'.
 sync_channel(Node, UUID) ->
@@ -257,12 +233,7 @@ sync_channel(Node, UUID) ->
               ,{<<"Fire-Event-Subclass">>, <<"CHANNEL_SYNC">>}
               ,{<<"Headers">>, kz_json:from_list(Headers)}
               ],
-    send(Node, Payload, fun kapi_freeswitch:publish_event/1),
-    receive
-        {'switch_reply', Msg} -> Msg
-    after ?API_TIMEOUT ->
-            {'error', 'timeout'}
-    end.
+    send(Node, Payload, fun kapi_freeswitch:publish_event/1).
 
 -spec sendmsg(atom(), kz_term:ne_binary(), list()) -> fs_api_return().
 sendmsg(Node, UUID, Headers) ->
@@ -270,12 +241,7 @@ sendmsg(Node, UUID, Headers) ->
     Payload = [{<<"Call-ID">>, UUID}
               ,{<<"Headers">>, kz_json:from_list(Cmd)}
               ],
-    send(Node, Payload, fun kapi_freeswitch:publish_message/1),
-    receive
-        {'switch_reply', Msg} -> Msg
-    after ?API_TIMEOUT ->
-            {'error', 'timeout'}
-    end.
+    send(Node, Payload, fun kapi_freeswitch:publish_message/1).
 
 -spec sendmsgs(atom(), kz_term:ne_binary(), list()) -> fs_api_return().
 sendmsgs(Node, UUID, API) ->
@@ -287,24 +253,14 @@ cmd(Node, UUID, Command) ->
     Payload = [{<<"Call-ID">>, UUID}
               ,{<<"Command">>, kz_json:from_list(Cmd)}
               ],
-    send(Node, Payload, fun kapi_freeswitch:publish_command/1),
-    receive
-        {'switch_reply', Msg} -> Msg
-    after ?API_TIMEOUT ->
-            {'error', 'timeout'}
-    end.
+    send(Node, Payload, fun kapi_freeswitch:publish_command/1).
 
 -spec cmds(atom(), kz_term:ne_binary(), list()) -> fs_api_return().
 cmds(Node, UUID, Commands) ->
     Payload = [{<<"Call-ID">>, UUID}
               ,{<<"Commands">>, kz_json:from_list_recursive(Commands)}
               ],
-    send(Node, Payload, fun kapi_freeswitch:publish_commands/1),
-    receive
-        {'switch_reply', Msg} -> Msg
-    after ?API_TIMEOUT ->
-            {'error', 'timeout'}
-    end.
+    send(Node, Payload, fun kapi_freeswitch:publish_commands/1).
 
 -spec cast_cmd(atom(), kz_term:ne_binary(), list()) -> fs_api_return().
 cast_cmd(Node, UUID, Command) ->
@@ -339,33 +295,42 @@ bgapi4(Node, Cmd, Args, Fun, CallBackParams, Self) ->
                 [{<<"API-Command">>, kz_term:to_binary(Cmd)}
                 ,{<<"API-Arguments">>, kz_term:to_binary(Args)}
                 ]),
-    send(Node, Payload, fun kapi_freeswitch:publish_bgapi/1),
-    receive
-        {'switch_reply',{'ok', JobId}} ->
+    case send(Node, Payload, fun kapi_freeswitch:publish_bgapi/1) of
+        {'ok', JobId} ->
             Self ! {'api', {'ok', JobId}},
             receive
-                {'switch_reply', {'bgok', JobId, Reply, _}}
+                {'switch_job_reply', {'bgok', JobId, Reply, _}}
                   when is_function(Fun, 2) -> Fun('ok', Reply);
-                {'switch_reply', {'bgerror', JobId, Reply, _}}
+                {'switch_job_reply', {'bgerror', JobId, Reply, _}}
                   when is_function(Fun, 2) -> Fun('error', Reply);
-                {'switch_reply', {'bgok', JobId, Reply, _}}
+                {'switch_job_reply', {'bgok', JobId, Reply, _}}
                   when is_function(Fun, 3) -> Fun('ok', Reply, [JobId | CallBackParams]);
-                {'switch_reply', {'bgerror', JobId, Reply, _}}
+                {'switch_job_reply', {'bgerror', JobId, Reply, _}}
                   when is_function(Fun, 3) -> Fun('error', Reply, [JobId | CallBackParams]);
-                {'switch_reply', {'bgok', JobId, Reply, Data}}
+                {'switch_job_reply', {'bgok', JobId, Reply, Data}}
                   when is_function(Fun, 4) -> Fun('ok', Reply, Data, [JobId | CallBackParams]);
-                {'switch_reply', {'bgerror', JobId, Reply, Data}}
+                {'switch_job_reply', {'bgerror', JobId, Reply, Data}}
                   when is_function(Fun, 4) -> Fun('error', Reply, Data, [JobId | CallBackParams]);
-                {'switch_reply', {Code, JobId, _}} -> Self ! {Code, JobId};
-                {'switch_reply', {Code, JobId, Reply, _}} -> Self ! {Code, JobId, Reply}
+                {'switch_job_reply', {Code, JobId, _}} -> Self ! {Code, JobId};
+                {'switch_job_reply', {Code, JobId, Reply, _}} -> Self ! {Code, JobId, Reply}
             end;
-        {'switch_reply', {'error', _} = Error} -> Self ! {'api', Error}
-    after ?API_TIMEOUT ->
-            Self ! {'api', {'error', 'timeout'}}
+        {'error', _} = Error -> Self ! {'api', Error}
     end.
 
 send(Node, Payload, PublishFun) ->
-    mod_com_kazoo_api:send(payload(Node, Payload), PublishFun).
+    send(Node, Payload, PublishFun, ?API_TIMEOUT).
+
+send(Node, Payload, PublishFun, Timeout) ->
+    Result = mod_com_kazoo_api:send(payload(Node, Payload), PublishFun),
+    send_wait(Result, Timeout).
+
+send_wait({error, _} = Error, _Timeout) -> Error;
+send_wait(MsgId, Timeout) ->
+    receive
+        {'switch_reply', MsgId, Msg} -> Msg
+    after Timeout ->
+            {'error', 'timeout'}
+    end.
 
 -spec core_uuid(atom()) -> atom().
 core_uuid(X)
