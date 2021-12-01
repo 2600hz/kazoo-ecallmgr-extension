@@ -17,7 +17,9 @@
 	</routing-key>
 
 	<events>
+        <!--
 		<event name="CHANNEL_EXECUTE_COMPLETE" />
+        -->
 		<event name="CHANNEL_APP_EXECUTE_COMPLETE">
 			<flags>
 				<flag name="producer-dispatcher" value="true"/>

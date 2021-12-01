@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2015-2020, 2600Hz
+%%% @copyright (C) 2015-2021, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -103,7 +103,7 @@
 
 %% command Request
 -define(COMMAND_REQ_HEADERS, [<<"Core-UUID">>, <<"Call-ID">>, <<"Command">>]).
--define(OPTIONAL_COMMAND_REQ_HEADERS, []).
+-define(OPTIONAL_COMMAND_REQ_HEADERS, [<<"Execute-Now">>]).
 -define(COMMAND_REQ_VALUES, [{<<"Event-Category">>, <<"freeswitch">>}
                             ,{<<"Event-Name">>, <<"command">>}
                             ]).
@@ -111,7 +111,7 @@
 
 %% commands Request
 -define(COMMANDS_REQ_HEADERS, [<<"Core-UUID">>, <<"Call-ID">>, <<"Commands">>]).
--define(OPTIONAL_COMMANDS_REQ_HEADERS, []).
+-define(OPTIONAL_COMMANDS_REQ_HEADERS, [<<"Execute-Now">>]).
 -define(COMMANDS_REQ_VALUES, [{<<"Event-Category">>, <<"freeswitch">>}
                              ,{<<"Event-Name">>, <<"commands">>}
                              ]).
