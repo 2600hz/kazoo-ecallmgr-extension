@@ -21,8 +21,8 @@
         <event name="CHANNEL_UNHOLD"/>
         <event name="CHANNEL_SYNC"/>
         <event name="CHANNEL_DATA"/>
-        <event name="CALL_UPDATE"/>
-		<event name="CHANNEL_METAFLOW" />
+        <!--<event name="CALL_UPDATE"/>-->
+        <event name="CHANNEL_METAFLOW" />
         <event name="DETECTED_SPEECH"/>
 	</events>
 

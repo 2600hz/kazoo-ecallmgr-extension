@@ -38,20 +38,21 @@
 
 
 	<queue>
-		<param name="name"
-			value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+		<!--<param name="name" value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />-->
+		<param name="name" value="${Core-UUID}-targeted-${AMQP-Profile-Name}" />
 
 		<binding>
 			<param name="exchange" value="targeted" />
-			<param name="routing-key"
-				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+			<!--<param name="routing-key" value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />-->
+			<param name="routing-key" value="${Core-UUID}-targeted-${AMQP-Profile-Name}" />
 		</binding>
 
-		<param name="exclusive" value="true" />
-		<param name="consume-exclusive" value="true" />
+		<param name="exclusive" value="false" />
+		<param name="consume-exclusive" value="false" />
 		<param name="consume-qos" value="10" />
 		<param name="consume-qos-global" value="false" />
-		<param name="consume-spawn" value="false" />
+		<param name="consume-spawn" value="true" />
+		<param name="consume-no-ack" value="true" />
 	</queue>
 
 
@@ -67,8 +68,8 @@
 			<param name="delivery-mode" value="0" />
 		</params>
 		<fields>
-			<field name="Server-ID"
-				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+			<!--<field name="Server-ID"	value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />-->
+			<field name="Server-ID"	value="${Core-UUID}-targeted-${AMQP-Profile-Name}" />
 		</fields>
 	</publisher>
 
