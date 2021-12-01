@@ -26,6 +26,9 @@
                 "commands"
             ],
             "type": "string"
+        },
+        "Execute-Now": {
+            "type": "string"
         }
     },
     "required": [

@@ -249,30 +249,50 @@ sendmsgs(Node, UUID, API) ->
 
 -spec cmd(atom(), kz_term:ne_binary(), list()) -> fs_api_return().
 cmd(Node, UUID, Command) ->
+    cmd(Node, UUID, call_cmd_sync(), Command).
+
+-spec cmd(atom(), kz_term:ne_binary(), boolean(), list()) -> fs_api_return().
+cmd(Node, UUID, Sync, Command) ->
     Cmd = [{kz_term:to_binary(K), kz_term:to_binary(V)}|| {K, V} <- Command],
     Payload = [{<<"Call-ID">>, UUID}
               ,{<<"Command">>, kz_json:from_list(Cmd)}
+              ,{<<"Execute-Now">>, Sync}
               ],
-    send(Node, Payload, fun kapi_freeswitch:publish_command/1).
+    send(Node, props:filter_undefined(Payload), fun kapi_freeswitch:publish_command/1).
 
 -spec cmds(atom(), kz_term:ne_binary(), list()) -> fs_api_return().
 cmds(Node, UUID, Commands) ->
+    cmds(Node, UUID, call_cmd_sync(), Commands).
+
+-spec cmds(atom(), kz_term:ne_binary(), boolean(), list()) -> fs_api_return().
+cmds(Node, UUID, Sync, Commands) ->
     Payload = [{<<"Call-ID">>, UUID}
               ,{<<"Commands">>, kz_json:from_list_recursive(Commands)}
+              ,{<<"Execute-Now">>, Sync}
               ],
-    send(Node, Payload, fun kapi_freeswitch:publish_commands/1).
+    send(Node, props:filter_undefined(Payload), fun kapi_freeswitch:publish_commands/1).
 
 -spec cast_cmd(atom(), kz_term:ne_binary(), list()) -> fs_api_return().
 cast_cmd(Node, UUID, Command) ->
+    cast_cmd(Node, UUID, call_cmd_sync(), Command).
+
+-spec cast_cmd(atom(), kz_term:ne_binary(), boolean(), list()) -> fs_api_return().
+cast_cmd(Node, UUID, Sync, Command) ->
     Payload = [{<<"Call-ID">>, UUID}
               ,{<<"Command">>, kz_json:from_list(Command)}
+              ,{<<"Execute-Now">>, Sync}
               ],
     kapi_freeswitch:publish_command(payload(Node, Payload)).
 
 -spec cast_cmds(atom(), kz_term:ne_binary(), list()) -> fs_api_return().
 cast_cmds(Node, UUID, Commands) ->
+    cast_cmds(Node, UUID, call_cmd_sync(), Commands).
+
+-spec cast_cmds(atom(), kz_term:ne_binary(), boolean(), list()) -> fs_api_return().
+cast_cmds(Node, UUID, Sync, Commands) ->
     Payload = [{<<"Call-ID">>, UUID}
               ,{<<"Commands">>, kz_json:from_list_recursive(Commands)}
+              ,{<<"Execute-Now">>, Sync}
               ],
     kapi_freeswitch:publish_commands(payload(Node, Payload)).
 
@@ -346,10 +366,13 @@ payload(Node) ->
 
 -spec payload(atom(), kz_term:api_terms()) -> kz_term:api_terms().
 payload(Node, Headers) ->
-    Headers ++ [{<<"Core-UUID">>, kz_term:to_binary(core_uuid(Node))}
-               ,{?KEY_REQUEST_FROM_PID, kz_term:to_binary(self())}
-               | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
-               ].
+    Headers ++ payload_headers(Node).
+
+payload_headers(Node) ->
+    [{<<"Core-UUID">>, kz_term:to_binary(core_uuid(Node))}
+    ,{?KEY_REQUEST_FROM_PID, kz_term:to_binary(self())}
+    | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
+    ].
 
 %%------------------------------------------------------------------------------
 %% @doc Make a background API call to FreeSWITCH and wait for reply.
@@ -370,7 +393,9 @@ async_api(Node, Cmd, Args) ->
 
 -spec contact_api() -> binary().
 contact_api() ->
-    case kz_app_config:get_boolean(?APP_CONFIG_CAT, <<"use_proxy_contact_api">>, true) of
+    case kz_app_config:get_boolean(?APP_CONFIG_CAT, <<"use_proxy_contact_api">>, false) of
         true -> <<"kz_proxy_contact">>;
         false -> <<"kz_contact">>
     end.
+
+call_cmd_sync() -> freeswitch:call_cmd_sync().
