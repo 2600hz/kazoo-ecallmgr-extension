@@ -11,6 +11,8 @@
 		<field name="fetch-info" type="reference" />
 		<field name="Event-Category" type="static" value="languages" />
 		<field name="Event-Name" type="static" value="language_req" />
+		<field name="macro_name" />
+		<field name="lang" />
 	</fields>
 
 	<params>
