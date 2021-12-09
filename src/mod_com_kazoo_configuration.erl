@@ -393,9 +393,7 @@ cache_entry_el(Key, Type, Value) ->
                            ]
                }.
 
--spec mod_kazoo_config_el(kz_types:xml_el() | kz_types:xml_els()) -> kz_types:xml_el() | kz_types:xml_els().
-mod_kazoo_config_el(#xmlElement{}=Content) ->
-    mod_kazoo_config_el([Content]);
+-spec mod_kazoo_config_el(kz_types:xml_els()) -> kz_types:xml_el().
 mod_kazoo_config_el(Content) ->
     #xmlElement{name='configuration'
                ,attributes=[xml_attrib('name', "com.kazoo.conf")
