@@ -186,7 +186,6 @@ json_api(Node, UUID, Cmd, Data, Timeout) when is_atom(Node) ->
                 [{<<"Call-ID">>, UUID}
                 ,{<<"Payload">>, JObj}
                 ]),
-    lager:debug_unsafe("PROP => ~p", [Payload]),
     send(Node, Payload, fun kapi_freeswitch:publish_json_api/1, Timeout).
 
 -type event() :: kz_json:object().
