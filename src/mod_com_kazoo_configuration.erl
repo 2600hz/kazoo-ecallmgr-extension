@@ -20,7 +20,6 @@
 
 -import(ecallmgr_fs_xml
        ,[section_el/2
-        ,config_el/3
         ,param_el/2
         ,xml_attrib/2
         ,variable_el/2
@@ -101,18 +100,17 @@ build_kazoo_config() ->
     Defs0 = lists:foldl(fun one_def/2, [], DefFiles),
     Defs = lists:map(fun fs_xml/1, Defs0),
 
-    ConfigurationEl = config_el(<<"com.kazoo.conf">>, <<"Built by Kazoo">>
-                               ,[definitions_el(Defs)
-                                ,event_handlers_el(Profiles)
-                                ,fetch_handlers_el(FetchProfiles)
-                                ,command_handlers_el(APIProfiles)
-                                ,amqp_profiles_el(AMQPProfiles)
-                                ,connections_el()
-                                ,variables_el()
-                                ,caches_el()
-                                | pre_process()
-                                ]
-                               ),
+    ConfigurationContent = [definitions_el(Defs)
+                           ,event_handlers_el(Profiles)
+                           ,fetch_handlers_el(FetchProfiles)
+                           ,command_handlers_el(APIProfiles)
+                           ,amqp_profiles_el(AMQPProfiles)
+                           ,connections_el()
+                           ,variables_el()
+                           ,caches_el()
+                           | pre_process()
+                           ],
+    ConfigurationEl = mod_kazoo_config_el(ConfigurationContent),
     SectionEl = section_el(<<"configuration">>, ConfigurationEl),
     Xml = xmerl:export([SectionEl], 'fs_xml'),
     Config = iolist_to_binary(Xml),
@@ -393,4 +391,15 @@ cache_entry_el(Key, Type, Value) ->
                            ,xml_attrib('type', Type)
                            ,xml_attrib('value', Value)
                            ]
+               }.
+
+-spec mod_kazoo_config_el(kz_types:xml_els()) -> kz_types:xml_el().
+mod_kazoo_config_el(Content) ->
+    #xmlElement{name='configuration'
+               ,attributes=[xml_attrib('name', "com.kazoo.conf")
+                           ,xml_attrib('description', "Built by Kazoo")
+                           ,xml_attrib('version', kz_application:version(?APP))
+                           ,xml_attrib('timestamp', kz_term:to_binary(kz_time:current_unix_tstamp()))
+                           ]
+               ,content=Content
                }.
