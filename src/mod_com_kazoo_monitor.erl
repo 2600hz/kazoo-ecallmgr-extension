@@ -13,6 +13,8 @@
 
 -export([start_link/0]).
 
+-export([monitor/0]).
+
 -export([init/1
         ,handle_call/3
         ,handle_cast/2
@@ -68,6 +70,11 @@ handle_cast({'kz_nodes',{'heartbeat', #kz_node{zone = Zone} = Node}}, #{zone := 
 handle_cast({'kz_nodes',{'expire', #kz_node{zone = Zone} = Node}}, #{zone := Zone} = State) ->
     {'noreply', handle_expired(Node, State)};
 handle_cast({'kz_nodes', _Node}, State) ->
+    {'noreply', State};
+handle_cast(monitor_kz_nodes, State) ->
+    _ = kz_nodes:notify_new(),
+    _ = kz_nodes:notify_expire(),
+    _ = kz_nodes:notify_heartbeat(),
     {'noreply', State};
 handle_cast(_Cast, State) ->
     lager:debug("unhandled cast: ~p", [_Cast]),
@@ -211,11 +218,7 @@ maybe_node_up(#{is_node := 'false'
     'ok' = ecallmgr_fs_nodes:add(Nodename, erlang:get_cookie(), [{'connect_strategy', 'heartbeat'}]),
     Context.
 
-maybe_node_sync(#{nodename := Nodename
-                 ,node_server := 'undefined'
-                 } = Context) ->
-    lager:info("node server is down ~s", [Nodename]),
-    Context;
+maybe_node_sync(#{node_server := 'undefined'} = Context) -> Context;
 maybe_node_sync(#{is_node := 'true'
                  ,core_uuid := CoreUUID
                  ,nodename := Nodename
@@ -234,11 +237,7 @@ maybe_node_sync(Context) -> Context.
 node_instance_uuid(Nodename) ->
     kz_term:to_atom(ecallmgr_fs_node:instance_uuid(Nodename), 'true').
 
-maybe_node_run(#{nodename := Nodename
-                ,node_server := 'undefined'
-                } = Context) ->
-    lager:info("node server is down ~s", [Nodename]),
-    Context;
+maybe_node_run(#{node_server := 'undefined'} = Context) -> Context;
 maybe_node_run(#{is_node := 'true'
                 ,nodename := Nodename
                 ,node := #kz_node{modules=Modules}
@@ -305,3 +304,7 @@ mod_com_kazoo_code(Props) ->
      ++ [{'clause',1, [{'var',1,'X'}], [[{'call',1,{'atom',1,'is_atom'},[{'var',1,'X'}]}]], [{'var',1,'X'}]}]
      ++ [{'clause',1, [{'var',1,'_'}], [], [{'atom',1,'error_not_found'}]}]
     }.
+
+-spec monitor() -> ok.
+monitor() ->
+    gen_server:cast(?MODULE, monitor_kz_nodes).
