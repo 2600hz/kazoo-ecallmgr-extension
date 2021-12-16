@@ -25,6 +25,7 @@
                                      ,{'fax', ?FAX_EVENTS}
                                      ,{'cdr', ['KZ_CDR']}
                                      ,{'record', ['RECORD_START', 'RECORD_STOP']}
+                                     ,{'callflow', ['ROUTE_WINNER', 'CHANNEL_EXECUTE_COMPLETE', 'CHANNEL_APP_EXECUTE_COMPLETE', 'CHANNEL_METAFLOW']}
                                      ,{'channel', ['CHANNEL_CREATE', 'CHANNEL_ANSWER', 'CHANNEL_DESTROY']}
                                      ]).
 
@@ -32,6 +33,7 @@
                                      ,{'create', ['CHANNEL_CREATE']}
                                      ,{'answer', ['CHANNEL_ANSWER']}
                                      ,{'destroy', ['CHANNEL_DESTROY']}
+                                     ,{'callflow', ['ROUTE_WINNER', 'CHANNEL_EXECUTE_COMPLETE', 'CHANNEL_METAFLOW']}
                                      ]).
 
 -define(ECALLMGR_EXTENSION_HRL, 'true').
