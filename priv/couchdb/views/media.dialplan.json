@@ -1,0 +1,26 @@
+{
+    "_id": "_design/media.dialplan",
+    "kazoo": {
+        "view_map": [
+            {
+                "database": "system_config"
+            }
+        ]
+    },
+    "language": "javascript",
+    "views": {
+        "context.dialplan": {
+            "map": [
+                "function(doc) {",
+                "  if (doc.pvt_type != 'media.dialplan') return;",
+                "  var ctx = doc.context || 'default';",
+                "  for (var id in doc.extensions) {",
+                "    emit([ctx, id], {",
+                "      '_id': doc._id",
+                "    })",
+                "  }",
+                "}"
+            ]
+        }
+    }
+}
