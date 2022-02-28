@@ -316,8 +316,30 @@ pre_process_el(Cmd, Data) ->
                }.
 
 variables_el() ->
-    Variables = sofia_overrides(),
+    Funs = [fun global_overrides/0
+           ,fun sofia_overrides/0
+           ],
+    Variables = lists:foldl(fun variables_fold/2, [], Funs),
     variables_el(Variables).
+
+variables_fold(Fun, Acc) when is_function(Fun, 0) ->
+    Acc ++ Fun().
+
+global_overrides() ->
+    Static = kz_json:from_list(global_static_overrides()),
+    Configured = global_configured_overrides(),
+    Variables = kz_json:set_values(kz_json:to_proplist(Configured), Static),
+    lists:map(fun global_profile_override/1, kz_json:to_proplist(Variables)).
+
+global_profile_override({K, V}) ->
+    variable_el(K, V).
+
+global_configured_overrides() ->
+    kz_app_config:get_json(?APP_CONFIG_CAT, <<"global_variables_overrides">>, kz_json:new()).
+
+global_static_overrides() ->
+    [{<<"origination_nested_vars">>, <<"true">>}
+    ].
 
 sofia_overrides() ->
     Static = kz_json:from_list(sofia_static_overrides()),
