@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2021, 2600Hz
+%%% @copyright (C) 2012-2022, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,6 +28,7 @@ start(_StartType, _StartArgs) ->
         'true' ->
             _ = declare_exchanges(),
             _ = check_modules(),
+            _ = register_views(),
             _ = event_stream_bind(),
             _ = fetch_handlers_bind(),
             ok = build_mod_com_kazoo_config(),
@@ -64,6 +65,7 @@ event_stream_unbind() ->
 
 
 -define(COM_FETCH_HANDLERS_MODS, ['mod_com_kazoo_configuration'
+                                 ,'mod_com_kazoo_dialplan'
                                  ]).
 
 -spec fetch_handlers_bind() -> 'ok'.
@@ -103,3 +105,10 @@ build_mod_com_kazoo_config() ->
             kz_log:log_stacktrace(ST),
             {Exception, Error}
     end.
+
+-spec register_views() -> 'ok'.
+register_views() ->
+    kz_datamgr:register_views_from_folder(?APP),
+    kz_datamgr:refresh_views(?KZ_CONFIG_DB),
+    'ok'.
+
