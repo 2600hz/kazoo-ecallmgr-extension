@@ -2,6 +2,7 @@
 
 	<fields>
 		<field name="fetch-info" type="reference" />
+		<field name="hunt-context" type="reference" />
 	</fields>
 
 	<connection name="primary" />
