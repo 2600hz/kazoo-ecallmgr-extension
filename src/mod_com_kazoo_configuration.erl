@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2021, 2600Hz
+%%% @copyright (C) 2012-2022, 2600Hz
 %%% @doc Send config commands to FS
 %%%
 %%% This Source Code Form is subject to the terms of the Mozilla Public
@@ -83,33 +83,67 @@ fetch_mod_kazoo_config_action(Action, #{core_uuid := Node} = Ctx) ->
 kazoo_config() ->
     {ok, persistent_term:get(mod_com_kazoo_xml_config, <<>>)}.
 
+-type build_content_acc() :: {[file:filename_all()], map()}.
+-type build_content_fun_acc() :: {[file:filename_all()], kz_types:xml_els()}.
+-type build_content_fun() :: fun((kz_types:xml_el(), build_content_fun_acc()) -> build_content_fun_acc()).
+-type build_content_arg() :: {atom, build_content_fun(), string()}.
+
+-spec build_content() -> map().
+build_content() ->
+    Funs = [{event_handlers_el, fun fs_profile_handler/2, "event_profiles"}
+           ,{fetch_handlers_el, fun fs_handler/2, "fetch"}
+           ,{command_handlers_el, fun fs_handler/2, "api"}
+           ,{amqp_profiles_el, fun fs_handler/2, "amqp_profiles"}
+           ],
+    {DefFiles, Map} = lists:foldl(fun build_content/2, {[], maps:new()}, Funs),
+    Map#{definitions_el => definitions(DefFiles)}.
+
+-spec build_content(build_content_arg(), build_content_acc()) -> build_content_acc().
+build_content({Key, Fun, Directory}, {DefFiles, Map}) ->
+    Files = filelib:wildcard(code:priv_dir(?APP) ++ "/mod_kazoo/" ++ Directory ++ "/*.xml"),
+    {NewDefFiles, Value} = lists:foldr(Fun, {DefFiles, []}, Files),
+    {NewDefFiles,  Map#{Key => Value}}.
+
+definitions(DefFiles) ->
+    Defs = lists:foldl(fun one_def/2, [], DefFiles),
+    lists:map(fun fs_xml/1, Defs).
+
+-spec build_content_fun(map()) -> fun().
+build_content_fun(Map) ->
+    fun(Fun, Acc) ->
+            build_content_fun(Fun, Acc, Map)
+    end.
+
+-type build_content_fun_arg() :: fun() | atom() | {fun(), atom()}.
+
+-spec build_content_fun(build_content_fun_arg(), kz_types:xml_els(), map()) -> kz_types:xml_els().
+build_content_fun(Fun, Acc, _Map)
+  when is_function(Fun, 0) ->
+    build_content_fun_result(Fun(), Acc);
+build_content_fun(Fun, Acc, Map)
+  when is_function(Fun, 1) ->
+    build_content_fun_result(Fun(Map), Acc).
+
+build_content_fun_result(undefined, Acc) -> Acc;
+build_content_fun_result(#xmlElement{} = Val, Acc) -> [Val | Acc];
+build_content_fun_result([#xmlElement{} | _] = Val, Acc) -> Val ++ Acc.
+
+
 -spec build_kazoo_config() -> {'ok', binary()}.
 build_kazoo_config() ->
-    ProfileFiles = filelib:wildcard(code:priv_dir(?APP) ++ "/mod_kazoo/event_profiles/*.xml"),
-    {DefFiles0, Profiles} = lists:foldr(fun fs_profile_handler/2, {[], []}, ProfileFiles),
+    Content = build_content(),
 
-    FetchFiles = filelib:wildcard(code:priv_dir(?APP) ++ "/mod_kazoo/fetch/*.xml"),
-    {DefFiles1, FetchProfiles} = lists:foldr(fun fs_handler/2, {DefFiles0, []}, FetchFiles),
-
-    APIFiles = filelib:wildcard(code:priv_dir(?APP) ++ "/mod_kazoo/api/*.xml"),
-    {DefFiles2, APIProfiles} = lists:foldr(fun fs_handler/2, {DefFiles1, []}, APIFiles),
-
-    AMQPFiles = filelib:wildcard(code:priv_dir(?APP) ++ "/mod_kazoo/amqp_profiles/*.xml"),
-    {DefFiles, AMQPProfiles} = lists:foldr(fun fs_handler/2, {DefFiles2, []}, AMQPFiles),
-
-    Defs0 = lists:foldl(fun one_def/2, [], DefFiles),
-    Defs = lists:map(fun fs_xml/1, Defs0),
-
-    ConfigurationContent = [definitions_el(Defs)
-                           ,event_handlers_el(Profiles)
-                           ,fetch_handlers_el(FetchProfiles)
-                           ,command_handlers_el(APIProfiles)
-                           ,amqp_profiles_el(AMQPProfiles)
-                           ,connections_el()
-                           ,variables_el()
-                           ,caches_el()
-                           | pre_process()
-                           ],
+    Funs = [fun pre_process/0
+           ,fun definitions_el/1
+           ,fun event_handlers_el/1
+           ,fun fetch_handlers_el/1
+           ,fun command_handlers_el/1
+           ,fun amqp_profiles_el/1
+           ,fun connections_el/0
+           ,fun variables_el/0
+           ,fun caches_el/0
+           ],
+    ConfigurationContent = lists:foldr(build_content_fun(Content) , [], Funs),
     ConfigurationEl = mod_kazoo_config_el(ConfigurationContent),
     SectionEl = section_el(<<"configuration">>, ConfigurationEl),
     Xml = xmerl:export([SectionEl], 'fs_xml'),
@@ -130,7 +164,7 @@ fs_profile_events(XmlEl, DefFiles0) ->
           end,
     {DefFiles, XmlEl#xmlElement{content=lists:map(Fun, Xmls)}}.
 
--spec fs_profile_event(kz_types:xml_el(), {kz_types:xml_els(), kz_types:xml_els()}) -> {kz_types:xml_els(), kz_types:xml_els()}.
+-spec fs_profile_event(kz_types:xml_el(), {[file:filename_all()], kz_types:xml_els()}) -> {[file:filename_all()], kz_types:xml_els()}.
 fs_profile_event(ProfileEventXml, {DefFiles, EventXmls}) ->
     [NameAttr] = xmerl_xpath:string("@name", ProfileEventXml),
     RoutingKey = xmerl_xpath:string("routing-key", ProfileEventXml),
@@ -141,12 +175,12 @@ fs_profile_event(ProfileEventXml, {DefFiles, EventXmls}) ->
     EventXml = Tmp#xmlElement{content = Content ++ RoutingKey ++ Logging ++ Flags},
     {fs_defs(EventXml, DefFiles), [EventXml | EventXmls]}.
 
--spec fs_handler(file:filename_all(), {kz_types:xml_els(), kz_types:xml_els()}) -> {kz_types:xml_els(), kz_types:xml_els()}.
+-spec fs_handler(file:filename_all(), {[file:filename_all()], kz_types:xml_els()}) -> {[file:filename_all()], kz_types:xml_els()}.
 fs_handler(EventFile, {DefFiles, EventXmls}) ->
     EventXml = fs_xml(EventFile),
     {fs_defs(EventXml, DefFiles), [EventXml | EventXmls]}.
 
--spec fs_defs(kz_types:xml_el(), kz_types:xml_els()) -> kz_types:xml_els().
+-spec fs_defs(kz_types:xml_el(), kz_types:xml_els()) -> [file:filename_all()].
 fs_defs(XmlEl, Acc) ->
     RefFileList = lists:map(fun fs_def_filename/1, xmerl_xpath:string("//field[@type='reference']/@name", XmlEl)),
     RefXmls = lists:map(fun fs_xml/1, RefFileList),
@@ -185,41 +219,47 @@ one_def(File, Acc) ->
         'false' -> Acc ++ [File]
     end.
 
--spec definitions_el(kz_types:xml_els()) -> kz_types:xml_el().
-definitions_el(Content) ->
+-spec definitions_el(map()) -> kz_types:xml_el().
+definitions_el(#{definitions_el := Content}) ->
     #xmlElement{name='definitions'
                ,content=Content
                }.
 
--spec event_handlers_el(kz_types:xml_els()) -> kz_types:xml_el().
-event_handlers_el(Content) ->
+-spec event_handlers_el(map()) -> kz_types:xml_el().
+event_handlers_el(#{event_handlers_el := Content}) ->
     #xmlElement{name='event-handlers'
                ,content=Content
                }.
 
--spec fetch_handlers_el(kz_types:xml_els()) -> kz_types:xml_el().
-fetch_handlers_el(Content) ->
+-spec fetch_handlers_el(map()) -> kz_types:xml_el().
+fetch_handlers_el(#{fetch_handlers_el := Content}) ->
     #xmlElement{name='fetch-handlers'
                ,content=Content
                }.
 
--spec command_handlers_el(kz_types:xml_els()) -> kz_types:xml_el().
-command_handlers_el(Content) ->
+-spec command_handlers_el(map()) -> kz_types:xml_el().
+command_handlers_el(#{command_handlers_el := Content}) ->
     #xmlElement{name='command-handlers'
                ,content=Content
                }.
 
--spec amqp_profiles_el(kz_types:xml_els()) -> kz_types:xml_el().
-amqp_profiles_el(Content) ->
+-spec amqp_profiles_el(map()) -> kz_types:xml_el().
+amqp_profiles_el(#{amqp_profiles_el := Content}) ->
     #xmlElement{name='amqp-profiles'
                ,content=Content
                }.
 
--spec connections_el() -> kz_types:xml_el().
+-spec connections_el() -> kz_types:xml_el() | undefined.
 connections_el() ->
+    connections_el(kz_app_config:is_true(?APP_CONFIG_CAT, <<"disable_media_amqp_connections">>, false)).
+
+-spec connections_el(Disabled :: boolean()) -> kz_types:xml_el() | undefined.
+connections_el(false) ->
     LocalZone = kz_nodes:local_zone(),
     Connections = lists:filtermap(fun connection_filtermap/1, kz_amqp_connections:connections()),
-    connections_el(LocalZone, Connections).
+    connections_el(LocalZone, Connections);
+connections_el(true) -> undefined.
+
 
 -spec connections_el(atom() | binary(), kz_types:xml_els()) -> kz_types:xml_el().
 connections_el(LocalZone, Content) ->
