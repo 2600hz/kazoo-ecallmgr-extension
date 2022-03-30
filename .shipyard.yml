@@ -19,3 +19,10 @@ package:
     group: Productivity/Telephony
     url: http://www.2600hz.com/
     vendor: 2600Hz
+app_exchange:
+    type: kazoo-application
+    core_app:
+      name: kazoo-core
+    name: ecallmgr_extension
+    dependencies:
+      - name: ecallmgr
