@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2021, 2600Hz
+%%% @copyright (C) 2011-2022, 2600Hz
 %%% @doc Receive call command and executes
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,7 +25,7 @@
 %%------------------------------------------------------------------------------
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, _Props) ->
-    lager:debug_unsafe("~s", [kz_json:encode(JObj, ['pretty'])]),
+    lager:debug_unsafe("~s", [kz_json:encode(JObj)]),
     UUID = kz_api:call_id(JObj),
     case ecallmgr_fs_channel:fetch(UUID, 'record') of
         {'error', 'not_found'} -> lager:debug("channel ~s not found locally, exiting", [UUID]);

@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2021, 2600Hz
+%%% @copyright (C) 2011-2022, 2600Hz
 %%% @doc handle communication with freeswitch thru amqp
 %%%
 %%% This Source Code Form is subject to the terms of the Mozilla Public
@@ -138,7 +138,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 -spec handle_req(kz_json:object()) -> 'ok'.
 handle_req(JObj) ->
-    %% lager:debug_unsafe("REPLY : ~s", [kz_json:encode(JObj, ['pretty'])]),
+    %% lager:debug_unsafe("REPLY : ~s", [kz_json:encode(JObj)]),
     Pid = kz_term:to_pid(kz_api:reply_to(JObj)),
     Event = kz_api:event_name(JObj),
     handle_req(Pid, Event, JObj).
