@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2021, 2600Hz
+%%% @copyright (C) 2011-2022, 2600Hz
 %%% @doc Handle BRIDGE events and request metaflow bind
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -109,7 +109,7 @@ send_request(#{fetch_id := FetchId, payload := Payload}=Map) ->
             lager:info("did not receive route response for metaflow ~s: ~p", [FetchId, R]),
             Map#{metaflow => #{error => R}};
         {'ok', JObj} ->
-            lager:debug_unsafe("METAFLOW REPLY ~s", [kz_json:encode(JObj, ['pretty'])]),
+            lager:debug_unsafe("METAFLOW REPLY ~s", [kz_json:encode(JObj)]),
             'true' = kapi_route:resp_v(JObj),
             ControllerQ = kz_api:server_id(JObj),
             Map#{controller_q => ControllerQ, metaflow => #{payload => JObj}}

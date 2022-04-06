@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2021, 2600Hz
+%%% @copyright (C) 2011-2022, 2600Hz
 %%% @doc Receive route(dialplan) requests from FS, request routes and respond
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,7 +31,7 @@ handle_req(JObj, Props) ->
             lager:debug("getting channel data for ~s", [UUID]),
             case ecallmgr_fs_channel:channel_data(Node, UUID) of
                 {'ok', ChannelJObj} ->
-                    lager:debug("got channel data for ~s : ~s", [UUID, kz_json:encode(ChannelJObj, ['pretty'])]),
+                    lager:debug("got channel data for ~s : ~s", [UUID, kz_json:encode(ChannelJObj)]),
                     handle_metaflow_action(UUID, JObj, ControlQ, ChannelJObj, Node);
                 {'error', Error} -> lager:debug("error ~p getting channel data for ~s, exiting", [Error, UUID])
             end;
@@ -88,7 +88,7 @@ start_metaflow_handling(FetchId, CallId, JObj, ChannelJObj) ->
 
 -spec send_metaflow_win(kz_term:ne_binary(), kz_term:ne_binary(), kz_term:ne_binary(), kz_json:object()) -> 'ok'.
 send_metaflow_win(ControlQ, FetchId, CallId, JObj) ->
-    lager:debug("ROUTE REP ~s", [kz_json:encode(JObj, ['pretty'])]),
+    lager:debug("ROUTE REP ~s", [kz_json:encode(JObj)]),
     ControllerQ = kz_api:server_id(JObj),
     CCVs = kz_json:get_json_value(<<"Custom-Channel-Vars">>, JObj),
     Win = [{<<"Msg-ID">>, FetchId}
