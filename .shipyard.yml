@@ -1,10 +1,10 @@
 ---
 name: kazoo-application-ecallmgr-extension
-base_branch: origin/master
+base_branch: origin/5.1
 metapackage:
   - name: meta-kazoo-applications
     type: related
-    branch: master
+    branch: '5.1'
     package: kazoo-application-ecallmgr-extension
 base_core: kazoo
 template: kazoo-application.spec.tmpl
