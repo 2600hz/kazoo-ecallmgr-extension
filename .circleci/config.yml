@@ -94,14 +94,14 @@ workflows:
               ignore: /.*/
           requires:
             - kazoo/build
-      - kazoo/integration-test:
-          filters:
-            tags:
-              only: /^\d+\.\d+\.\d+$/
-            branches:
-              ignore: /.*/
-          requires:
-            - kazoo/build
+      # - kazoo/integration-test:
+      #     filters:
+      #       tags:
+      #         only: /^\d+\.\d+\.\d+$/
+      #       branches:
+      #         ignore: /.*/
+      #     requires:
+      #       - kazoo/build
       - kazoo/build-centos7:
           context: Private-Builds
           target-type: kapp
@@ -115,4 +115,4 @@ workflows:
             - kazoo/code-checks
             - kazoo/docs
             - kazoo/analyze
-            - kazoo/integration-test
+            # - kazoo/integration-test
