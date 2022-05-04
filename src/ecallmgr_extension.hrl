@@ -33,7 +33,9 @@
                                      ,{'create', ['CHANNEL_CREATE']}
                                      ,{'answer', ['CHANNEL_ANSWER']}
                                      ,{'destroy', ['CHANNEL_DESTROY']}
-                                     ,{'callflow', ['ROUTE_WINNER', 'CHANNEL_EXECUTE_COMPLETE', 'CHANNEL_METAFLOW']}
+                                     ,{'route', ['ROUTE_WINNER']}
+                                     ,{'execute', ['CHANNEL_EXECUTE_COMPLETE']}
+                                     ,{'metaflow', ['CHANNEL_METAFLOW']}
                                      ]).
 
 -define(ECALLMGR_EXTENSION_HRL, 'true').
