@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2020, 2600Hz
+%%% @copyright (C) 2012-2022, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -133,6 +133,7 @@ code_change(_OldVsn, State, _Extra) ->
 -spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
 handle_req(JObj, Props) ->
     kz_log:put_callid(JObj),
+    log_event(JObj, Props),
     Node = kzd_fetch:node(JObj),
     FetchId = kzd_fetch:fetch_uuid(JObj),
     CoreUUID = kzd_fetch:core_uuid(JObj),
@@ -144,7 +145,6 @@ handle_req(JObj, Props) ->
     RKs = lists:filter(fun kz_term:is_not_empty/1, [<<"fetch">>, Section, Tag, Version, Event, Key]),
 
     Routing = kz_binary:join(RKs, <<".">>),
-    lager:debug("requesting binding for ~s", [Routing]),
     Map = #{node => Node
            ,section => kz_term:to_atom(Section, 'true')
            ,tag => kz_term:to_atom(Tag, 'true')
@@ -157,6 +157,7 @@ handle_req(JObj, Props) ->
            ,server_id => kz_api:server_id(JObj)
            ,basic => props:get_value('basic', Props)
            },
+    lager:debug("requesting binding for ~s", [Routing]),
     case kazoo_bindings:map(Routing, Map) of
         [] -> not_found(Map);
         _ -> 'ok'
@@ -166,3 +167,32 @@ not_found(#{node := Node, fetch_id := FetchId, section := Section, routing := Ro
     lager:debug("replying not found to ~s request ~s from node ~s with routing ~s", [Section, FetchId, Node, Routing]),
     {'ok', XmlResp} = ecallmgr_fs_xml:not_found(Routing),
     mod_com_kazoo:fetch_reply(Ctx#{reply => iolist_to_binary(XmlResp)}).
+
+-spec log_event(kz_json:object(), kz_term:proplist()) -> 'ok'.
+log_event(JObj, Props) ->
+    Key = kzd_fetch:fetch_key_value(JObj),
+    Section = kzd_fetch:fetch_section(JObj),
+    Event = kz_term:to_lower_binary(kz_api:event_name(JObj)),
+    Category = kz_term:to_lower_binary(kz_api:event_category(JObj)),
+    Basic = props:get_value('basic', Props),
+    Deliver = props:get_value('deliver', Props),
+    NowUs = erlang:system_time('micro_seconds'),
+    Created = kzd_fetch:fetch_timestamp_micro(JObj),
+    Published = Basic#'P_basic'.timestamp,
+    lager:debug("received fs fetch request ~s (~s,~s) (~s, ~s) (~B,~B,~B) => ~s => ~s"
+               ,[kz_api:msg_id(JObj)
+                ,Category
+                ,Event
+                ,Section
+                ,Key
+                ,Published - Created
+                ,NowUs - Published
+                ,NowUs - Created
+                ,gen_listener:routing_key_used(Deliver)
+                ,log_basic_headers(Basic)
+                ]
+               ).
+
+log_basic_headers(#'P_basic'{headers=undefined}) -> <<"no-headers">>;
+log_basic_headers(#'P_basic'{headers=Headers}) ->
+    kz_binary:join([io_lib:format("~s = ~s", [K, kz_term:to_binary(V)]) || {K, _, V} <- Headers]).
