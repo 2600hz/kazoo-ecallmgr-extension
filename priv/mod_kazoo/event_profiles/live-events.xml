@@ -3,7 +3,6 @@
 	<params>
        <param name="amqp-exchange" value="live" />
        <param name="amqp-profile" value="live-event"/>
-       <param name="event-channel-mode" value="worker"/>
 	</params>
 
 	<events>
@@ -25,16 +24,5 @@
 		    </routing-key>
         </event>
 	</events>
-
-<!--
-    <logging>
-        <log name="trace" value="SWITCH_LOG_DEBUG" />
-        <log name="info" value="SWITCH_LOG_DEBUG" />
-        <log name="success" value="SWITCH_LOG_DEBUG" />
-        <log name="time" value="SWITCH_LOG_DEBUG1" />
-        <log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
-        <log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
-    </logging>
--->
 
 </profile>
