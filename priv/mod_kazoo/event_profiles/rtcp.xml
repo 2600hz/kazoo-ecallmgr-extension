@@ -3,9 +3,7 @@
 	<params>
        <param name="amqp-exchange" value="rtcp" />
        <param name="amqp-profile" value="rtcp"/>
-       <!--<param name="event-channel-mode" value="broadcast"/>-->
-	   <param name="producer-use-dispatcher" value="true" />
-	   <param name="producer-dispatcher-workers" value="10" />
+	   <param name="producer-dispatcher-workers" value="5" />
 	</params>
 
 	<events>
@@ -28,15 +26,5 @@
 		    </routing-key>
         </event>
 	</events>
-
-
-    <logging>
-        <log name="trace" value="SWITCH_LOG_DEBUG1" />
-        <log name="info" value="SWITCH_LOG_DEBUG1" />
-        <log name="success" value="SWITCH_LOG_DEBUG1" />
-        <log name="time" value="SWITCH_LOG_DEBUG1" />
-        <log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
-        <log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
-    </logging>
 
 </profile>

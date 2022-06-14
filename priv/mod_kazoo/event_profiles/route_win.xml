@@ -3,25 +3,14 @@
 	<params>
        <param name="amqp-exchange" value="targeted" />
        <param name="amqp-profile" value="priority"/>
-       <param name="event-channel-mode" value="worker"/>
-	   <param name="producer-use-dispatcher" value="true" />
-	   <param name="producer-dispatcher-workers" value="5" />
 	</params>
 
 	<events>
-		<event name="ROUTE_WINNER">
-			<flags>
-				<flag name="producer-dispatcher" value="true"/>
-			</flags>
-		</event>
+		<event name="ROUTE_WINNER"/>
 	</events>
 
 	<routing-key>
 	    <field name="Routing-Queue" encode-part="false" />
 	</routing-key>
-
-    <logging>
-		<log name="producer" value="SWITCH_LOG_DEBUG" />
-    </logging>
 
 </profile>

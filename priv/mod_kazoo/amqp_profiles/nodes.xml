@@ -1,20 +1,11 @@
 <profile name="nodes" profile-type="worker">
 
-    <connection-ref workers="1" channels="1">
+    <connection-ref>
        <property name="is-local" value="true"/>
     </connection-ref>
-    <connection-ref workers="1" channels="1">
+    <connection-ref>
        <property name="is-federated" value="true"/>
     </connection-ref>
-
-	<logging>
-		<log name="trace" value="SWITCH_LOG_DEBUG1" />
-		<log name="info" value="SWITCH_LOG_DEBUG1" />
-		<log name="success" value="SWITCH_LOG_DEBUG1" />
-		<log name="time" value="SWITCH_LOG_DEBUG1" />
-		<log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
-		<log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
-	</logging>
 
 	<declare-exchanges>
 		<exchange>
@@ -45,14 +36,10 @@
 		<param name="consume-exclusive" value="false" />
 		<param name="consume-qos" value="10" />
 		<param name="consume-qos-global" value="false" />
-		<param name="consume-spawn" value="true" />
-		<param name="consume-no-ack" value="true" />
-
+		<param name="consume-spawn" value="false" />
 	</queue>
 
 	<params>
-		<param name="workers" value="1" />
-		<param name="channels" value="1" />
 		<param name="query-timeout-ms" value="2500" />
 		<param name="cache-expires-ms" value="120000" />
 	</params>
