@@ -6,7 +6,7 @@
 	</params>
 
 	<events>
-		<event name="KZ_PRESENCE_DIALOG" />
+		<event name="KZ_PRESENCE_DIALOG"/>
 	</events>
 
 	<routing-key>
@@ -20,7 +20,5 @@
 		<field name="Presence-Dialog-Realm" />
 		<field name="Unique-ID" />
 	</routing-key>
-
-
 
 </profile>

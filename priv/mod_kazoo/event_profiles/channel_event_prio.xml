@@ -1,19 +1,17 @@
-<profile name="channel_events_destroy" profile-type="event">
+<profile name="channel_events_prio" profile-type="event">
 
 	<params>
 	   <param name="amqp-exchange" value="callevt" />
 	   <param name="amqp-profile" value="priority"/>
-	   <param name="event-channel-mode" value="worker"/>
-	   <param name="producer-use-dispatcher" value="true" />
-	   <param name="producer-dispatcher-workers" value="20" />
+	   <param name="producer-dispatcher-workers" value="25" />
 	</params>
 
 	<events>
-		<event name="CHANNEL_DESTROY">
-			<flags>
-				<flag name="producer-dispatcher" value="true"/>
-			</flags>
-		</event>
+        <event name="CHANNEL_CREATE"/>
+        <event name="CHANNEL_ANSWER"/>
+        <event name="CHANNEL_BRIDGE"/>
+        <event name="CHANNEL_UNBRIDGE"/>
+		<event name="CHANNEL_DESTROY"/>
 	</events>
 
 	<routing-key>
@@ -23,9 +21,5 @@
 		<param name="hash-event-field" value="Unique-ID" />
 		<param name="hash-amqp-header" value="call-id" />		
 	</routing-key>
-
-    <logging>
-		<log name="producer" value="SWITCH_LOG_DEBUG" />
-    </logging>
 
 </profile>
