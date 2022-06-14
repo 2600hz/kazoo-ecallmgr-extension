@@ -2,10 +2,7 @@
 
 	<params>
        <param name="amqp-exchange" value="callevt" />
-       <param name="amqp-profile" value="push-event"/>
-       <param name="event-channel-mode" value="worker"/>
-	   <param name="producer-use-dispatcher" value="true" />
-	   <param name="producer-dispatcher-workers" value="10" />
+       <param name="amqp-profile" value="max"/>
 	</params>
 
 	<routing-key>
@@ -13,28 +10,11 @@
 		<field name="event" type="static" value="CHANNEL_EXECUTE_COMPLETE"  encode-part="false"/>
 		<field name="Unique-ID" />
         <param name="hash-event-field" value="Unique-ID" />
-        <param name="hash-amqp-header" value="call-id" />       
+        <param name="hash-amqp-header" value="call-id" />
 	</routing-key>
 
 	<events>
-        <!--
-		<event name="CHANNEL_EXECUTE_COMPLETE" />
-        -->
-		<event name="CHANNEL_APP_EXECUTE_COMPLETE">
-			<flags>
-				<flag name="producer-dispatcher" value="true"/>
-			</flags>
-        </event>
+		<event name="CHANNEL_APP_EXECUTE_COMPLETE"/>
 	</events>
-
-    <logging>
-        <log name="producer" value="SWITCH_LOG_DEBUG1" />
-        <log name="trace" value="SWITCH_LOG_DEBUG1" />
-        <log name="info" value="SWITCH_LOG_DEBUG1" />
-        <log name="success" value="SWITCH_LOG_DEBUG1" />
-        <log name="time" value="SWITCH_LOG_DEBUG1" />
-        <log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
-        <log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
-    </logging>
 
 </profile>

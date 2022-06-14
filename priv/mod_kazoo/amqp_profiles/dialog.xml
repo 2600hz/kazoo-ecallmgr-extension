@@ -1,17 +1,8 @@
 <profile name="dialog" profile-type="worker">
 
-	<connection-ref workers="3" channels="3">
+	<connection-ref>
 	   <property name="is-local" value="true"/>
 	</connection-ref>
-
-	<logging>
-		<log name="trace" value="SWITCH_LOG_DEBUG1" />
-		<log name="info" value="SWITCH_LOG_DEBUG1" />
-		<log name="success" value="SWITCH_LOG_DEBUG1" />
-		<log name="time" value="SWITCH_LOG_DEBUG1" />
-		<log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
-		<log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
-	</logging>
 
 	<declare-exchanges>
 		<exchange>
@@ -58,8 +49,6 @@
 
 
 	<params>
-		<param name="workers" value="4" />
-		<param name="channels" value="5" />
 		<param name="reconnect_interval_ms" value="10000"/>
 	</params>
 
