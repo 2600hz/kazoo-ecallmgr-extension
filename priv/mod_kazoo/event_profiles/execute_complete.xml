@@ -2,7 +2,7 @@
 
 	<params>
        <param name="amqp-exchange" value="callevt" />
-       <param name="amqp-profile" value="max"/>
+       <param name="amqp-profile" value="priority"/>
 	</params>
 
 	<routing-key>
