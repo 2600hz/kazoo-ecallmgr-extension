@@ -32,11 +32,11 @@
 		<param name="consume-spawn" value="false" />
 	-->
 
-		<param name="name" value="${Core-UUID}-dialog-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+		<param name="name" value="${Core-UUID}-dialog-${AMQP-Profile-Name}&lt;0.${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
 
 		<binding>
 			<param name="exchange" value="targeted" />
-			<param name="routing-key" value="${Core-UUID}-dialog-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+			<param name="routing-key" value="${Core-UUID}-dialog-${AMQP-Profile-Name}&lt;0.${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
 		</binding>
 
 		<param name="exclusive" value="true" />
@@ -57,8 +57,7 @@
 			<param name="delivery-mode" value="0" />
 		</params>
 		<fields>
-			<field name="Server-ID"
-				value="${Core-UUID}-dialog-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+			<field name="Server-ID" value="${Core-UUID}-dialog-${AMQP-Profile-Name}&lt;0.${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
 		</fields>
 	</publisher>
 
