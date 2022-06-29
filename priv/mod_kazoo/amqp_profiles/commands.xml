@@ -33,8 +33,9 @@
 
 
 	<params>
+		<param name="receiver-use-dispatcher" value="true" />
 		<param name="receiver-dispatcher-workers" value="25" />
-		<param name="channels" value="25" />
+		<param name="channels" value="5" />
 		<param name="query-timeout-ms" value="2500" />
 		<param name="cache-expires-ms" value="120000" />
 	</params>
@@ -44,7 +45,6 @@
 			<param name="delivery-mode" value="0" />
 		</params>
 		<fields>
-			<!--<field name="Server-ID" value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />-->
 			<field name="Server-ID" value="freeswitch.cmds.${Core-UUID}" />
 		</fields>
 	</publisher>
