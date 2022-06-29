@@ -3,7 +3,8 @@
 	<params>
 	   <param name="amqp-exchange" value="callevt" />
 	   <param name="amqp-profile" value="priority"/>
-	   <param name="producer-dispatcher-workers" value="25" />
+	   <param name="producer-use-dispatcher" value="true" />
+	   <param name="producer-dispatcher-workers" value="5" />
 	</params>
 
 	<events>
