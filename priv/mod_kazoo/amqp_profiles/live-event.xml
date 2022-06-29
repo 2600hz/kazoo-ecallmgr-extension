@@ -44,7 +44,7 @@
 			<param name="delivery-mode" value="0" />
 		</params>
 		<fields>
-			<field name="Server-ID"	value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+			<field name="Server-ID"	value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;0.${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
 		</fields>
 	</publisher>
 -->
