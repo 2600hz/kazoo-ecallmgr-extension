@@ -7,8 +7,6 @@
 
 	<events>
 		<event name="DTMF" />
-		<event name="RECORD_START" />
-		<event name="RECORD_STOP" />
 		<event name="CHANNEL_HOLD"/>
         <event name="CHANNEL_UNHOLD"/>
         <event name="CHANNEL_SYNC"/>
