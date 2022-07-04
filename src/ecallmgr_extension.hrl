@@ -13,7 +13,8 @@
 -define(EXT_NODE_MODULES,
         [<<"node">>
         ,<<"notify">>
-        ,<<"resource">>
+        ,<<"amqp_resource_sup">>
+        ,<<"amqp_fetch_dialplan_sup">>
         ]).
 
 -define(APP_CONFIG_CAT, 'ecallmgr').
