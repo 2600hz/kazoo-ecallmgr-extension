@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2015-2021, 2600Hz
+%%% @copyright (C) 2015-2022, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -330,11 +330,17 @@ bind_q(Queue, ['languages'|Restrict], Props) ->
     kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, ['fetch'|Restrict], Props) ->
-    kz_amqp_util:bind_q_to_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH),
-    kz_amqp_util:bind_q_to_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
-    kz_amqp_util:bind_q_to_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
-    kz_amqp_util:bind_q_to_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
-    kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    bind_q(Queue, Restrict, Props);
+bind_q(Queue, ['fetch_all'|Restrict], Props) ->
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    'ok' = kz_amqp_util:bind_q_to_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
     bind_q(Queue, Restrict, Props);
 bind_q(Queue, [_|Restrict], Props) ->
     bind_q(Queue, Restrict, Props);
@@ -371,6 +377,12 @@ unbind_q(Queue, ['languages'|Restrict], Props) ->
     _ = kz_amqp_util:unbind_q_from_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
     unbind_q(Queue, Restrict, Props);
 unbind_q(Queue, ['fetch'|Restrict], Props) ->
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, channels_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    _ = kz_amqp_util:unbind_q_from_exchange(Queue, languages_routing_key(Props), ?EXCHANGE_FREESWITCH),
+    unbind_q(Queue, Restrict, Props);
+unbind_q(Queue, ['fetch_all'|Restrict], Props) ->
     _ = kz_amqp_util:unbind_q_from_exchange(Queue, dialplan_routing_key(Props), ?EXCHANGE_FREESWITCH),
     _ = kz_amqp_util:unbind_q_from_exchange(Queue, directory_routing_key(Props), ?EXCHANGE_FREESWITCH),
     _ = kz_amqp_util:unbind_q_from_exchange(Queue, configuration_routing_key(Props), ?EXCHANGE_FREESWITCH),
