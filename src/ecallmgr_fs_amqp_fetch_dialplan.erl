@@ -25,18 +25,45 @@
 
 -include("ecallmgr_extension.hrl").
 
--define(RESPONDERS, [{?MODULE
-                     ,[{<<"*">>, <<"*">>}]
-                     }
-                    ]).
--define(BINDINGS(CoreUUID), [{'freeswitch', [{'restrict_to', ['dialplan']}
-                                            ,{'core_uuid', CoreUUID}
-                                            ]}
-                            ]).
+-define(RESPONDERS, [{?MODULE, [{<<"*">>, <<"*">>}]}]).
 
--define(QUEUE_NAME(CoreUUID), list_to_binary(["ecallmgr_amqp_fetch_dialplan_", kz_term:to_binary(CoreUUID)])).
--define(QUEUE_OPTIONS, [{'exclusive', 'false'}]).
--define(CONSUME_OPTIONS, [{'exclusive', 'false'}]).
+-define(HASHED_EXCHANGE_NAME(N), list_to_binary(["callmgr.route.", N])).
+
+-define(HASHED_EXCHANGE_HASH_HEADER(A), maps:get(hash_header, A, <<"call-id">>)).
+-define(HASHED_EXCHANGE_HASH(A), {<<"hash-header">>, 'longstr', ?HASHED_EXCHANGE_HASH_HEADER(A)}).
+-define(HASHED_EXCHANGE_ARGS(A), [?HASHED_EXCHANGE_HASH(A)]).
+-define(HASHED_EXCHANGE_OPTIONS(A), [{'auto_delete', 'true'}
+                                    ,{'arguments', ?HASHED_EXCHANGE_ARGS(A)}
+                                    ]).
+-define(HASHED_EXCHANGE_CORE_UUID(A), kz_term:to_binary(maps:get(core_uuid, A))).
+-define(HASHED_EXCHANGE_ROUTE_BINDING_KEYS(A), [list_to_binary(["freeswitch.dialplan.fetch.", ?HASHED_EXCHANGE_CORE_UUID(A), ".*"])]).
+-define(HASHED_EXCHANGE_ROUTE_BINDING(A), [{source, kapi_freeswitch:exchange_name()}
+                                          ,{routings, ?HASHED_EXCHANGE_ROUTE_BINDING_KEYS(A)}
+                                          ]).
+-define(HASHED_EXCHANGE_BINDINGS(A), [{route, ?HASHED_EXCHANGE_ROUTE_BINDING(A)}]).
+-define(HASHED_EXCHANGE(A), [{'name', ?HASHED_EXCHANGE_NAME(?HASHED_EXCHANGE_CORE_UUID(A))}
+                            ,{'type', <<"x-consistent-hash">>}
+                            ,{'options', ?HASHED_EXCHANGE_OPTIONS(A)}
+                            ,{'bindings', ?HASHED_EXCHANGE_BINDINGS(A)}
+                            ]).
+-define(HASHED_ROUTING(A), <<"20">>).
+%%-define(HASHED_ROUTING(A), kz_term:to_binary(maps:get(sequence, A, 20) * 5)).
+-define(HASHED_BIND(A), [{'exchange', ?HASHED_EXCHANGE(A)}
+                        ,{'routing', ?HASHED_ROUTING(A)}
+                        ]).
+-define(HASHED_BINDINGS(A), [{'bind', ?HASHED_BIND(A)}]).
+
+-define(HASHED_QUEUE_NAME, <<>>).
+-define(HASHED_QUEUE_OPTIONS, []).
+-define(HASHED_CONSUME_OPTIONS, []).
+
+-define(SHARED_BINDINGS(CoreUUID), [{'freeswitch', [{'restrict_to', ['dialplan']}
+                                                   ,{'core_uuid', CoreUUID}
+                                                   ]}
+                                   ]).
+-define(SHARED_QUEUE_NAME(CoreUUID), list_to_binary(["ecallmgr_amqp_fetch_dialplan_", kz_term:to_binary(CoreUUID)])).
+-define(SHARED_QUEUE_OPTIONS, [{'exclusive', 'false'}]).
+-define(SHARED_CONSUME_OPTIONS, [{'exclusive', 'false'}]).
 
 -type state() :: map().
 
@@ -48,18 +75,24 @@
 %% @doc
 %% @end
 %%------------------------------------------------------------------------------
--spec start_link(atom(), kz_term:proplist()) -> kz_types:startlink_ret().
-start_link(Node, Options) ->
-    CoreUUID = mod_com_kazoo:core_uuid(Node),
-    gen_listener:start_link(?MODULE
-                           ,[{'responders', ?RESPONDERS}
-                            ,{'bindings', ?BINDINGS(CoreUUID)}
-                            ,{'queue_name', ?QUEUE_NAME(CoreUUID)}
-                            ,{'queue_options', ?QUEUE_OPTIONS}
-                            ,{'consume_options', ?CONSUME_OPTIONS}
-                            ]
-                           ,[Node, Options]).
+-spec start_link(map(), integer()) -> kz_types:startlink_ret().
+start_link(Map, Sequence) ->
+    gen_listener:start_link(?MODULE, bindings(Map), [Map#{sequence => Sequence}]).
 
+bindings(#{share_type := queue, core_uuid := CoreUUID}) ->
+    [{'responders', ?RESPONDERS}
+    ,{'bindings', ?SHARED_BINDINGS(CoreUUID)}
+    ,{'queue_name', ?SHARED_QUEUE_NAME(CoreUUID)}
+    ,{'queue_options', ?SHARED_QUEUE_OPTIONS}
+    ,{'consume_options', ?SHARED_CONSUME_OPTIONS}
+    ];
+bindings(#{share_type := hashed} = Map) ->
+    [{'responders', ?RESPONDERS}
+    ,{'bindings', ?HASHED_BINDINGS(Map)}
+    ,{'queue_name', ?HASHED_QUEUE_NAME}
+    ,{'queue_options', ?HASHED_QUEUE_OPTIONS}
+    ,{'consume_options', ?HASHED_CONSUME_OPTIONS}
+    ].
 
 %%%=============================================================================
 %%% gen_server callbacks
@@ -71,9 +104,9 @@ start_link(Node, Options) ->
 %% @end
 %%------------------------------------------------------------------------------
 -spec init(list()) -> {'ok', state()}.
-init([Node, Options]) ->
-    lager:debug("starting new ecallmgr amqp fetch dialplan listener for ~s", [Node]),
-    {'ok', #{node => Node, options => Options}}.
+init([#{node := Node, share_type := ShareType} = Map]) ->
+    lager:error("starting new ecallmgr amqp fetch dialplan listener (~s) for ~s", [ShareType, Node]),
+    {'ok', Map}.
 
 -spec handle_call(any(), kz_term:pid_ref(), state()) -> kz_types:handle_call_ret_state(state()).
 handle_call(_Request, _From, State) ->
