@@ -16,6 +16,8 @@
 -export([start_link/2]).
 -export([init/1]).
 
+-define(CHILDREN(A), [?WORKER_ARGS_TYPE('ecallmgr_fs_amqp_fetch_dialplan', [A], 'temporary')]).
+
 %% ===================================================================
 %% API functions
 %% ===================================================================
@@ -55,11 +57,30 @@ init([Node, Options]) ->
     MaxRestarts = 0,
     MaxSecondsBetweenRestarts = 1,
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
-    {'ok', {SupFlags, [?WORKER_ARGS_TYPE('ecallmgr_fs_amqp_fetch_dialplan', [Node, Options], 'temporary')]}}.
+    {'ok', {SupFlags, ?CHILDREN(dialplan_args(Node, Options))}}.
+
+dialplan_args(Node, Options) ->
+    #{node => Node
+     ,options => Options
+     ,share_type => cfg_share_type()
+     ,core_uuid => mod_com_kazoo:core_uuid(Node)
+     }.
+
+cfg_share_type() ->
+    kz_app_config:get_atom(?APP_CONFIG_CAT, [<<"amqp">>, <<"dialplan">>, <<"share_type">>], cfg_default_share_type()).
+
+cfg_default_share_type() ->
+    case cfg_listeners() of
+        1 -> queue;
+        _ -> hashed
+    end.
+
+cfg_listeners() ->
+    lists:max([1, kz_app_config:get_integer(?APP_CONFIG_CAT, [<<"amqp">>, <<"dialplan">>, <<"listeners">>], 1)]).
 
 start_workers(Pid) ->
-    Workers = kz_app_config:get_integer(?APP_CONFIG_CAT, [<<"amqp">>, <<"dialplan">>], 5),
-    [start_worker(Pid) || _N<- lists:seq(1, Workers)].
+    Workers = cfg_listeners(),
+    [start_worker(Pid, N) || N <- lists:seq(1, Workers)].
 
-start_worker(Pid) ->
-    supervisor:start_child(Pid, []).
+start_worker(Pid, N) ->
+    supervisor:start_child(Pid, [N]).
