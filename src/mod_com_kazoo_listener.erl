@@ -218,8 +218,12 @@ api_result(Result, Bin) ->
         <<>> -> 'ok';
         <<"true">> -> {Result, 'true'};
         <<"false">> -> {Result, 'false'};
-        Msg -> {Result, Msg}
+        Msg -> result(Result, Msg)
     end.
+
+result(error, <<"no such channel" , _/binary>>) -> {error, nosession};
+result(error, <<"invalid session" , _/binary>>) -> {error, nosession};
+result(Result, Msg) -> {Result, Msg}.
 
 queue_settings('undefined') ->
     [{'queue_name', list_to_binary([<<"com-kazoo-api-">>, kz_binary:rand_uuid()])}

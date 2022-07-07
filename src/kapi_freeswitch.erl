@@ -9,6 +9,10 @@
 %%%-----------------------------------------------------------------------------
 -module(kapi_freeswitch).
 
+-export([exchange_name/0
+        ,exchange_type/0
+        ]).
+
 -export([bind_q/2
         ,unbind_q/2
         ]).
@@ -667,3 +671,9 @@ publish_message(Req, ContentType) ->
     {'ok', Payload} = kz_api:prepare_api_payload(Req, ?MESSAGE_REQ_VALUES, fun message/1),
     RK = routing_key([<<"commands">>, core_uuid(Req)]),
     kz_amqp_util:basic_publish(?EXCHANGE_FREESWITCH, RK, Payload, ContentType).
+
+-spec exchange_name() -> kz_term:ne_binary().
+exchange_name() -> ?EXCHANGE_FREESWITCH.
+
+-spec exchange_type() -> kz_term:ne_binary().
+exchange_type() -> ?TYPE_FREESWITCH.
