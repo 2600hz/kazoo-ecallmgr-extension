@@ -17,6 +17,8 @@
 		<field name="freeswitch" type="static" value="freeswitch.dialplan.fetch" encode-part="false" />
 		<field name="Core-UUID" />
 		<field name="Fetch-UUID" />
+		<param name="hash-event-field" value="Unique-ID" />
+		<param name="hash-amqp-header" value="call-id" />
 	</routing-key>
 
 </profile>
