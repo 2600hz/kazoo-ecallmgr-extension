@@ -149,6 +149,7 @@ handle_heartbeat(Node, CoreUUID, Nodename, #{nodes := Nodes} = State) ->
     Routines = [fun instance_id/1
                ,fun is_node_up/1
                ,fun is_node/1
+               ,fun node_supervisor/1
                ,fun node_server/1
                ,fun update_nodes/1
                ,fun maybe_update_code/1
@@ -173,8 +174,11 @@ is_node_up(#{nodename := Nodename} = Context) ->
 is_node(#{nodename := Nodename} = Context) ->
     Context#{is_node => ecallmgr_fs_nodes:is_node(Nodename)}.
 
-node_server(#{nodename := Nodename} = Context) ->
-    Context#{node_server => ecallmgr_fs_node_sup:node_srv(Nodename)}.
+node_supervisor(#{node := Node} = Context) ->
+    Context#{node_supervisor => ecallmgr_fs_sup:find_node(Node)}.
+
+node_server(#{node_supervisor := Supervisor} = Context) ->
+    Context#{node_server => ecallmgr_fs_node_sup:node_srv(Supervisor)}.
 
 update_nodes(#{core_uuid := CoreUUID
               ,nodename := Nodename
@@ -250,9 +254,10 @@ sync_info(#{core_uuid := CoreUUID
 sync_fetch(#{core_uuid := CoreUUID
             ,node_core_uuid := NodeCoreUUID
             ,nodename := Nodename
+            ,node_supervisor := Supervisor
             } = Context) ->
     lager:info("synchronizing node ~s fetch bindings from ~s to ~s", [Nodename, NodeCoreUUID, CoreUUID]),
-    case ecallmgr_fs_node_sup:node_server(Nodename, <<"amqp_fetch_dialplan_sup">>) of
+    case ecallmgr_fs_node_sup:node_server(Supervisor, <<"amqp_fetch_dialplan_sup">>) of
         undefined ->
             lager:warning("failed to get amqp fetch dialplan sup from ~s", [Nodename]),
             Context;
