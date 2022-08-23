@@ -1,6 +1,7 @@
 <profile name="command_handler" profile-type="api">
 
 	<logging>
+		<log name="debug" value="SWITCH_LOG_NOTICE" />
 		<log name="info" value="SWITCH_LOG_DEBUG1" />
 		<log name="success" value="SWITCH_LOG_DEBUG1" />
 		<log name="time" value="SWITCH_LOG_DEBUG1" />
