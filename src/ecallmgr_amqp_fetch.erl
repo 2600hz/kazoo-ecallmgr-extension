@@ -157,6 +157,20 @@ handle_req(JObj, Props) ->
            ,server_id => kz_api:server_id(JObj)
            ,basic => props:get_value('basic', Props)
            },
+    shortcut(RKs, Routing, Map).
+
+shortcut([<<"fetch">>, <<"directory">>, <<"location">> | _], _, Map) ->
+    ecallmgr_fs_fetch_location:fetch_location(Map);
+shortcut([<<"fetch">>, <<"directory">>, <<"domain">> | _], _, Map) ->
+    ecallmgr_fs_fetch_directory:fetch_directory(Map);
+shortcut([<<"fetch">>, <<"channels">>, _Star, <<"channel_req">> | _], _, Map) ->
+    ecallmgr_fs_fetch_channels:channel_req(Map);
+shortcut([<<"fetch">>, <<"channels">>, _Star, <<"query">> | _], _, Map) ->
+    ecallmgr_fs_fetch_channels:channel_req(Map);
+shortcut(_, RK, Map) ->
+    route(RK, Map).
+
+route(Routing, Map) ->
     lager:debug("requesting binding for ~s", [Routing]),
     case kazoo_bindings:map(Routing, Map) of
         [] -> not_found(Map);
