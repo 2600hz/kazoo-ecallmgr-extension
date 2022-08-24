@@ -20,9 +20,12 @@
 	</declare-exchanges>
 
 	<params>
+		<param name="workers" value="5" />
 		<param name="channels" value="25" />
 		<param name="reconnect_interval_ms" value="10000"/>
 		<param name="client-side-hash-pipeline" value="false"/>
+		<param name="worker-interval-ms" value="0"/>
+		<param name="worker-cpu-yield-on-publish" value="false"/>
 	</params>
 
 	<publisher>

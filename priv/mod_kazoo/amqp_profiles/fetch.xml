@@ -54,7 +54,7 @@
 		<param name="receiver-dispatcher-workers" value="25" />
 		<param name="channels" value="5" />
 		<param name="query-timeout-ms" value="3500" />
-		<param name="cache-expires-ms" value="120000" />
+		<param name="cache-expires-ms" value="300000000" />
 	</params>
 
 	<publisher>
@@ -68,5 +68,11 @@
 			-->
 		</fields>
 	</publisher>
+
+	<!--
+	<logging>
+		<log name="debug" value="SWITCH_LOG_CONSOLE" />
+    </logging>
+    -->
 
 </profile>

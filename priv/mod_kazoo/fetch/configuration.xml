@@ -7,7 +7,7 @@
 
 	<connection name="primary" />
 
-	<cache expires_ms="120000">
+	<cache expires_ms="3600000">
 		<field name="Fetch-Section" />
 		<field name="Fetch-Tag" />
 		<field name="Fetch-Key-Name" />
