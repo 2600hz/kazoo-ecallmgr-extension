@@ -105,7 +105,7 @@ bindings(#{share_type := hashed} = Map) ->
 %%------------------------------------------------------------------------------
 -spec init(list()) -> {'ok', state()}.
 init([#{node := Node, share_type := ShareType} = Map]) ->
-    lager:error("starting new ecallmgr amqp fetch dialplan listener (~s) for ~s", [ShareType, Node]),
+    lager:debug("starting new ecallmgr amqp fetch dialplan listener (~s) for ~s", [ShareType, Node]),
     {'ok', Map}.
 
 -spec handle_call(any(), kz_term:pid_ref(), state()) -> kz_types:handle_call_ret_state(state()).
@@ -192,16 +192,7 @@ handle_req(JObj, Props) ->
            ,server_id => kz_api:server_id(JObj)
            ,basic => props:get_value('basic', Props)
            },
-    lager:debug("requesting binding for ~s", [Routing]),
-    case kazoo_bindings:map(Routing, Map) of
-        [] -> not_found(Map);
-        _ -> 'ok'
-    end.
-
-not_found(#{node := Node, fetch_id := FetchId, section := Section, routing := Routing}=Ctx) ->
-    lager:debug("replying not found to ~s request ~s from node ~s with routing ~s", [Section, FetchId, Node, Routing]),
-    {'ok', XmlResp} = ecallmgr_fs_xml:not_found(Routing),
-    mod_com_kazoo:fetch_reply(Ctx#{reply => iolist_to_binary(XmlResp)}).
+    ecallmgr_fs_fetch_dialplan:dialplan(Map).
 
 -spec log_event(kz_json:object(), kz_term:proplist()) -> 'ok'.
 log_event(JObj, Props) ->

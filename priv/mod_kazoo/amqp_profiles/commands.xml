@@ -34,7 +34,9 @@
 
 	<params>
 		<param name="receiver-use-dispatcher" value="true" />
-		<param name="receiver-dispatcher-workers" value="25" />
+		<!--<param name="receiver-dispatcher-workers" value="25" />-->
+		<param name="receiver-dispatcher-cpu-yield" value="true" />
+		<param name="receiver-dispatcher-use-all-cpus" value="true" />
 		<param name="channels" value="5" />
 		<param name="query-timeout-ms" value="2500" />
 		<param name="cache-expires-ms" value="120000" />
@@ -48,5 +50,15 @@
 			<field name="Server-ID" value="freeswitch.cmds.${Core-UUID}" />
 		</fields>
 	</publisher>
+
+	<logging>
+		<log name="debug" value="SWITCH_LOG_NOTICE" />
+		<log name="info" value="SWITCH_LOG_DEBUG" />
+		<log name="success" value="SWITCH_LOG_DEBUG1" />
+		<log name="time" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-event" value="SWITCH_LOG_DEBUG1" />
+		<log name="filtered-field" value="SWITCH_LOG_DEBUG1" />
+		<log name="trace" value="SWITCH_LOG_DEBUG" />
+	</logging>
 
 </profile>

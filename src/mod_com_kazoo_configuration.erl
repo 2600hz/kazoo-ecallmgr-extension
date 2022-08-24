@@ -94,6 +94,7 @@ build_content() ->
            ,{fetch_handlers_el, fun fs_handler/2, "fetch"}
            ,{command_handlers_el, fun fs_handler/2, "api"}
            ,{amqp_profiles_el, fun fs_handler/2, "amqp_profiles"}
+           ,{others_el, fun fs_handler/2, "others"}
            ],
     {DefFiles, Map} = lists:foldl(fun build_content/2, {[], maps:new()}, Funs),
     Map#{definitions_el => definitions(DefFiles)}.
@@ -140,6 +141,7 @@ build_kazoo_config() ->
            ,fun command_handlers_el/1
            ,fun amqp_profiles_el/1
            ,fun connections_el/0
+           ,fun others_el/1
            ,fun variables_el/0
            ,fun caches_el/0
            ],
@@ -331,6 +333,10 @@ connection_properties(Zone, _LocalZone) ->
 
 connection_zone(local) -> kz_nodes:local_zone();
 connection_zone(Zone) -> Zone.
+
+-spec others_el(map()) -> kz_types:xml_els().
+others_el(#{others_el := Content}) ->
+    Content.
 
 pre_process() ->
     Static = kz_json:from_list(pre_process_static_overrides()),

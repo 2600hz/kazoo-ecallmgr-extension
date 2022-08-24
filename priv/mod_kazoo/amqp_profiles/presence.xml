@@ -1,4 +1,4 @@
-<profile name="rtcp" profile-type="worker">
+<profile name="presence" profile-type="worker">
 
 	<connection-ref>
 	   <property name="is-local" value="true"/>
@@ -6,16 +6,15 @@
 
 	<declare-exchanges>
 		<exchange>
-			<param name="name" value="rtcp" />
+			<param name="name" value="presence" />
 			<param name="type" value="topic" />
 		</exchange>
 	</declare-exchanges>
 
 	<params>
-		<param name="channels" value="25" />
+		<param name="channels" value="5" />
+		<param name="workers" value="5" />
 		<param name="reconnect_interval_ms" value="10000"/>
-		<param name="worker-interval-ms" value="0"/>
-		<param name="worker-cpu-yield-on-publish" value="true"/>
 	</params>
 
 	<publisher>
@@ -23,8 +22,7 @@
 			<param name="delivery-mode" value="0" />
 		</params>
 		<fields>
-			<field name="Server-ID"
-				value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
+			<field name="Server-ID"	value="${Core-UUID}-targeted-${AMQP-Profile-Name}&lt;${AMQP-Worker-PID}.${AMQP-Channel-ID}&gt;" />
 		</fields>
 	</publisher>
 

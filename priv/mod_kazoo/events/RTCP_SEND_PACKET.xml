@@ -4,13 +4,9 @@
 		<field name="Event-Name"  type="static" value="sent" />
 		<field name="Event-Date-Timestamp" as="Msg-ID" />
 		<field name="Unique-ID" as="Call-ID"/>
-		<field name="Caller-Channel-Created-Time" as="Channel-Created-Time" />
+		<field name="Channel-Created-Time" />
 		<field name="Switch-Nodename" as="Node" />
-		<field name="variable_ecallmgr_Account-ID" as="Account-ID" />
+		<field name="Account-ID" />
 		<field name="rtcp-out" type="reference" />
 	</fields>
-	<flags>
-		<flag name="uuid-set-data" value="true"/>
-		<flag name="producer-dispatcher" value="true"/>
-	</flags>
 </event>

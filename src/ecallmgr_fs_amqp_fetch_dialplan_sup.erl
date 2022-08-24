@@ -76,7 +76,7 @@ cfg_default_share_type() ->
     end.
 
 cfg_listeners() ->
-    lists:max([1, kz_app_config:get_integer(?APP_CONFIG_CAT, [<<"amqp">>, <<"dialplan">>, <<"listeners">>], 1)]).
+    lists:max([1, kz_app_config:get_integer(?APP_CONFIG_CAT, [<<"amqp">>, <<"dialplan">>, <<"listeners">>], 5)]).
 
 start_workers(Pid) ->
     Workers = cfg_listeners(),
