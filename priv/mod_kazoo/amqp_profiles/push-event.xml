@@ -34,6 +34,8 @@
 	<params>
 		<param name="channels" value="25" />
 		<param name="reconnect_interval_ms" value="10000"/>
+		<param name="worker-interval-ms" value="0"/>
+		<param name="worker-cpu-yield-on-publish" value="false"/>
 	</params>
 
 	<publisher>

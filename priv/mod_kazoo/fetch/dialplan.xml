@@ -7,7 +7,7 @@
 	<connection name="primary" />
 
 	<params>
-		<param name="fetch-timeout" value="3500000" />
+		<param name="fetch-timeout" value="5000000" />
 		<param name="fetch-section" value="dialplan" />
         <param name="amqp-exchange" value="freeswitch" />
         <param name="amqp-profile" value="fetch" />
@@ -20,5 +20,9 @@
 		<param name="hash-event-field" value="Unique-ID" />
 		<param name="hash-amqp-header" value="call-id" />
 	</routing-key>
+
+	<logging>
+		<log name="debug" value="SWITCH_LOG_CONSOLE" />
+    </logging>
 
 </profile>

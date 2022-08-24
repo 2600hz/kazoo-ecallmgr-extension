@@ -13,4 +13,8 @@
 	    <field name="Routing-Queue" encode-part="false" />
 	</routing-key>
 
+	<logging>
+		<log name="producer" value="SWITCH_LOG_CONSOLE" />
+    </logging>
+
 </profile>
