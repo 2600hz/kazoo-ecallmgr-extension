@@ -2,10 +2,10 @@
 	<field name="rtcp" type="static" serialize-as="object">
 		<fields>
       <field name="rtcp_remote_ip" as="srcIp"/>
-      <field name="variable_remote_media_port" as="srcPort" serialize-as="number"/>
-      <field name="dstIp" type="first-of" value="variable_advertised_media_ip|variable_local_media_ip"/>
-      <field name="localIp" type="first-of" value="variable_local_media_ip"/>
-      <field name="variable_local_media_port" as="dstPort" serialize-as="number"/>
+      <field name="remote_media_port" as="srcPort" serialize-as="number"/>
+      <field name="dstIp" type="first-of" value="advertised_media_ip|local_media_ip"/>
+      <field name="local_media_ip" as="localIp"/>
+      <field name="local_media_port" as="dstPort" serialize-as="number"/>
 			<field name="packet" as="packet-b64" />
     </fields>
   </field>

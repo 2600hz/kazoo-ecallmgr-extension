@@ -6,7 +6,7 @@
 
 	<params>
 		<param name="fetch-section" value="directory" />
-		<param name="fetch-timeout" value="3500000" />
+		<param name="fetch-timeout" value="5000000" />
 		<param name="amqp-exchange" value="freeswitch" />
 		<param name="amqp-profile" value="fetch" />
 	</params>
@@ -24,7 +24,8 @@
 	</routing-key>
 	-->
 
-	<cache expires_ms="300000">
+	
+	<cache expires_ms="3600000">
 		<field name="Fetch-Section" />
 		<field name="Fetch-Tag" />
 		<field name="Fetch-Key-Name" />
@@ -36,5 +37,10 @@
 		<field name="X-AUTH-URI-User" />
 		<field name="X-AUTH-From-User" />
 	</cache>
+    
+	<logging>
+		<log name="debug" value="SWITCH_LOG_CONSOLE" />
+    </logging>
+
  
 </profile>

@@ -1,0 +1,8 @@
+<event-producer>
+
+    <param name="workers" value="0"/>
+    <param name="use-all-cpus" value="false"/>
+    <param name="cpu-yield" value="true"/>
+    <param name="sleep-us" value="0"/>
+
+</event-producer>

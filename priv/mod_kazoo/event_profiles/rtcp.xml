@@ -12,8 +12,8 @@
 		    <routing-key>
 		        <field name="rtcp" type="static" value="rtcp" />
 		        <field name="direction" type="static" value="received" />
-		        <field name="variable_ecallmgr_Account-ID" />
-		        <field name="interaction-base" type="reference"/>
+		        <field name="Account-ID" />
+		        <field name="Call-Interaction-Key"/>
 		        <field name="Unique-ID" />
 		    </routing-key>
         </event>
@@ -21,8 +21,8 @@
 		    <routing-key>
 		        <field name="rtcp" type="static" value="rtcp" />
 		        <field name="direction" type="static" value="sent" />
-		        <field name="variable_ecallmgr_Account-ID" />
-		        <field name="interaction-base" type="reference"/>
+		        <field name="Account-ID" />
+		        <field name="Call-Interaction-Key" />
 		        <field name="Unique-ID" />
 		    </routing-key>
         </event>

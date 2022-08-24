@@ -222,6 +222,7 @@ api_result(Result, Bin) ->
     end.
 
 result(error, <<"no such channel" , _/binary>>) -> {error, nosession};
+result(error, <<"No such channel" , _/binary>>) -> {error, nosession};
 result(error, <<"invalid session" , _/binary>>) -> {error, nosession};
 result(Result, Msg) -> {Result, Msg}.
 
