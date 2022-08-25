@@ -69,10 +69,8 @@
 		</fields>
 	</publisher>
 
-	<!--
 	<logging>
-		<log name="debug" value="SWITCH_LOG_CONSOLE" />
+		<log name="debug" value="SWITCH_LOG_DEBUG" />
     </logging>
-    -->
 
 </profile>
