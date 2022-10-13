@@ -174,8 +174,8 @@ is_node_up(#{nodename := Nodename} = Context) ->
 is_node(#{nodename := Nodename} = Context) ->
     Context#{is_node => ecallmgr_fs_nodes:is_node(Nodename)}.
 
-node_supervisor(#{node := Node} = Context) ->
-    Context#{node_supervisor => ecallmgr_fs_sup:find_node(Node)}.
+node_supervisor(#{nodename := NodeName} = Context) ->
+    Context#{node_supervisor => ecallmgr_fs_sup:find_node(NodeName)}.
 
 node_server(#{node_supervisor := Supervisor} = Context) ->
     Context#{node_server => ecallmgr_fs_node_sup:node_srv(Supervisor)}.
