@@ -79,14 +79,14 @@
 start_link(Map, Sequence) ->
     gen_listener:start_link(?MODULE, bindings(Map), [Map#{sequence => Sequence}]).
 
-bindings(#{share_type := queue, core_uuid := CoreUUID}) ->
+bindings(#{share_type := 'queue', core_uuid := CoreUUID}) ->
     [{'responders', ?RESPONDERS}
     ,{'bindings', ?SHARED_BINDINGS(CoreUUID)}
     ,{'queue_name', ?SHARED_QUEUE_NAME(CoreUUID)}
     ,{'queue_options', ?SHARED_QUEUE_OPTIONS}
     ,{'consume_options', ?SHARED_CONSUME_OPTIONS}
     ];
-bindings(#{share_type := hashed} = Map) ->
+bindings(#{share_type := 'hashed'} = Map) ->
     [{'responders', ?RESPONDERS}
     ,{'bindings', ?HASHED_BINDINGS(Map)}
     ,{'queue_name', ?HASHED_QUEUE_NAME}
@@ -165,11 +165,16 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {'ok', State}.
 
--spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
+-spec handle_req(kzd_fetch:data(), kz_term:proplist()) ->
+          {'ok', dialplan_context()}.
 handle_req(JObj, Props) ->
     kz_log:put_callid(JObj),
     log_event(JObj, Props),
-    Node = kzd_fetch:node(JObj),
+    InitDialplan = init_dialplan(JObj, Props),
+    ecallmgr_fs_fetch_dialplan:dialplan(InitDialplan).
+
+-spec init_dialplan(kzd_fetch:data(), kz_term:proplist()) -> dialplan_context().
+init_dialplan(JObj, Props) ->
     FetchId = kzd_fetch:fetch_uuid(JObj),
     CoreUUID = kzd_fetch:core_uuid(JObj),
     Key = kzd_fetch:fetch_key_value(JObj),
@@ -180,19 +185,18 @@ handle_req(JObj, Props) ->
     RKs = lists:filter(fun kz_term:is_not_empty/1, [<<"fetch">>, Section, Tag, Version, Event, Key]),
 
     Routing = kz_binary:join(RKs, <<".">>),
-    Map = #{node => Node
-           ,section => kz_term:to_atom(Section, 'true')
-           ,tag => kz_term:to_atom(Tag, 'true')
-           ,fetch_id => FetchId
-           ,payload => JObj
-           ,version => kz_term:to_atom(Version, 'true')
-           ,core_uuid => kz_term:to_atom(CoreUUID, 'true')
-           ,routing => Routing
-           ,call_id => kzd_fetch:call_id(JObj)
-           ,server_id => kz_api:server_id(JObj)
-           ,basic => props:get_value('basic', Props)
-           },
-    ecallmgr_fs_fetch_dialplan:dialplan(Map).
+    #{basic => props:get_value('basic', Props)
+     ,call_id => kzd_fetch:call_id(JObj)
+     ,core_uuid => kz_term:to_atom(CoreUUID, 'true')
+     ,fetch_id => FetchId
+     ,node => kzd_fetch:node(JObj)
+     ,payload => JObj
+     ,routing => Routing
+     ,section => kz_term:to_atom(Section, 'true')
+     ,server_id => kz_api:server_id(JObj)
+     ,tag => kz_term:to_atom(Tag, 'true')
+     ,version => kz_term:to_atom(Version, 'true')
+     }.
 
 -spec log_event(kz_json:object(), kz_term:proplist()) -> 'ok'.
 log_event(JObj, Props) ->
@@ -200,11 +204,11 @@ log_event(JObj, Props) ->
     Section = kzd_fetch:fetch_section(JObj),
     Event = kz_term:to_lower_binary(kz_api:event_name(JObj)),
     Category = kz_term:to_lower_binary(kz_api:event_category(JObj)),
-    Basic = props:get_value('basic', Props),
+    #'P_basic'{timestamp=Published}=Basic = props:get_value('basic', Props),
     Deliver = props:get_value('deliver', Props),
     NowUs = erlang:system_time('micro_seconds'),
     Created = kzd_fetch:fetch_timestamp_micro(JObj),
-    Published = Basic#'P_basic'.timestamp,
+
     lager:debug("received fs fetch request ~s (~s,~s) (~s, ~s) (~B,~B,~B) => ~s => ~s"
                ,[kz_api:msg_id(JObj)
                 ,Category
@@ -219,6 +223,6 @@ log_event(JObj, Props) ->
                 ]
                ).
 
-log_basic_headers(#'P_basic'{headers=undefined}) -> <<"no-headers">>;
+log_basic_headers(#'P_basic'{headers='undefined'}) -> <<"no-headers">>;
 log_basic_headers(#'P_basic'{headers=Headers}) ->
     kz_binary:join([io_lib:format("~s = ~s", [K, kz_term:to_binary(V)]) || {K, _, V} <- Headers]).

@@ -31,7 +31,7 @@ start(_StartType, _StartArgs) ->
             _ = register_views(),
             _ = event_stream_bind(),
             _ = fetch_handlers_bind(),
-            ok = build_mod_com_kazoo_config(),
+            'ok' = build_mod_com_kazoo_config(),
             ecallmgr_ext_sup:start_link()
     end.
 
@@ -49,9 +49,7 @@ declare_exchanges() ->
     _ = kapi_freeswitch:declare_exchanges(),
     kapi_self:declare_exchanges().
 
-
--define(COM_EVENTSTREAM_MODS, ['metaflow_bind'
-                              ]).
+-define(COM_EVENTSTREAM_MODS, ['metaflow_bind']).
 
 -spec event_stream_bind() -> 'ok'.
 event_stream_bind() ->
@@ -62,7 +60,6 @@ event_stream_bind() ->
 event_stream_unbind() ->
     _ = [kazoo_bindings:flush_mod(Mod) || Mod <- ?COM_EVENTSTREAM_MODS],
     'ok'.
-
 
 -define(COM_FETCH_HANDLERS_MODS, ['mod_com_kazoo_configuration'
                                  ,'mod_com_kazoo_dialplan'
@@ -109,6 +106,5 @@ build_mod_com_kazoo_config() ->
 -spec register_views() -> 'ok'.
 register_views() ->
     kz_datamgr:register_views_from_folder(?APP),
-    kz_datamgr:refresh_views(?KZ_CONFIG_DB),
+    _ = kz_datamgr:refresh_views(?KZ_CONFIG_DB),
     'ok'.
-

@@ -41,15 +41,14 @@ init() ->
     _ = kazoo_bindings:bind(<<"fetch.configuration.dialplan.commercial.request_params.#">>, ?MODULE, 'dialplan'),
     'ok'.
 
--spec dialplan(map()) -> fs_sendmsg_ret().
+-spec dialplan(map()) -> 'ok'.
 dialplan(#{fetch_id := Id, payload := _JObj} = Ctx) ->
     kz_log:put_callid(Id),
     Funs = [fun dialplan_keys/1
            ,fun dialplan_document/1
            ,fun dialplan_build/1
-           ,fun freeswitch:fetch_reply/1
            ],
-    kz_maps:exec(Funs, Ctx).
+    freeswitch:fetch_reply(kz_maps:exec(Funs, Ctx)).
 
 dialplan_keys(#{payload := JObj} = Ctx) ->
     Context = kzd_fetch:hunt_context(JObj),
@@ -58,8 +57,8 @@ dialplan_keys(#{payload := JObj} = Ctx) ->
 
 dialplan_document(#{context_key := Context, extension_key := Extension} = Ctx) ->
     case kz_datamgr:get_result_doc(?KZ_CONFIG_DB, ?VIEW, [Context, Extension]) of
-        {ok, JObj} -> Ctx#{dialplan => kz_maps:keys_to_atoms(kz_json:to_map(JObj))};
-        {error, Error} -> Ctx#{error => Error}
+        {'ok', JObj} -> Ctx#{dialplan => kz_maps:keys_to_atoms(kz_json:to_map(JObj))};
+        {'error', Error} -> Ctx#{error => Error}
     end.
 
 dialplan_build(#{error := _Err} = Ctx) ->
@@ -93,7 +92,7 @@ attributes(Map, MapFun, WithoutKeys) ->
 attribute(Name, Value) -> xml_attrib(Name, Value).
 
 dialplan(#{condition := Condition}, Acc) ->
-    Content = lists:foldr(fun dialplan/2, [], maps:get(children, Condition, [])),
+    Content = lists:foldr(fun dialplan/2, [], maps:get('children', Condition, [])),
     [condition_el(attributes(Condition), Content) | Acc];
 dialplan(#{action := Condition}, Acc) ->
     [action_el(attributes(Condition)) | Acc];

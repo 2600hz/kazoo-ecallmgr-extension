@@ -71,7 +71,7 @@ handle_cast({'kz_nodes',{'expire', #kz_node{zone = Zone} = Node}}, #{zone := Zon
     {'noreply', handle_expired(Node, State)};
 handle_cast({'kz_nodes', _Node}, State) ->
     {'noreply', State};
-handle_cast(monitor_kz_nodes, State) ->
+handle_cast('monitor_kz_nodes', State) ->
     _ = kz_nodes:notify_new(),
     _ = kz_nodes:notify_expire(),
     _ = kz_nodes:notify_heartbeat(),
@@ -133,8 +133,8 @@ handle_heartbeat(Node, State) ->
     handle_heartbeat(should_handle_heartbeat(Node), Node, State).
 
 -spec handle_heartbeat(boolean(), kz_types:kz_node(), state()) -> state().
-handle_heartbeat(false, _Node, State) -> State;
-handle_heartbeat(true, Node, State) ->
+handle_heartbeat('false', _Node, State) -> State;
+handle_heartbeat('true', Node, State) ->
     CoreUUID = core_uuid(Node),
     Nodename = node_name(Node),
     handle_heartbeat(Node, CoreUUID, Nodename, State).
@@ -258,7 +258,7 @@ sync_fetch(#{core_uuid := CoreUUID
             } = Context) ->
     lager:info("synchronizing node ~s fetch bindings from ~s to ~s", [Nodename, NodeCoreUUID, CoreUUID]),
     case ecallmgr_fs_node_sup:node_server(Supervisor, <<"amqp_fetch_dialplan_sup">>) of
-        undefined ->
+        'undefined' ->
             lager:warning("failed to get amqp fetch dialplan sup from ~s", [Nodename]),
             Context;
         Pid ->
@@ -337,6 +337,6 @@ mod_com_kazoo_code(Props) ->
      ++ [{'clause',1, [{'var',1,'_'}], [], [{'atom',1,'error_not_found'}]}]
     }.
 
--spec monitor() -> ok.
+-spec monitor() -> 'ok'.
 monitor() ->
-    gen_server:cast(?MODULE, monitor_kz_nodes).
+    gen_server:cast(?MODULE, 'monitor_kz_nodes').

@@ -113,7 +113,7 @@ handle_info(_Other, State) ->
 -spec handle_event(kz_json:object(), state()) -> gen_listener:handle_event_return().
 handle_event(JObj, #{}) ->
     handle_req(JObj),
-    ignore.
+    'ignore'.
 
 %%------------------------------------------------------------------------------
 %% @doc This function is called by a gen_server when it is about to
@@ -218,9 +218,9 @@ api_result(Result, Bin) ->
         Msg -> result(Result, Msg)
     end.
 
-result(error, <<"no such channel" , _/binary>>) -> {error, nosession};
-result(error, <<"No such channel" , _/binary>>) -> {error, nosession};
-result(error, <<"invalid session" , _/binary>>) -> {error, nosession};
+result('error', <<"no such channel" , _/binary>>) -> {'error', 'nosession'};
+result('error', <<"No such channel" , _/binary>>) -> {'error', 'nosession'};
+result('error', <<"invalid session" , _/binary>>) -> {'error', 'nosession'};
 result(Result, Msg) -> {Result, Msg}.
 
 queue_settings('undefined') ->
