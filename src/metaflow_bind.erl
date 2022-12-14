@@ -65,7 +65,12 @@ request_metaflow(Node, _UUID, {'ok', #channel{handling_locally='true'
         {'ok', JObj} -> maybe_send_meta_bind(Node, UUID, JObj);
         {'error', 'timeout'} -> lager:debug("no metaflow available");
         _Else -> lager:debug("error requesting metaflow binding : ~p", [_Else])
-    end.
+    end;
+request_metaflow(_Node, _UUID, {'ok', #channel{handling_locally = Handling
+                                              ,is_loopback = Loopback
+                                              ,account_id = AccountId
+                                              }}) ->
+    lager:debug("not handling : ~s => (~p / ~p / ~p) ", [_UUID, Handling, Loopback, AccountId]).
 
 maybe_send_meta_bind(Node, UUID, JObj) ->
     case kz_metaflows:is_empty(JObj) of
