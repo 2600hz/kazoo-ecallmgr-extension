@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2022, 2600Hz
+%%% @copyright (C) 2011-2023, 2600Hz
 %%% @doc Handle BRIDGE events and request metaflow bind
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -74,15 +74,26 @@ request_metaflow(_Node, _UUID, {'ok', #channel{handling_locally = Handling
 
 maybe_send_meta_bind(Node, UUID, JObj) ->
     case kz_metaflows:is_empty(JObj) of
-        'true' ->
-            lager:debug_unsafe("metaflow bind reply is empty => ~s", [kz_json:encode(JObj)]);
-        'false' ->
-            lager:error_unsafe("sending metaflow bind reply => ~s", [kz_json:encode(JObj)]),
-            freeswitch:json_api(Node, UUID, <<"kz.meta.bind">>, JObj)
+        'true' -> lager:debug("metaflow bind reply is empty => ~s", [kz_json:encode(JObj)]);
+        'false' -> freeswitch:json_api(Node, UUID, <<"kz.meta.bind">>, JObj)
     end.
 
 -spec handle_metaflow(map()) -> map().
 handle_metaflow(Map) ->
+    case should_handle_metaflow(Map) of
+        true -> metaflow_request(Map);
+        false -> Map
+    end.
+
+-spec should_handle_metaflow(map()) -> boolean().
+should_handle_metaflow(#{call_id := CallId}) ->
+    case ecallmgr_fs_channel:fetch(CallId, 'record') of
+        {'ok', #channel{handling_locally='true'}} -> true;
+        _Other -> false
+    end.
+
+-spec metaflow_request(map()) -> map().
+metaflow_request(Map) ->
     Routines = [fun send_request/1
                ,fun maybe_send_route_win/1
                ],
