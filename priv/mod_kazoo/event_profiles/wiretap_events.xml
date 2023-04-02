@@ -1,0 +1,29 @@
+<profile name="wiretap_events" profile-type="event">
+
+	<params>
+	   <param name="amqp-exchange" value="wiretap" />
+	   <param name="amqp-profile" value="push-event"/>
+	</params>
+
+	<events>
+		<event name="RECORD_START"/>
+		<event name="RECORD_STOP"/>
+	</events>
+
+	<override-fields>
+		<field name="Event-Category" type="static" value="wiretap_event" />
+	</override-fields>
+
+	<filters>
+		<filter name="Recording-Variable-Wiretap-Account-ID" type="include" compare="exists" />
+	</filters>
+
+	<routing-key>
+		<field name="wiretap" type="static" value="wiretap" />
+		<field name="Recording-Variable-Wiretap-Account-ID"  />
+		<field name="event" type="first-of" value="kazoo_event_name|Event-Subclass|Event-Name" />
+		<param name="hash-event-field" value="Unique-ID" />
+		<param name="hash-amqp-header" value="call-id" />		
+	</routing-key>
+
+</profile>
