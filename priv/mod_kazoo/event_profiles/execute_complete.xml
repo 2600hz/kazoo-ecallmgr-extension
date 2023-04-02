@@ -17,4 +17,8 @@
 		<event name="CHANNEL_APP_EXECUTE_COMPLETE"/>
 	</events>
 
+	<filters>
+		<filter name="app_variable_controller_app_name" type="exclude" value="wiretap" />
+	</filters>
+
 </profile>
