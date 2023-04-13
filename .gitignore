@@ -27,6 +27,8 @@
 .settings
 .idea/
 
+erlang_ls.config
+
 sup.bash
 
 _rel/
