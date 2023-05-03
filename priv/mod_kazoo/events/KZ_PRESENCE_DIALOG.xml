@@ -38,9 +38,10 @@
 			<fields>
 				<field name="Presence-Dialog-Call-Info-State" as="State" />
 				<field name="Presence-Dialog-Call-Info-Is-Barging" as="Is-Barging" serialize-as="boolean" />
-				<field name="Presence-Dialog-Aliases" as="Aliases" serialize-as="array" />
 			</fields>
 		</field>
+
+		<field name="Presence-Dialog-Aliases" as="Presence-Publishing-Aliases" serialize-as="array" />
 
 		<field name="Presence-Dialog-Switch-URI" as="Switch-URI" />
 		<!--<field name="Presence-Dialog-Sender-URI" as="Sender-URI" />-->
