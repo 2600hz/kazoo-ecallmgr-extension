@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2020, 2600Hz
+%%% @copyright (C) 2011-2023, 2600Hz
 %%% @doc Receive call command and executes
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -36,6 +36,7 @@ handle_req(JObj, _Props) ->
 
 -spec exec_payload(atom(), kz_json:object()) -> 'ok'.
 exec_payload(Node, JObj) ->
+    freeswitch:call_cmd_sync(true),
     case kz_json:get_value(<<"Application-Name">>, JObj) of
         <<"queue">> ->
             'true' = kapi_dialplan:queue_v(JObj),
@@ -98,7 +99,13 @@ control_process(Fun, Cmd, Node) ->
     end.
 
 exec_dialplan(Node, UUID, DP) ->
-    [ecallmgr_util:send_cmd(Node, UUID, AppName, AppData) || {AppName, AppData} <- DP].
+    [send_cmd(Node, UUID, App) || App <- DP].
+
+send_cmd(Node, UUID, {AppName, AppData}) ->
+    ecallmgr_util:send_cmd(Node, UUID, AppName, AppData);
+send_cmd(_Node, UUID, {AppName, AppData, NewNode, ExtraHeaders}) ->
+    ecallmgr_util:send_cmd(NewNode, UUID, AppName, AppName, AppData, ExtraHeaders).
+
 
 -spec get_mfa(kz_term:ne_binary(), kz_term:ne_binary(), atom()) -> module().
 get_mfa(Category, Name, Fun) ->
