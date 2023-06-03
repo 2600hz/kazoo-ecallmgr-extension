@@ -33,7 +33,7 @@
 
 		<field name="Call-Info" type="static" serialize-as="object">
 			<filters>
-				<filter name="Presence-Dialog-Call-Info-Is-Barging" type="include" />
+				<filter name="Presence-Dialog-Call-Info-Enabled" type="include" value="true" />
 			</filters>
 			<fields>
 				<field name="Presence-Dialog-Call-Info-State" as="State" />
