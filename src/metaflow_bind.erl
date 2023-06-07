@@ -125,13 +125,15 @@ send_request(#{fetch_id := FetchId, payload := Payload}=Map) ->
             lager:info("did not receive route response for metaflow ~s: ~p", [FetchId, R]),
             Map#{metaflow => #{error => R}};
         {'ok', JObj} ->
-            lager:debug_unsafe("METAFLOW REPLY ~s", [kz_json:encode(JObj)]),
+            lager:debug("metaflow reply ~s", [kz_json:encode(JObj)]),
             'true' = kapi_route:resp_v(JObj),
             ControllerQ = kz_api:server_id(JObj),
             Map#{controller_q => ControllerQ, metaflow => #{payload => JObj}}
     end.
 
 -spec maybe_send_route_win(map()) -> map().
+maybe_send_route_win(#{metaflow := #{error := _Error}}=Map) ->
+    Map;
 maybe_send_route_win(#{metaflow := #{payload := Reply}}=Map) ->
     case kz_json:get_ne_binary_value(<<"Method">>, Reply) of
         <<"application">> -> send_metaflow_win(Map);
