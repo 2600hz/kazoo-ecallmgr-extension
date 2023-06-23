@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2022, 2600Hz
+%%% @copyright (C) 2012-2023, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,7 +31,7 @@ start(_StartType, _StartArgs) ->
             _ = register_views(),
             _ = event_stream_bind(),
             _ = fetch_handlers_bind(),
-            ok = build_mod_com_kazoo_config(),
+            'ok' = build_mod_com_kazoo_config(),
             ecallmgr_ext_sup:start_link()
     end.
 
@@ -109,6 +109,5 @@ build_mod_com_kazoo_config() ->
 -spec register_views() -> 'ok'.
 register_views() ->
     kz_datamgr:register_views_from_folder(?APP),
-    kz_datamgr:refresh_views(?KZ_CONFIG_DB),
+    _ = kz_datamgr:refresh_views(?KZ_CONFIG_DB),
     'ok'.
-

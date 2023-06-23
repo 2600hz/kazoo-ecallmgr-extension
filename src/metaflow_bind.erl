@@ -81,15 +81,15 @@ maybe_send_meta_bind(Node, UUID, JObj) ->
 -spec handle_metaflow(map()) -> map().
 handle_metaflow(Map) ->
     case should_handle_metaflow(Map) of
-        true -> metaflow_request(Map);
-        false -> Map
+        'true' -> metaflow_request(Map);
+        'false' -> Map
     end.
 
 -spec should_handle_metaflow(map()) -> boolean().
 should_handle_metaflow(#{call_id := CallId}) ->
     case ecallmgr_fs_channel:fetch(CallId, 'record') of
-        {'ok', #channel{handling_locally='true'}} -> true;
-        _Other -> false
+        {'ok', #channel{handling_locally='true'}} -> 'true';
+        _Other -> 'false'
     end.
 
 -spec metaflow_request(map()) -> map().

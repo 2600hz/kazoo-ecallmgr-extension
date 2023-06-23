@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2021-, 2600Hz
+%%% @copyright (C) 2023-, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -343,7 +343,7 @@ send(Node, Payload, PublishFun, Timeout) ->
     Result = mod_com_kazoo_api:send(payload(Node, Payload), PublishFun),
     send_wait(Result, Timeout).
 
-send_wait({error, _} = Error, _Timeout) -> Error;
+send_wait({'error', _} = Error, _Timeout) -> Error;
 send_wait(MsgId, Timeout) ->
     receive
         {'switch_reply', MsgId, Msg} -> Msg
@@ -392,9 +392,9 @@ async_api(Node, Cmd, Args) ->
 
 -spec contact_api() -> binary().
 contact_api() ->
-    case kz_app_config:get_boolean(?APP_CONFIG_CAT, <<"use_proxy_contact_api">>, false) of
-        true -> <<"kz_proxy_contact">>;
-        false -> <<"kz_contact">>
+    case kz_app_config:get_boolean(?APP_CONFIG_CAT, <<"use_proxy_contact_api">>, 'false') of
+        'true' -> <<"kz_proxy_contact">>;
+        'false' -> <<"kz_contact">>
     end.
 
 call_cmd_sync() -> freeswitch:call_cmd_sync().

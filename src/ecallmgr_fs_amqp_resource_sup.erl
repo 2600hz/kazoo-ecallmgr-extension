@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2022, 2600Hz
+%%% @copyright (C) 2012-2023, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,7 +28,7 @@
 -spec start_link(atom(), kz_term:proplist()) -> kz_types:startlink_ret().
 start_link(Node, Options) ->
     lager:debug("starting resource node sup  ~s", [Node]),
-    {'ok', Pid} = supervisor:start_link({local, sup_name(Node)}, ?MODULE, [Node, Options]),
+    {'ok', Pid} = supervisor:start_link({'local', sup_name(Node)}, ?MODULE, [Node, Options]),
     _ = kz_process:spawn(fun start_workers/1, [Pid]),
     {'ok', Pid}.
 

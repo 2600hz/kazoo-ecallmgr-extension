@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2022, 2600Hz
+%%% @copyright (C) 2012-2023, 2600Hz
 %%% @doc
 %%% This Source Code Form is subject to the terms of the Mozilla Public
 %%% License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -207,6 +207,6 @@ log_event(JObj, Props) ->
                 ]
                ).
 
-log_basic_headers(#'P_basic'{headers=undefined}) -> <<"no-headers">>;
+log_basic_headers(#'P_basic'{headers='undefined'}) -> <<"no-headers">>;
 log_basic_headers(#'P_basic'{headers=Headers}) ->
     kz_binary:join([io_lib:format("~s = ~s", [K, kz_term:to_binary(V)]) || {K, _, V} <- Headers]).

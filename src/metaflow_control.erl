@@ -36,7 +36,7 @@ handle_req(JObj, _Props) ->
 
 -spec exec_payload(atom(), kz_json:object()) -> 'ok'.
 exec_payload(Node, JObj) ->
-    freeswitch:call_cmd_sync(true),
+    freeswitch:call_cmd_sync('true'),
     case kz_json:get_value(<<"Application-Name">>, JObj) of
         <<"queue">> ->
             'true' = kapi_dialplan:queue_v(JObj),

@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2022, 2600Hz
+%%% @copyright (C) 2012-2023, 2600Hz
 %%% @doc Send config commands to FS
 %%%
 %%% This Source Code Form is subject to the terms of the Mozilla Public
@@ -81,20 +81,20 @@ fetch_mod_kazoo_config_action(Action, #{core_uuid := Node} = Ctx) ->
 
 -spec kazoo_config() -> {'ok', binary()}.
 kazoo_config() ->
-    {ok, persistent_term:get(mod_com_kazoo_xml_config, <<>>)}.
+    {'ok', persistent_term:get('mod_com_kazoo_xml_config', <<>>)}.
 
 -type build_content_acc() :: {[file:filename_all()], map()}.
 -type build_content_fun_acc() :: {[file:filename_all()], kz_types:xml_els()}.
 -type build_content_fun() :: fun((kz_types:xml_el(), build_content_fun_acc()) -> build_content_fun_acc()).
--type build_content_arg() :: {atom, build_content_fun(), string()}.
+-type build_content_arg() :: {'atom', build_content_fun(), string()}.
 
 -spec build_content() -> map().
 build_content() ->
-    Funs = [{event_handlers_el, fun fs_profile_handler/2, "event_profiles"}
-           ,{fetch_handlers_el, fun fs_handler/2, "fetch"}
-           ,{command_handlers_el, fun fs_handler/2, "api"}
-           ,{amqp_profiles_el, fun fs_handler/2, "amqp_profiles"}
-           ,{others_el, fun fs_handler/2, "others"}
+    Funs = [{'event_handlers_el', fun fs_profile_handler/2, "event_profiles"}
+           ,{'fetch_handlers_el', fun fs_handler/2, "fetch"}
+           ,{'command_handlers_el', fun fs_handler/2, "api"}
+           ,{'amqp_profiles_el', fun fs_handler/2, "amqp_profiles"}
+           ,{'others_el', fun fs_handler/2, "others"}
            ],
     {DefFiles, Map} = lists:foldl(fun build_content/2, {[], maps:new()}, Funs),
     Map#{definitions_el => definitions(DefFiles)}.
@@ -125,7 +125,7 @@ build_content_fun(Fun, Acc, Map)
   when is_function(Fun, 1) ->
     build_content_fun_result(Fun(Map), Acc).
 
-build_content_fun_result(undefined, Acc) -> Acc;
+build_content_fun_result('undefined', Acc) -> Acc;
 build_content_fun_result(#xmlElement{} = Val, Acc) -> [Val | Acc];
 build_content_fun_result([#xmlElement{} | _] = Val, Acc) -> Val ++ Acc.
 
@@ -150,8 +150,8 @@ build_kazoo_config() ->
     SectionEl = section_el(<<"configuration">>, ConfigurationEl),
     Xml = xmerl:export([SectionEl], 'fs_xml'),
     Config = iolist_to_binary(Xml),
-    persistent_term:put(mod_com_kazoo_xml_config, Config),
-    {ok, Config}.
+    persistent_term:put('mod_com_kazoo_xml_config', Config),
+    {'ok', Config}.
 
 fs_profile_handler(ProfileFile, {DefFiles0, ProfileXmls}) ->
     {DefFiles, ProfileXml} = fs_profile_events(fs_xml(ProfileFile), DefFiles0),
@@ -191,7 +191,11 @@ fs_defs(XmlEl, Acc) ->
 -spec fs_xml(file:filename_all()) -> kz_types:xml_el().
 fs_xml(File) ->
     case xmerl_scan:file(re:replace(File, "::", "-", ['global'])) of
-        {error, _Err} -> throw({invalid_configuration, lists:flatten(io_lib:format("error reading file : ~s : ~p", [File, _Err]))});
+        {'error', _Err} ->
+            throw({'invalid_configuration'
+                  ,lists:flatten(io_lib:format("error reading file : ~s : ~p", [File, _Err]))
+                  }
+                 );
         {Xml, _} -> Xml
     end.
 
@@ -251,16 +255,16 @@ amqp_profiles_el(#{amqp_profiles_el := Content}) ->
                ,content=Content
                }.
 
--spec connections_el() -> kz_types:xml_el() | undefined.
+-spec connections_el() -> kz_types:xml_el() | 'undefined'.
 connections_el() ->
-    connections_el(kz_app_config:is_true(?APP_CONFIG_CAT, <<"disable_media_amqp_connections">>, false)).
+    connections_el(kz_app_config:is_true(?APP_CONFIG_CAT, <<"disable_media_amqp_connections">>, 'false')).
 
--spec connections_el(Disabled :: boolean()) -> kz_types:xml_el() | undefined.
-connections_el(false) ->
+-spec connections_el(Disabled :: boolean()) -> kz_types:xml_el() | 'undefined'.
+connections_el('false') ->
     LocalZone = kz_nodes:local_zone(),
     Connections = lists:filtermap(fun connection_filtermap/1, kz_amqp_connections:connections()),
     connections_el(LocalZone, Connections);
-connections_el(true) -> undefined.
+connections_el('true') -> 'undefined'.
 
 
 -spec connections_el(atom() | binary(), kz_types:xml_els()) -> kz_types:xml_el().
@@ -280,32 +284,32 @@ connection_el(Name, Content) ->
 connection_param({K, V}) ->
     param_el(K, kz_term:to_binary(V)).
 
-connection_params(_, {error, _}) -> false;
-connection_params(Zone, {ok, #amqp_params_network{host = Hostname
-                                                 ,port = Port
-                                                 ,virtual_host = VirtualHost
-                                                 ,username = Username
-                                                 ,password = Password
-                                                 }}) ->
-    Props = [{hostname, Hostname}
-            ,{port, Port}
-            ,{virtualhost, VirtualHost}
-            ,{username, Username}
-            ,{password, Password}
-            ,{zone, Zone}
+connection_params(_, {'error', _}) -> 'false';
+connection_params(Zone, {'ok', #amqp_params_network{host = Hostname
+                                                   ,port = Port
+                                                   ,virtual_host = VirtualHost
+                                                   ,username = Username
+                                                   ,password = Password
+                                                   }}) ->
+    Props = [{'hostname', Hostname}
+            ,{'port', Port}
+            ,{'virtualhost', VirtualHost}
+            ,{'username', Username}
+            ,{'password', Password}
+            ,{'zone', Zone}
             ],
     ConnectionParams = lists:map(fun connection_param/1, props:filter_empty(Props)),
     ConnectionProperties = connection_properties(Zone),
     Name = list_to_binary([Hostname, "-", kz_term:to_binary(Zone)]),
-    {true, connection_el(Name, ConnectionParams ++ ConnectionProperties)}.
+    {'true', connection_el(Name, ConnectionParams ++ ConnectionProperties)}.
 
 connection_filtermap(#kz_amqp_connections{broker=Broker
                                          ,zone=Zone
-                                         ,hidden = false
+                                         ,hidden = 'false'
                                          ,tags = []
                                          }) ->
     connection_params(connection_zone(Zone), amqp_uri:parse(Broker));
-connection_filtermap(_) -> false.
+connection_filtermap(_) -> 'false'.
 
 -spec property_el(kz_types:xml_attrib_value(), kz_types:xml_attrib_value()) -> kz_types:xml_el().
 property_el(Name, Value) ->
@@ -320,18 +324,18 @@ connection_properties(Zone) ->
 
 connection_properties(Zone, Zone) ->
     [property_el("zone", Zone)
-    ,property_el("primary", true)
-    ,property_el("is-federated", false)
-    ,property_el("is-local", true)
+    ,property_el("primary", 'true')
+    ,property_el("is-federated", 'false')
+    ,property_el("is-local", 'true')
     ];
 connection_properties(Zone, _LocalZone) ->
     [property_el("zone", Zone)
-    ,property_el("primary", false)
-    ,property_el("is-federated", true)
-    ,property_el("is-local", false)
+    ,property_el("primary", 'false')
+    ,property_el("is-federated", 'true')
+    ,property_el("is-local", 'false')
     ].
 
-connection_zone(local) -> kz_nodes:local_zone();
+connection_zone('local') -> kz_nodes:local_zone();
 connection_zone(Zone) -> Zone.
 
 -spec others_el(map()) -> kz_types:xml_els().
