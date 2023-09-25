@@ -15,6 +15,28 @@ package:
     group: Productivity/Telephony
     url: 'http://www.2600hz.com/'
     vendor: 2600Hz
+  rockylinux8:
+    name: kazoo-application-ecallmgr-extension
+    summary: 'Kazoo paid application ecallmgr-extension.'
+    description: |
+      A proprietary Kazoo application from 2600Hz.
+    app_name: ecallmgr_extension
+    license: proprietary
+    group: Productivity/Telephony
+    url: 'http://www.2600hz.com/'
+    vendor: 2600Hz
+    dist: .el8
+  rockylinux9:
+    name: kazoo-application-ecallmgr-extension
+    summary: 'Kazoo paid application ecallmgr-extension.'
+    description: |
+      A proprietary Kazoo application from 2600Hz.
+    app_name: ecallmgr_extension
+    license: proprietary
+    group: Productivity/Telephony
+    url: 'http://www.2600hz.com/'
+    vendor: 2600Hz
+    dist: .el9
 metapackage:
   -
     name: meta-kazoo-applications
