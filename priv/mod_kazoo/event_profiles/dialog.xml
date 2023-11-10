@@ -12,7 +12,7 @@
 		        <field name="dialog" type="static" value="dialog" />
 		        <field name="event" type="static" value="event" />
 		        <field name="variable_ecallmgr_Account-ID" />
-		        <field name="variable_ecallmgr_Dialog-ID" />
+		        <field name="variable_ecallmgr_Authorizing-ID" />
 		        <field name="Unique-ID" />
 		    </routing-key>
         </event>

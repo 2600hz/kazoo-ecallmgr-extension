@@ -207,6 +207,6 @@ log_event(JObj, Props) ->
                 ]
                ).
 
-log_basic_headers(#'P_basic'{headers=undefined}) -> <<"no-headers">>;
+log_basic_headers(#'P_basic'{headers='undefined'}) -> <<"no-headers">>;
 log_basic_headers(#'P_basic'{headers=Headers}) ->
     kz_binary:join([io_lib:format("~s = ~s", [K, kz_term:to_binary(V)]) || {K, _, V} <- Headers]).

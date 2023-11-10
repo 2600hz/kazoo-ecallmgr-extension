@@ -180,7 +180,7 @@ log_event(#{category := Category
                                                               ,log_basic_headers(Basic)
                                                               ]).
 
-log_basic_headers(#'P_basic'{headers=undefined}) -> <<"no-headers">>;
+log_basic_headers(#'P_basic'{headers='undefined'}) -> <<"no-headers">>;
 log_basic_headers(#'P_basic'{headers=Headers}) ->
     kz_binary:join([io_lib:format("~s = ~s", [K, kz_term:to_binary(V)]) || {K, _, V} <- Headers]).
 
@@ -216,11 +216,11 @@ amqp_bindings(Bindings) ->
 amqp_bindings_fold(Binding, Props) ->
     {Kapi, Event} = true_event(Binding),
     case props:get_value(Kapi, Props) of
-        undefined -> [{Kapi, [{'restrict_to', [Event]}]}];
+        'undefined' -> [{Kapi, [{'restrict_to', [Event]}]}];
         List ->
             RestrictTo = props:get_value('restrict_to', List, []),
             case props:get_value(Event, RestrictTo) of
-                undefined ->
+                'undefined' ->
                     NewList = props:set_value('restrict_to', [Event | RestrictTo], List),
                     props:set_value(Kapi, NewList, Props);
                 _ -> Props
@@ -230,12 +230,12 @@ amqp_bindings_fold(Binding, Props) ->
 true_event(Event)
   when is_atom(Event) ->
     true_event(kz_term:to_binary(Event));
-true_event(<<"sofia::transferor">>) -> {call, 'CHANNEL_TRANSFEROR'};
-true_event(<<"sofia::transferee">>) -> {call, 'CHANNEL_TRANSFEREE'};
-true_event(<<"sofia::replaced">>) -> {call, 'CHANNEL_REPLACED'};
-true_event(<<"sofia::intercepted">>) -> {call, 'CHANNEL_INTERCEPTED'};
-true_event(<<"spandsp::", _/binary>>) -> {call, 'CHANNEL_FAX_STATUS'};
-true_event(<<"conference::maintenance">>) -> {conference, 'event'};
-true_event(<<"loopback::bowout">>) -> {call, 'CHANNEL_BOWOUT'};
-true_event(<<"loopback::direct">>) -> {call, 'CHANNEL_DIRECT'};
-true_event(Event) -> {call, kz_term:to_atom(Event, 'true')}.
+true_event(<<"sofia::transferor">>) -> {'call', 'CHANNEL_TRANSFEROR'};
+true_event(<<"sofia::transferee">>) -> {'call', 'CHANNEL_TRANSFEREE'};
+true_event(<<"sofia::replaced">>) -> {'call', 'CHANNEL_REPLACED'};
+true_event(<<"sofia::intercepted">>) -> {'call', 'CHANNEL_INTERCEPTED'};
+true_event(<<"spandsp::", _/binary>>) -> {'call', 'CHANNEL_FAX_STATUS'};
+true_event(<<"conference::maintenance">>) -> {'conference', 'event'};
+true_event(<<"loopback::bowout">>) -> {'call', 'CHANNEL_BOWOUT'};
+true_event(<<"loopback::direct">>) -> {'call', 'CHANNEL_DIRECT'};
+true_event(Event) -> {'call', kz_term:to_atom(Event, 'true')}.

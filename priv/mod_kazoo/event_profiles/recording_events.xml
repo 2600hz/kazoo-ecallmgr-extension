@@ -14,6 +14,10 @@
 		<event name="RECORD_UNMASK" />
 	</events>
 
+	<filters>
+		<filter name="Recording-Variable-Wiretap-Account-ID" type="exclude" compare="exists" />
+	</filters>
+
 	<routing-key>
 		<field name="call" type="static" value="call" />
 		<field name="event" type="first-of" value="kazoo_event_name|Event-Subclass|Event-Name" />

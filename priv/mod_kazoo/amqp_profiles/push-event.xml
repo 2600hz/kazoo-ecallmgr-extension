@@ -29,6 +29,10 @@
 			<param name="name" value="targeted" />
 			<param name="type" value="direct" />
 		</exchange>
+		<exchange>
+			<param name="name" value="wiretap" />
+			<param name="type" value="topic" />
+		</exchange>
 	</declare-exchanges>
 
 	<params>

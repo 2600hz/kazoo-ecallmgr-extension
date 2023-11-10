@@ -20,6 +20,8 @@
 
 -define(LICENSES_CAT, <<"licenses">>).
 
+-elvis([{elvis_style, no_debug_call, disable}]).
+
 %%------------------------------------------------------------------------------
 %% @doc
 %% @end

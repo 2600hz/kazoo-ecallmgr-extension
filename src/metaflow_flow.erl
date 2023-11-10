@@ -53,7 +53,7 @@ handle_metaflow_flow(UUID, JObj, ControlQ, ChannelJObj, Node) ->
                ,{<<"Control-Queue">>, ControlQ}
                ,{<<"Call-ID">>, UUID}
                ,{<<"Msg-ID">>, FetchId}
-               ,{[<<"Custom-Channel-Vars">>, <<"Fetch-ID">>], null}
+               ,{[<<"Custom-Channel-Vars">>, <<"Fetch-ID">>], 'null'}
                | kz_api:default_headers(?APP_NAME, ?APP_VERSION)
                ],
     Request = kz_json:set_values(ReqProps, kz_api:remove_defaults(ChannelJObj)),

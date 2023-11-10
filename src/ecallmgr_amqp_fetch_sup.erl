@@ -28,7 +28,7 @@
 %%------------------------------------------------------------------------------
 -spec start_link() -> kz_types:startlink_ret().
 start_link() ->
-    {'ok', Pid} = supervisor:start_link({local, ?SERVER} ,?MODULE, []),
+    {'ok', Pid} = supervisor:start_link({'local', ?SERVER} ,?MODULE, []),
     Workers = kz_app_config:get_integer(?APP_CONFIG_CAT, [<<"amqp">>, <<"fetch">>, <<"listeners">>], 5),
     kz_process:spawn(fun() -> [begin
                                    timer:sleep(500),

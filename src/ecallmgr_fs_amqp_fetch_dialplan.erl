@@ -79,14 +79,14 @@
 start_link(Map, Sequence) ->
     gen_listener:start_link(?MODULE, bindings(Map), [Map#{sequence => Sequence}]).
 
-bindings(#{share_type := queue, core_uuid := CoreUUID}) ->
+bindings(#{share_type := 'queue', core_uuid := CoreUUID}) ->
     [{'responders', ?RESPONDERS}
     ,{'bindings', ?SHARED_BINDINGS(CoreUUID)}
     ,{'queue_name', ?SHARED_QUEUE_NAME(CoreUUID)}
     ,{'queue_options', ?SHARED_QUEUE_OPTIONS}
     ,{'consume_options', ?SHARED_CONSUME_OPTIONS}
     ];
-bindings(#{share_type := hashed} = Map) ->
+bindings(#{share_type := 'hashed'} = Map) ->
     [{'responders', ?RESPONDERS}
     ,{'bindings', ?HASHED_BINDINGS(Map)}
     ,{'queue_name', ?HASHED_QUEUE_NAME}
@@ -165,7 +165,7 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {'ok', State}.
 
--spec handle_req(kz_json:object(), kz_term:proplist()) -> 'ok'.
+-spec handle_req(kz_json:object(), kz_term:proplist()) -> {'ok', dialplan_context()}.
 handle_req(JObj, Props) ->
     kz_log:put_callid(JObj),
     log_event(JObj, Props),
@@ -219,6 +219,6 @@ log_event(JObj, Props) ->
                 ]
                ).
 
-log_basic_headers(#'P_basic'{headers=undefined}) -> <<"no-headers">>;
+log_basic_headers(#'P_basic'{headers='undefined'}) -> <<"no-headers">>;
 log_basic_headers(#'P_basic'{headers=Headers}) ->
     kz_binary:join([io_lib:format("~s = ~s", [K, kz_term:to_binary(V)]) || {K, _, V} <- Headers]).

@@ -10,6 +10,7 @@
 *.app
 .deps.mk*
 .apps.mk*
+.core.mk*
 .deps.rules
 .test.deps
 *.beam
@@ -26,6 +27,9 @@
 .project
 .settings
 .idea/
+**/.vscode/
+
+erlang_ls.config
 
 sup.bash
 

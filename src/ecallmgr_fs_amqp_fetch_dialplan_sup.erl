@@ -29,7 +29,7 @@
 -spec start_link(atom(), kz_term:proplist()) -> kz_types:startlink_ret().
 start_link(Node, Options) ->
     lager:debug("starting dialplan node sup  ~s", [Node]),
-    {'ok', Pid} = supervisor:start_link({local, sup_name(Node)} ,?MODULE, [Node, Options]),
+    {'ok', Pid} = supervisor:start_link({'local', sup_name(Node)} ,?MODULE, [Node, Options]),
     _ = kz_process:spawn(fun start_workers/1, [Pid]),
     {'ok', Pid}.
 
@@ -71,8 +71,8 @@ cfg_share_type() ->
 
 cfg_default_share_type() ->
     case cfg_listeners() of
-        1 -> queue;
-        _ -> hashed
+        1 -> 'queue';
+        _ -> 'hashed'
     end.
 
 cfg_listeners() ->

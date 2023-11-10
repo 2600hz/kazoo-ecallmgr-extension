@@ -74,15 +74,26 @@ request_metaflow(_Node, _UUID, {'ok', #channel{handling_locally = Handling
 
 maybe_send_meta_bind(Node, UUID, JObj) ->
     case kz_metaflows:is_empty(JObj) of
-        'true' ->
-            lager:debug_unsafe("metaflow bind reply is empty => ~s", [kz_json:encode(JObj)]);
-        'false' ->
-            lager:error_unsafe("sending metaflow bind reply => ~s", [kz_json:encode(JObj)]),
-            freeswitch:json_api(Node, UUID, <<"kz.meta.bind">>, JObj)
+        'true' -> lager:debug("metaflow bind reply is empty => ~s", [kz_json:encode(JObj)]);
+        'false' -> freeswitch:json_api(Node, UUID, <<"kz.meta.bind">>, JObj)
     end.
 
 -spec handle_metaflow(map()) -> map().
 handle_metaflow(Map) ->
+    case should_handle_metaflow(Map) of
+        'true' -> metaflow_request(Map);
+        'false' -> Map
+    end.
+
+-spec should_handle_metaflow(map()) -> boolean().
+should_handle_metaflow(#{call_id := CallId}) ->
+    case ecallmgr_fs_channel:fetch(CallId, 'record') of
+        {'ok', #channel{handling_locally='true'}} -> 'true';
+        _Other -> 'false'
+    end.
+
+-spec metaflow_request(map()) -> map().
+metaflow_request(Map) ->
     Routines = [fun send_request/1
                ,fun maybe_send_route_win/1
                ],
@@ -114,13 +125,15 @@ send_request(#{fetch_id := FetchId, payload := Payload}=Map) ->
             lager:info("did not receive route response for metaflow ~s: ~p", [FetchId, R]),
             Map#{metaflow => #{error => R}};
         {'ok', JObj} ->
-            lager:debug_unsafe("METAFLOW REPLY ~s", [kz_json:encode(JObj)]),
+            lager:debug("metaflow reply ~s", [kz_json:encode(JObj)]),
             'true' = kapi_route:resp_v(JObj),
             ControllerQ = kz_api:server_id(JObj),
             Map#{controller_q => ControllerQ, metaflow => #{payload => JObj}}
     end.
 
 -spec maybe_send_route_win(map()) -> map().
+maybe_send_route_win(#{metaflow := #{error := _Error}}=Map) ->
+    Map;
 maybe_send_route_win(#{metaflow := #{payload := Reply}}=Map) ->
     case kz_json:get_ne_binary_value(<<"Method">>, Reply) of
         <<"application">> -> send_metaflow_win(Map);

@@ -56,11 +56,11 @@ init([]) ->
 
     {'ok', {SupFlags, ?CHILDREN}}.
 
--spec start_monitor() -> kz_types:sup_startchild_ret() | ok.
+-spec start_monitor() -> kz_types:sup_startchild_ret() | 'ok'.
 start_monitor() ->
-    start_monitor(whereis(mod_com_kazoo_monitor)).
+    start_monitor(whereis('mod_com_kazoo_monitor')).
 
--spec start_monitor(kz_term:api_pid()) -> kz_types:sup_startchild_ret() | ok.
-start_monitor(undefined) -> supervisor:start_child(?MODULE, ?WORKER('mod_com_kazoo_monitor'));
-start_monitor(_) -> ok.
-
+-spec start_monitor(kz_term:api_pid()) -> kz_types:sup_startchild_ret() | 'ok'.
+start_monitor('undefined') ->
+    supervisor:start_child(?MODULE, ?WORKER('mod_com_kazoo_monitor'));
+start_monitor(_) -> 'ok'.

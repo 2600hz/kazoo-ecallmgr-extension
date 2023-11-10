@@ -1,0 +1,4 @@
+  - 'Ecallmgr Extension':
+    - 'applications/ecallmgr_extension/doc/README.md'
+    - 'applications/ecallmgr_extension/doc/config.md'
+    - 'applications/ecallmgr_extension/doc/maintenance.md'
