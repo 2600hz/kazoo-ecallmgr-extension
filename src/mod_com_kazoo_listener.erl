@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2011-2022, 2600Hz
+%%% @copyright (C) 2011-2024, 2600Hz
 %%% @doc handle communication with freeswitch thru amqp
 %%%
 %%% This Source Code Form is subject to the terms of the Mozilla Public
@@ -112,8 +112,8 @@ handle_info(_Other, State) ->
 %%------------------------------------------------------------------------------
 -spec handle_event(kz_json:object(), state()) -> gen_listener:handle_event_return().
 handle_event(JObj, #{}) ->
-    handle_req(JObj),
-    ignore.
+    _ = kz_process:spawn(fun handle_req/1, [JObj]),
+    'ignore'.
 
 %%------------------------------------------------------------------------------
 %% @doc This function is called by a gen_server when it is about to
@@ -194,7 +194,7 @@ bgapi_result(Result, <<"-ERR", Error/binary>>, JobId, Data) ->
 bgapi_result(Result, <<"+OK", Msg/binary>>, JobId, Data) ->
     bgapi_result(Result, Msg, JobId, Data);
 bgapi_result(Result, Bin, JobId, Data) ->
-    case kz_binary:strip_left(kz_binary:strip_right(Bin, <<"\n">>), $\s) of
+    case kz_binary:strip_left(kz_binary:strip_right(Bin, $\n), $\s) of
         <<>> -> {'bgok', JobId, Data};
         <<"true">> -> {Result, JobId, 'true', Data};
         <<"false">> -> {Result, JobId, 'false', Data};
@@ -210,7 +210,7 @@ api_result(Result, <<"-ERR", Error/binary>>) ->
 api_result(Result, <<"+OK", Msg/binary>>) ->
     api_result(Result, Msg);
 api_result(Result, Bin) ->
-    case kz_binary:strip_left(kz_binary:strip_right(Bin, <<"\n">>), $\s) of
+    case kz_binary:strip_left(kz_binary:strip_right(Bin, $\n), $\s) of
         <<>> when Result =:= 'error' -> {'error', 'failed'};
         <<>> -> 'ok';
         <<"true">> -> {Result, 'true'};
