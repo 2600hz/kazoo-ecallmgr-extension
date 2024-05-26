@@ -1,7 +1,7 @@
 name: kazoo-application-ecallmgr-extension
 custom_files: null
 exposure: private
-base_branch: origin/5.3
+base_branch: origin/5.4
 base_core: kazoo
 template: kazoo-application.spec.tmpl
 package:
@@ -41,6 +41,6 @@ metapackage:
   -
     name: meta-kazoo-applications
     type: related
-    branch: '5.3'
+    branch: '5.4'
     package: kazoo-application-ecallmgr-extension
 dependencies: null
