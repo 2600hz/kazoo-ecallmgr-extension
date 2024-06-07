@@ -1,6 +1,15 @@
 version: 2.1
 orbs:
-  kazoo: official-2600hz/kazoo@0.3.1
+  kazoo: official-2600hz/kazoo@0.4.0
+filters:
+  tags:
+    only: '/^\d+\.\d+\.\d+(\.\d+)?$/'
+  branches:
+    ignore: '/.*/'
+parameters:
+  otp-version:
+    type: string
+    default: 26.2.5
 workflows:
   version: 2
   build_branch:
@@ -8,17 +17,19 @@ workflows:
       -
         kazoo/build-preparation:
           context: Private-Builds
+          otp-version: '<< pipeline.parameters.otp-version >>'
+          platform: '<< matrix.platform >>'
           name: 'preparation-<< matrix.platform >>'
           target-type: kapp
-          platform: '<< matrix.platform >>'
           matrix:
             parameters:
               platform: [centos-7, rockylinux-8, rockylinux-9]
       -
         kazoo/build:
           context: Private-Builds
-          name: 'beams-<< matrix.platform >>'
+          otp-version: '<< pipeline.parameters.otp-version >>'
           platform: '<< matrix.platform >>'
+          name: 'beams-<< matrix.platform >>'
           matrix:
             parameters:
               platform: [centos-7, rockylinux-8, rockylinux-9]
@@ -27,39 +38,47 @@ workflows:
       -
         kazoo/eunit-tests:
           context: Private-Builds
+          otp-version: '<< pipeline.parameters.otp-version >>'
           requires:
-            - preparation-centos-7
+            - preparation-rockylinux-9
       -
         kazoo/code-checks:
+          otp-version: '<< pipeline.parameters.otp-version >>'
           requires:
-            - beams-centos-7
+            - beams-rockylinux-9
       -
         kazoo/docs:
+          otp-version: '<< pipeline.parameters.otp-version >>'
           requires:
-            - beams-centos-7
+            - beams-rockylinux-9
       -
         kazoo/analyze:
+          otp-version: '<< pipeline.parameters.otp-version >>'
           requires:
-            - beams-centos-7
+            - beams-rockylinux-9
       -
         kazoo/integration-test:
+          otp-version: '<< pipeline.parameters.otp-version >>'
           requires:
-            - beams-centos-7
+            - beams-rockylinux-9
       -
         kazoo/build-centos7:
           context: Private-Builds
+          otp-version: '<< pipeline.parameters.otp-version >>'
           target-type: kapp
           requires:
             - beams-centos-7
       -
         kazoo/build-rockylinux8:
           context: Private-Builds
+          otp-version: '<< pipeline.parameters.otp-version >>'
           target-type: kapp
           requires:
             - beams-rockylinux-8
       -
         kazoo/build-rockylinux9:
           context: Private-Builds
+          otp-version: '<< pipeline.parameters.otp-version >>'
           target-type: kapp
           requires:
             - beams-rockylinux-9
@@ -68,9 +87,10 @@ workflows:
       -
         kazoo/build-preparation:
           context: Private-Builds
+          otp-version: '<< pipeline.parameters.otp-version >>'
+          platform: '<< matrix.platform >>'
           name: 'preparation-<< matrix.platform >>'
           target-type: kapp
-          platform: '<< matrix.platform >>'
           matrix:
             parameters:
               platform: [centos-7, rockylinux-8, rockylinux-9]
@@ -83,8 +103,9 @@ workflows:
       -
         kazoo/build:
           context: Private-Builds
-          name: 'beams-<< matrix.platform >>'
+          otp-version: '<< pipeline.parameters.otp-version >>'
           platform: '<< matrix.platform >>'
+          name: 'beams-<< matrix.platform >>'
           matrix:
             parameters:
               platform: [centos-7, rockylinux-8, rockylinux-9]
@@ -98,8 +119,9 @@ workflows:
       -
         kazoo/eunit-tests:
           context: Private-Builds
+          otp-version: '<< pipeline.parameters.otp-version >>'
           requires:
-            - preparation-centos-7
+            - preparation-rockylinux-9
           filters:
             tags:
               only: '/^\d+\.\d+\.\d+(\.\d+)?$/'
@@ -107,8 +129,9 @@ workflows:
               ignore: '/.*/'
       -
         kazoo/code-checks:
+          otp-version: '<< pipeline.parameters.otp-version >>'
           requires:
-            - beams-centos-7
+            - beams-rockylinux-9
           filters:
             tags:
               only: '/^\d+\.\d+\.\d+(\.\d+)?$/'
@@ -116,8 +139,9 @@ workflows:
               ignore: '/.*/'
       -
         kazoo/docs:
+          otp-version: '<< pipeline.parameters.otp-version >>'
           requires:
-            - beams-centos-7
+            - beams-rockylinux-9
           filters:
             tags:
               only: '/^\d+\.\d+\.\d+(\.\d+)?$/'
@@ -125,8 +149,9 @@ workflows:
               ignore: '/.*/'
       -
         kazoo/analyze:
+          otp-version: '<< pipeline.parameters.otp-version >>'
           requires:
-            - beams-centos-7
+            - beams-rockylinux-9
           filters:
             tags:
               only: '/^\d+\.\d+\.\d+(\.\d+)?$/'
@@ -134,8 +159,9 @@ workflows:
               ignore: '/.*/'
       -
         kazoo/integration-test:
+          otp-version: '<< pipeline.parameters.otp-version >>'
           requires:
-            - beams-centos-7
+            - beams-rockylinux-9
           filters:
             tags:
               only: '/^\d+\.\d+\.\d+(\.\d+)?$/'
@@ -144,6 +170,7 @@ workflows:
       -
         kazoo/build-centos7:
           context: Private-Builds
+          otp-version: '<< pipeline.parameters.otp-version >>'
           target-type: kapp
           requires:
             - beams-centos-7
@@ -155,6 +182,7 @@ workflows:
       -
         kazoo/build-rockylinux8:
           context: Private-Builds
+          otp-version: '<< pipeline.parameters.otp-version >>'
           target-type: kapp
           requires:
             - beams-rockylinux-8
@@ -166,6 +194,7 @@ workflows:
       -
         kazoo/build-rockylinux9:
           context: Private-Builds
+          otp-version: '<< pipeline.parameters.otp-version >>'
           target-type: kapp
           requires:
             - beams-rockylinux-9
