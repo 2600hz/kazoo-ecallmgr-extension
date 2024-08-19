@@ -248,7 +248,7 @@ json+='}}'
 ### Print the result to the screen and
 ### a file in the /tmp directory
 ###
-echo $json | python -m json.tool
+echo $json | python3 -m json.tool
 echo $json > "/tmp/$app_name-$account_id-$expiration.licenses"
 
 ###
