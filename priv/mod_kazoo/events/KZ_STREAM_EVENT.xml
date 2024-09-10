@@ -1,0 +1,14 @@
+<event name="KZ_STREAM_EVENT">
+	<fields>
+	    <field name="Event-Category" type="static" value="call_event" />
+	    <field name="Event-Name" type="static" value="STREAM_EVENT" />
+	    <field name="App-Name" type="static" value="freeswitch" />
+	    <field name="App-Version" type="static" value="1.0" />
+		<field name="Core-UUID" />
+	    <field name="Stream-ID" />
+	    <field name="Unique-ID" as="Call-ID" />
+	    <field name="_json_stream_body" as="Stream-Body" serialize-as="raw"/>
+		<field name="Custom-Channel-Vars" type="reference" />
+		<field name="Custom-Application-Vars" type="reference" />
+	</fields>
+</event>

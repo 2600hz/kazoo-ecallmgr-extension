@@ -14,6 +14,15 @@
         <event name="CHANNEL_METAFLOW" />
         <event name="DETECTED_SPEECH"/>
 		<event name="CHANNEL_UNBRIDGE"/>
+		<event name="KZ_STREAM_EVENT">
+			<routing-key>
+				<field name="call" type="static" value="call" />
+				<field name="event" type="static" value="STREAM_EVENT" />
+				<field name="Unique-ID" />
+				<param name="hash-event-field" value="Unique-ID" />
+				<param name="hash-amqp-header" value="call-id" />
+			</routing-key>
+		</event>
 	</events>
 
 	<routing-key>
