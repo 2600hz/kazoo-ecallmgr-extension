@@ -1,0 +1,12 @@
+<event name="MEDIA_BUG_START">
+	<fields>
+		<field name="call_event" type="reference" />
+
+		<field name="debug-call" type="reference" />
+	  <field name="Media-Bug-Target" as="Stream-ID" />
+	  <field name="Media-Bug-Function" />
+	</fields>
+  <filters scope="any">
+    <filter name="Media-Bug-Function" type="include" value="kz_audio_fork" />
+  </filters>
+</event>

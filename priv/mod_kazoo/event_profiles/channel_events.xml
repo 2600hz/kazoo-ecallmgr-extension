@@ -23,6 +23,8 @@
 				<param name="hash-amqp-header" value="call-id" />
 			</routing-key>
 		</event>
+		<event name="MEDIA_BUG_START" />
+		<event name="MEDIA_BUG_STOP" />
 	</events>
 
 	<routing-key>
