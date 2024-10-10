@@ -25,13 +25,11 @@
                                      ,{'media', ['DETECTED_TONE', 'DTMF','CHANNEL_PROGRESS','CHANNEL_PROGRESS_MEDIA']}
                                      ,{'fax', ?FAX_EVENTS}
                                      ,{'cdr', ['KZ_CDR']}
-                                     ,{'record', ['RECORD_START', 'RECORD_STOP', 'RECORD_PAUSE', 'RECORD_RESUME', 'RECORD_MASK', 'RECORD_UNMASK']}
                                      ,{'callflow', ['ROUTE_WINNER', 'CHANNEL_EXECUTE_COMPLETE', 'CHANNEL_APP_EXECUTE_COMPLETE', 'CHANNEL_METAFLOW']}
                                      ,{'channel', ['CHANNEL_CREATE', 'CHANNEL_ANSWER', 'CHANNEL_DESTROY']}
                                      ]).
 
--define(FS_EXTENSION_INCLUDE_EVENTS, [{'record', ['RECORD_STOP']}
-                                     ,{'create', ['CHANNEL_CREATE']}
+-define(FS_EXTENSION_INCLUDE_EVENTS, [{'create', ['CHANNEL_CREATE']}
                                      ,{'answer', ['CHANNEL_ANSWER']}
                                      ,{'destroy', ['CHANNEL_DESTROY']}
                                      ,{'route', ['ROUTE_WINNER']}
