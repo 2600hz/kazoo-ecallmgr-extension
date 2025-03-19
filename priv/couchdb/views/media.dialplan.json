@@ -8,6 +8,7 @@
         ]
     },
     "language": "javascript",
+    "autoupdate": false,
     "views": {
         "context.dialplan": {
             "map": [
