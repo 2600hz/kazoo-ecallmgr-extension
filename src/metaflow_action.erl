@@ -45,7 +45,7 @@ handle_metaflow_action(UUID, JObj, ControlQ, ChannelJObj, Node) ->
                ],
     CRHs = [{<<"Metaflow-Request-Type">>, <<"metaflow">>}
            ,{<<"Metaflow">>, kz_json:from_list(Metaflow)}
-           ,{<<"Other-Leg-Call-ID">>, kz_evt_freeswitch:other_leg_call_id(ChannelJObj)}
+           ,{<<"Other-Leg-Call-ID">>, kz_json:get_ne_binary_value(<<"Other-Leg-Call-ID">>, ChannelJObj)}
            ],
 
     ReqProps = [{<<"Resource-Type">>,<<"metaflow">>}
