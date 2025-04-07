@@ -24,7 +24,20 @@
 	</routing-key>
 	-->
 
-	
+	<!--
+	<cache expires_ms="3600000">
+		<field name="Fetch-Section" />
+		<field name="Fetch-Tag" />
+		<field name="Fetch-Key-Name" />
+		<field name="Fetch-Key-Value" />
+		<field name="user" />
+		<field name="domain" />
+		<field name="X-AUTH-Token" />
+		<field name="X-AUTH-URI-Realm" />
+		<field name="X-AUTH-URI-User" />
+		<field name="X-AUTH-From-User" />
+	</cache>
+	-->
     
 	<logging>
 		<log name="debug" value="SWITCH_LOG_CONSOLE" />
