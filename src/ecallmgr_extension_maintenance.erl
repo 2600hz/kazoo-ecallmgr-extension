@@ -75,16 +75,9 @@ check_licenses() ->
 -spec check_license(kz_term:ne_binary()) -> 'no_return'.
 check_license(Feature) ->
     Expiration = pretty_print_expiration(Feature),
-    _ = case ecallmgr_extension_util:authenticate(Feature) of
-            'true' ->
-                io:format("valid license for ~s until ~s~n"
-                         ,[Feature, Expiration]
-                         );
-            'false' ->
-                io:format("WARNING: license for ~s is invalid!~n"
-                         ,[Feature]
-                         )
-        end,
+    io:format("license checks are no longer enforced for ~s (expiration on file: ~s)~n"
+             ,[Feature, Expiration]
+             ),
     'no_return'.
 
 %%------------------------------------------------------------------------------

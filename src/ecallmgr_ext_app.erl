@@ -21,19 +21,13 @@
 %% @doc Implement the application start behaviour
 -spec start(application:start_type(), any()) -> kz_types:startapp_ret().
 start(_StartType, _StartArgs) ->
-    case ecallmgr_extension_util:authenticate(<<"application">>) of
-        'false' ->
-            lager:error("ecallmgr extension license is invalid or expired!"),
-            {'error', 'invalid_license'};
-        'true' ->
-            _ = declare_exchanges(),
-            _ = check_modules(),
-            _ = register_views(),
-            _ = event_stream_bind(),
-            _ = fetch_handlers_bind(),
-            ok = build_mod_com_kazoo_config(),
-            ecallmgr_ext_sup:start_link()
-    end.
+    _ = declare_exchanges(),
+    _ = check_modules(),
+    _ = register_views(),
+    _ = event_stream_bind(),
+    _ = fetch_handlers_bind(),
+    ok = build_mod_com_kazoo_config(),
+    ecallmgr_ext_sup:start_link().
 
 %% @doc Implement the application stop behaviour
 -spec stop(any()) -> any().
