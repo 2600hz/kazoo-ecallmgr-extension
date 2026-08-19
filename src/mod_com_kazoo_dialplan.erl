@@ -1,5 +1,5 @@
 %%%-----------------------------------------------------------------------------
-%%% @copyright (C) 2012-2022, 2600Hz
+%%% @copyright (C) 2012-2026, 2600Hz
 %%% @doc Send config commands to FS
 %%%
 %%% This Source Code Form is subject to the terms of the Mozilla Public

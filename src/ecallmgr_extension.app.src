@@ -1,6 +1,6 @@
 {application,ecallmgr_extension,
-             [{applications,[amqp_client,crypto,ecallmgr,kazoo_amqp,
-                             kazoo_apps,kazoo_bindings,kazoo_data,kazoo_documents,
+             [{applications,[amqp_client,ecallmgr,kazoo_amqp,kazoo_apps,
+                             kazoo_bindings,kazoo_data,kazoo_documents,
                              kazoo_nodes,kazoo_stdlib,lager,meta,stdlib,
                              xmerl]},
               {description,"Ecallmgr Extension"},
